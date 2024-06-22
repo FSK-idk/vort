@@ -1,10 +1,18 @@
 from PySide6.QtWidgets import QMainWindow, QPushButton, QMenuBar, QMenu, QToolBar
 from PySide6.QtGui import QAction
 
+from view.widget.editor_widget import EditorWidget
+
 
 class EditorWindow(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
+
+        # Widget
+
+        self.editor: EditorWidget = EditorWidget(self)
+
+        self.setCentralWidget(self.editor)
 
         # Window
 
@@ -124,6 +132,10 @@ class EditorWindow(QMainWindow):
         help_menu: QMenu = self.menuBar().addMenu("Help")
         help_menu.addAction(self.show_about_action)
 
+        # TODO: DEBUG
+        test_action: QAction = self.menuBar().addAction("Test")
+        test_action.triggered.connect(self.test)
+
         # Tool bar
 
         style_tool: QToolBar = self.addToolBar("Style")
@@ -224,3 +236,7 @@ class EditorWindow(QMainWindow):
 
     def leftIndent(self) -> None:
         print("Left Indent")
+
+    # TODO: DEBUG
+    def test(self) -> None:
+        self.editor.test()
