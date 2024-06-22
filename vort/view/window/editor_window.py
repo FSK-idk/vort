@@ -59,6 +59,43 @@ class EditorWindow(QMainWindow):
         self.show_about_action: QAction = QAction("About")
         self.show_about_action.triggered.connect(self.showAbout)
 
+        # Style
+
+        self.choose_style_action: QAction = QAction("Style")
+        self.choose_style_action.triggered.connect(self.chooseStyle)
+        self.clear_style_action: QAction = QAction("Clear")
+        self.clear_style_action.triggered.connect(self.clearStyle)
+
+        # Font
+
+        self.choose_font_action: QAction = QAction("Font")
+        self.choose_font_action.triggered.connect(self.chooseFont)
+        self.choose_font_size_action: QAction = QAction("Size")
+        self.choose_font_size_action.triggered.connect(self.chooseFontSize)
+
+        # Format
+
+        self.bold_text_action: QAction = QAction("Bold")
+        self.bold_text_action.triggered.connect(self.boldText)
+        self.italic_text_action: QAction = QAction("Italic")
+        self.italic_text_action.triggered.connect(self.italicText)
+        self.underline_text_action: QAction = QAction("Underline")
+        self.underline_text_action.triggered.connect(self.underlineText)
+
+        # Color
+
+        self.color_text_action: QAction = QAction("Color")
+        self.color_text_action.triggered.connect(self.colorText)
+        self.bg_color_text_action: QAction = QAction("BG Color")
+        self.bg_color_text_action.triggered.connect(self.bgColorText)
+
+        # Indent
+
+        self.right_indent_action: QAction = QAction("Right")
+        self.right_indent_action.triggered.connect(self.rightIndent)
+        self.left_indent_action: QAction = QAction("Left")
+        self.left_indent_action.triggered.connect(self.leftIndent)
+
         # Menu bar
 
         file_menu: QMenu = self.menuBar().addMenu("File")
@@ -86,6 +123,29 @@ class EditorWindow(QMainWindow):
 
         help_menu: QMenu = self.menuBar().addMenu("Help")
         help_menu.addAction(self.show_about_action)
+
+        # Tool bar
+
+        style_tool: QToolBar = self.addToolBar("Style")
+        style_tool.addAction(self.choose_style_action)
+        style_tool.addAction(self.clear_style_action)
+
+        font_tool: QToolBar = self.addToolBar("Font")
+        font_tool.addAction(self.choose_font_action)
+        font_tool.addAction(self.choose_font_size_action)
+
+        format_tool: QToolBar = self.addToolBar("Format")
+        format_tool.addAction(self.bold_text_action)
+        format_tool.addAction(self.italic_text_action)
+        format_tool.addAction(self.underline_text_action)
+
+        color_tool: QToolBar = self.addToolBar("Color")
+        color_tool.addAction(self.color_text_action)
+        color_tool.addAction(self.bg_color_text_action)
+
+        indent_tool: QToolBar = self.addToolBar("Indent")
+        indent_tool.addAction(self.right_indent_action)
+        indent_tool.addAction(self.left_indent_action)
 
     def newFile(self) -> None:
         print("New File")
@@ -131,3 +191,36 @@ class EditorWindow(QMainWindow):
 
     def showAbout(self) -> None:
         print("Show About")
+
+    def chooseStyle(self) -> None:
+        print("Choose Style")
+
+    def clearStyle(self) -> None:
+        print("Clear Style")
+
+    def chooseFont(self) -> None:
+        print("Choose Font")
+
+    def chooseFontSize(self) -> None:
+        print("Choose Font Size")
+
+    def boldText(self) -> None:
+        print("Bold Text")
+
+    def italicText(self) -> None:
+        print("Italic Text")
+
+    def underlineText(self) -> None:
+        print("Underline Text")
+
+    def colorText(self) -> None:
+        print("Color Text")
+
+    def bgColorText(self) -> None:
+        print("BG Color Text")
+
+    def rightIndent(self) -> None:
+        print("Right Indent")
+
+    def leftIndent(self) -> None:
+        print("Left Indent")
