@@ -19,8 +19,8 @@ from PySide6.QtCore import Qt, QSize, QEvent, QRect, QPoint, QRectF, Signal
 from utils.point_f import PointF
 from utils.rect_f import RectF
 
-from model.page import Page, PAGE_WIDTH, PAGE_HEIGHT
-from model.page_layout import PageLayout
+from model import Page, PageLayout
+from model.page import PAGE_WIDTH, PAGE_HEIGHT
 
 from view.widget.document_layout import DocumentLayout, PaintContext
 
@@ -41,24 +41,11 @@ class EditorWidget(QAbstractScrollArea):
 
         self.document_layout.pageCountChanged.connect(self.updateScrollBar)
 
-        # root_frame: QTextFrame = self.document.rootFrame()
-        # root_frame_format: QTextFrameFormat = root_frame.frameFormat()
-        # root_frame_format.setWidth(self.__page_width)
-        # root_frame_format.setHeight(self.__page_height)
-        # root_frame_format.setMargin(self.__page_margin)
-        # root_frame_format.setPadding(self.__page_padding)
-        # root_frame_format.setBorderStyle(QTextFrameFormat.BorderStyle.BorderStyle_DotDotDash)
-        # root_frame_format.setBorderBrush(QBrush(Qt.GlobalColor.blue))
-        # root_frame_format.setPageBreakPolicy(QTextFormat.PageBreakFlag.PageBreak_Auto)
-        # self.document.rootFrame().setFrameFormat(root_frame_format)
+        # setup
 
-        # TODO: DEBUG
-        # self.print_info()
+        self.setupScrollBar()
 
-        # # Layout
-
-        # setup scroll bar
-
+    def setupScrollBar(self) -> None:
         self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
         self.verticalScrollBar().setPageStep(PAGE_HEIGHT)
         self.verticalScrollBar().setSingleStep(2)
@@ -146,15 +133,10 @@ class EditorWidget(QAbstractScrollArea):
 
     # TODO: DEBUG
     def test(self) -> None:
-        self.print_info()
-        pass
-
-    # TODO: DEBUG
-    def print_info(self) -> None:
-        pass
         # format_: QTextFrameFormat = self.text_edit.document().rootFrame().frameFormat()
         # print("Root Frame Format:")
         # print("width:", format_.width().rawValue())
         # print("height:", format_.height().rawValue())
         # print("margin:", format_.margin())
         # print("padding:", format_.padding())
+        pass

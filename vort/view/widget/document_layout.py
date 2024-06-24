@@ -111,14 +111,18 @@ class DocumentLayout(QAbstractTextDocumentLayout):
             self.pageCountChanged.emit(self.page_layout.pageCount())
 
     def draw(self, painter: QPainter, context: PaintContext):
+        self.drawPage(painter, context)
+        self.drawText(painter, context)
+
+        self.update.emit()
+
+    def drawPage(self, painter: QPainter, context: PaintContext) -> None:
         rect: RectF = context.rect
         cursor_position: int = context.cursor_position
         palette: QPalette = context.palette
 
         painter.setBrush(QColor("white"))
-        painter.setPen(QColor("red"))
-
-        # draw pages
+        painter.setPen(QColor("blue"))
 
         for i in range(self.page_layout.pageCount()):
             page_rect: RectF = self.page_layout.getPage(i).rect()
@@ -127,7 +131,12 @@ class DocumentLayout(QAbstractTextDocumentLayout):
             )
             painter.drawRect(page_rect.toQRectF())
 
-        # draw text
+    def drawText(self, painter: QPainter, context: PaintContext):
+        rect: RectF = context.rect
+        cursor_position: int = context.cursor_position
+        palette: QPalette = context.palette
+
+        painter.setPen(QColor("red"))
 
         carriage_position: QPointF = QPointF(
             self.page_layout.xPosition() - rect.xPosition(), self.page_layout.yPosition() - rect.yPosition()
@@ -143,8 +152,6 @@ class DocumentLayout(QAbstractTextDocumentLayout):
                 block_layout.drawCursor(painter, carriage_position, cursor_position - block_position)
 
             block_layout.draw(painter, carriage_position, [], rect.toQRectF())
-
-        self.update.emit()
 
     def resize(self, point: PointF):
         self.page_layout.setXPosition((point.xPosition() - self.page_layout.width()) / 2)

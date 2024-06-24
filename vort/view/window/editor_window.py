@@ -8,21 +8,26 @@ class EditorWindow(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
 
-        # Widget
+        # widget
 
         self.editor: EditorWidget = EditorWidget(self)
 
         self.setCentralWidget(self.editor)
 
-        # Window
+        # window
 
         self.setWindowTitle("vort")
         self.setGeometry(0, 0, 800, 600)
         self.setMinimumSize(400, 300)
 
-        # Action
+        # setup
 
-        # File
+        self.setupAction()
+        self.setupMenuBar()
+        self.setupToolBar()
+
+    def setupAction(self) -> None:
+        # file
 
         self.new_file_action: QAction = QAction("New")
         self.new_file_action.triggered.connect(self.newFile)
@@ -34,7 +39,7 @@ class EditorWindow(QMainWindow):
         self.exit_editor_action: QAction = QAction("Exit")
         self.exit_editor_action.triggered.connect(self.exitEditor)
 
-        # Edit
+        # edit
 
         self.undo_last_action: QAction = QAction("Undo")
         self.undo_last_action.triggered.connect(self.undoLast)
@@ -55,33 +60,33 @@ class EditorWindow(QMainWindow):
         self.find_and_replace_text_action: QAction = QAction("Find and Replace")
         self.find_and_replace_text_action.triggered.connect(self.findAndReplaceText)
 
-        # Insert
+        # insert
 
         self.insert_image_action: QAction = QAction("Image")
         self.insert_image_action.triggered.connect(self.insertImage)
         self.insert_hyperlink_action: QAction = QAction("Hylerlink")
         self.insert_hyperlink_action.triggered.connect(self.insertHyperlink)
 
-        # Help
+        # help
 
         self.show_about_action: QAction = QAction("About")
         self.show_about_action.triggered.connect(self.showAbout)
 
-        # Style
+        # style
 
         self.choose_style_action: QAction = QAction("Style")
         self.choose_style_action.triggered.connect(self.chooseStyle)
         self.clear_style_action: QAction = QAction("Clear")
         self.clear_style_action.triggered.connect(self.clearStyle)
 
-        # Font
+        # font
 
         self.choose_font_action: QAction = QAction("Font")
         self.choose_font_action.triggered.connect(self.chooseFont)
         self.choose_font_size_action: QAction = QAction("Size")
         self.choose_font_size_action.triggered.connect(self.chooseFontSize)
 
-        # Format
+        # format
 
         self.bold_text_action: QAction = QAction("Bold")
         self.bold_text_action.triggered.connect(self.boldText)
@@ -90,22 +95,21 @@ class EditorWindow(QMainWindow):
         self.underline_text_action: QAction = QAction("Underline")
         self.underline_text_action.triggered.connect(self.underlineText)
 
-        # Color
+        # color
 
         self.color_text_action: QAction = QAction("Color")
         self.color_text_action.triggered.connect(self.colorText)
         self.bg_color_text_action: QAction = QAction("BG Color")
         self.bg_color_text_action.triggered.connect(self.bgColorText)
 
-        # Indent
+        # indent
 
         self.right_indent_action: QAction = QAction("Right")
         self.right_indent_action.triggered.connect(self.rightIndent)
         self.left_indent_action: QAction = QAction("Left")
         self.left_indent_action.triggered.connect(self.leftIndent)
 
-        # Menu bar
-
+    def setupMenuBar(self) -> None:
         file_menu: QMenu = self.menuBar().addMenu("File")
         file_menu.addAction(self.new_file_action)
         file_menu.addAction(self.open_file_action)
@@ -136,8 +140,7 @@ class EditorWindow(QMainWindow):
         test_action: QAction = self.menuBar().addAction("Test")
         test_action.triggered.connect(self.test)
 
-        # Tool bar
-
+    def setupToolBar(self) -> None:
         style_tool: QToolBar = self.addToolBar("Style")
         style_tool.addAction(self.choose_style_action)
         style_tool.addAction(self.clear_style_action)
