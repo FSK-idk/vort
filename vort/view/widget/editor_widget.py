@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QWidget, QTextEdit, QVBoxLayout, QAbstractScrollArea, QFrame, QPushButton, QSizePolicy
 from PySide6.QtGui import QKeyEvent, QTextDocument, QTextCursor, QTextFrame, QTextFrameFormat, QBrush, QColor, \
-      QPalette, QPaintEvent, QPainter, QResizeEvent, QKeyEvent
+      QPalette, QPaintEvent, QPainter, QResizeEvent, QKeyEvent, QTextFormat
 from PySide6.QtCore import Qt, QSize, QEvent, QRect, QPoint, QRectF, Signal
 
 from model.page import Page
@@ -14,8 +14,8 @@ class EditorWidget(QAbstractScrollArea):
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
 
-        self.__page_width: float = 360
-        self.__page_height: float = 480
+        self.__page_width: float = 250
+        self.__page_height: float = 250
         self.__page_margin: float = 50
         self.__page_padding: float = 20
         self.__page_spacing: float = 10
@@ -31,10 +31,9 @@ class EditorWidget(QAbstractScrollArea):
         self.page_layout.append(Page())
 
         self.document: QTextDocument = QTextDocument()
-        self.document.setPageSize(QSize(600, 600))
-        self.document.setPlainText("HELLO WORLD!!!!!!")
         self.document_layout: DocumentLayout = DocumentLayout(self.document)
         self.document.setDocumentLayout(self.document_layout)
+        self.document.setPageSize(QSize(self.__page_width, self.__page_height))
 
         self.text_cursor: QTextCursor = QTextCursor(self.document)
 
@@ -46,6 +45,7 @@ class EditorWidget(QAbstractScrollArea):
         root_frame_format.setPadding(self.__page_padding)
         root_frame_format.setBorderStyle(QTextFrameFormat.BorderStyle.BorderStyle_DotDotDash)
         root_frame_format.setBorderBrush(QBrush(Qt.GlobalColor.blue))
+        root_frame_format.setPageBreakPolicy(QTextFormat.PageBreakFlag.PageBreak_Auto)
         self.document.rootFrame().setFrameFormat(root_frame_format)
 
         # TODO: DEBUG
@@ -64,6 +64,9 @@ class EditorWidget(QAbstractScrollArea):
 
     def paintEvent(self, event: QPaintEvent) -> None:
         # print("Paint", event)
+
+        # Paint pages
+
         painter: QPainter = QPainter(self.viewport())
 
         screen_x = self.horizontalScrollBar().value()
@@ -78,16 +81,25 @@ class EditorWidget(QAbstractScrollArea):
         paint_event: QPaintEvent = QPaintEvent(rect)
         self.page_layout.paint(painter, paint_event)
 
+        # Paint text
+
+        clip_x = self.page_layout.xPosition()
+        clip_y = self.page_layout.yPosition()
+        clip_w = event.rect().width()
+        clip_h = event.rect().height()
+
+        # painter.setRect(QRectF(clip_x, clip_y, clip_w, clip_h))
         context = DocumentLayout.PaintContext()
-        context.clip: QRectF = event.rect()  # type: ignore
+        context.clip: QRectF = QRectF(clip_x, clip_y, clip_w, clip_h)  # type: ignore
         context.cursorPosition: int = self.text_cursor.position()  # type: ignore
         context.palette: QPalette = QPalette()  # type: ignore
+        context.palette.setColor(QPalette.ColorGroup.Active, QPalette.ColorRole.Text, QColor("red"))  # type: ignore
         context.selections: list[QTextLayout.FormatRange] = []  # type: ignore
 
         self.document_layout.draw(painter, context)
 
     def keyPressEvent(self, event: QKeyEvent) -> None:
-        print("Key Pressed", event)
+        # print("Key Pressed", event)
 
         match event.key():
             case Qt.Key.Key_Up:
@@ -123,6 +135,7 @@ class EditorWidget(QAbstractScrollArea):
         # print("end?", self.text_cursor.atEnd())
         # print("start?", self.text_cursor.atStart())
         # print("cursor pos:", self.text_cursor.position())
+        # print(self.document.pageCount())
 
         self.viewport().repaint()
 
