@@ -1,84 +1,164 @@
-from PySide6.QtGui import QPainter, QPaintEvent, QColor, QResizeEvent
-from PySide6.QtCore import QPointF, QRectF, Qt, QPoint
-
 from model.page import Page
+from utils import PointF
 
 
 class PageLayout:
-    def __init__(self) -> None:
-        self.__pages: list[Page] = []
-        
-        self.__x_position: float = 0
-        self.__y_position: float = 0
-        
-        self.__page_width: float = 0
-        self.__page_height: float = 0
-        self.__spacing: float = 0
+    """
+    By default all pages are centered
+    """
 
-    def width(self) -> float:
-        return self.__page_width
+    def __init__(
+        self,
+        x_position: float = 0,
+        y_position: float = 0,
+        pages: list[Page] = [],
+        spacing: float = 0,
+    ) -> None:
+        self.__x_position: float = x_position
+        self.__y_position: float = y_position
+        self.__pages: list[Page] = pages
+        self.__spacing: float = spacing
 
-    def height(self) -> float:
-        return self.__page_height * len(self.__pages) + self.__spacing * (len(self.__pages) - 1)
+        self.__width: float = 0
+        if self.__pages:
+            self.__width = max([page.width() for page in self.__pages])
 
-    def position(self) -> QPointF:
-        return QPointF(self.__x_position, self.__y_position)
+        # update page x positions
+        for page in self.__pages:
+            page_x_position = (self.__width - page.width()) / 2
+            page.setXPosition(page_x_position)
+
+        # update page y positions and set height
+        self.__height = 0
+
+        current_y_position = 0
+        for page in self.__pages:
+            page.setYPosition(current_y_position)
+            self.__height += page.height()
+            current_y_position += self.__spacing
+
+        if len(self.__pages) > 1:
+            self.__height += self.__spacing * (len(self.__pages) - 1)
 
     def xPosition(self) -> float:
         return self.__x_position
-    
+
     def setXPosition(self, x_position) -> None:
         self.__x_position = x_position
-    
+
     def yPosition(self) -> float:
         return self.__y_position
 
     def setYPosition(self, y_position) -> None:
         self.__y_position = y_position
 
-    def move(self, x: float, y: float) -> None:
-        self.__x_position += x
-        self.__y_position += y
+    def position(self) -> PointF:
+        return PointF(self.__x_position, self.__y_position)
 
-    def setPageWidth(self, page_width: float) -> None:
-        self.__page_width = page_width
-        for page in self.__pages:
-            page.setWidth(self.__page_width)
+    def setPosition(self, position: PointF) -> None:
+        self.__x_position = position.xPosition()
+        self.__y_position = position.yPosition()
 
-    def setPageHeight(self, page_height: float) -> None:
-        self.__page_height = page_height
-        current_height = 0
+    def pageCount(self) -> int:
+        return len(self.__pages)
+
+    def getPage(self, index) -> Page:
+        """
+        index in range(0, len(self.__pages))
+        """
+        return self.__pages[index]
+
+    def insertPage(self, index: int, inserted_page: Page) -> None:
+        """
+        index in range(0, len(self.__pages) + 1)
+        """
+        self.__pages.insert(index, inserted_page)
+
+        # update width
+        if inserted_page.width() > self.__width:
+            self.__width = inserted_page.width()
+            # update page x positions
+            for page in self.__pages:
+                page_x_position = (self.__width - page.width()) / 2
+                page.setXPosition(page_x_position)
+        else:
+            # update page x position
+            page_x_position = (self.__width - inserted_page.width()) / 2
+            inserted_page.setXPosition(page_x_position)
+
+        # update page y positions
+        if index - 1 >= 0:
+            current_y_position = self.__pages[index - 1].yPosition() + self.__pages[index - 1].height() + self.__spacing
+            for i in range(index, len(self.__pages)):
+                self.__pages[i].setYPosition(current_y_position)
+                current_y_position += self.__spacing
+
+        # update height
+        if len(self.__pages) > 1:
+            self.__height += self.__spacing
+        self.__height += inserted_page.height()
+
+    def addPage(self) -> None:
+        self.insertPage(len(self.__pages), Page())
+
+    def deletePage(self, index: int) -> None:
+        """
+        index in range(0, len(self.__pages))
+        """
+        deleted_page_height = self.__pages[index].height()
+        del self.__pages[index]
+
+        self.__width = 0
+        if self.__pages:
+            self.__width = max([page.width() for page in self.__pages])
+
+        # update page x positions
         for page in self.__pages:
-            page.setHeight(self.__page_height)
-            current_height += self.__page_height
-            current_height += self.__spacing
+            page_x_position = (self.__width - page.width()) / 2
+            page.setXPosition(page_x_position)
+
+        # update page y positions
+        if index > 0:
+            current_y_position = self.__pages[index - 1].yPosition() + self.__pages[index - 1].height() + self.__spacing
+        else:
+            current_y_position = 0
+
+        for i in range(index, len(self.__pages)):
+            self.__pages[i].setYPosition(current_y_position)
+            current_y_position += self.__spacing
+
+        # update height
+        if len(self.__pages) > 0:
+            self.__height -= self.__spacing
+        self.__height -= deleted_page_height
+
+    def deleteLastPage(self) -> None:
+        self.deletePage(len(self.__pages) - 1)
+
+    def spacing(self) -> float:
+        return self.__spacing
 
     def setSpacing(self, spacing: float) -> None:
         self.__spacing = spacing
 
-    def append(self, page: Page) -> None:
-        page.setWidth(self.__page_width)
-        page.setHeight(self.__page_height)
+        # update page y positions and height
+        self.__height = 0
 
-        if self.__pages:
-            last_page = self.__pages[-1]
-            page.setYPosition(last_page.yPosition() + last_page.height() + self.__spacing)
-
-        self.__pages.append(page)
-
-    def paint(self, painter: QPainter, event: QPaintEvent) -> None:
-        painter.setBrush(QColor("white"))
-
+        current_y_position = 0
         for page in self.__pages:
+            page.setYPosition(current_y_position)
+            self.__height += page.height()
+            current_y_position += self.__spacing
 
-            rect_x = page.xPosition() + self.__x_position - event.rect().x()
-            rect_y = page.yPosition() + self.__y_position - event.rect().y()
-            rect_w = page.width()
-            rect_h = page.height()
+        if len(self.__pages) > 1:
+            self.__height += self.__spacing * (len(self.__pages) - 1)
 
-            rect: QRectF = QRectF(rect_x, rect_y, rect_w, rect_h)
+    def width(self) -> float:
+        return self.__width
 
-            painter.drawRect(rect)
+    def height(self) -> float:
+        return self.__height
 
-    def onResizeEvent(self, event: QResizeEvent) -> None:
-        self.__x_position = (event.size().width() - self.__page_width) / 2
+    def move(self, x: float, y: float) -> None:
+        self.__x_position += x
+        self.__y_position += y

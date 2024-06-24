@@ -1,39 +1,45 @@
-from utils import PointF, RectF
-
-# TODO: Move in config
-PAGE_WIDTH = 360
-PAGE_HEIGHT = 480
-PAGE_MARGIN = 20
-PAGE_PADDING = 10
+from typing import Self
+from PySide6.QtCore import QRectF, QRect
+from utils.point_f import PointF
 
 
-class Page:
+class RectF:
     def __init__(
         self,
         x_position: float = 0,
         y_position: float = 0,
         width: float = 0,
         height: float = 0,
-        margin: float = 0,
-        padding: float = 0,
     ) -> None:
         self.__x_position: float = x_position
         self.__y_position: float = y_position
-        self.__width: float = PAGE_WIDTH
-        self.__height: float = PAGE_HEIGHT
-        self.__margin: float = PAGE_MARGIN
-        self.__padding: float = PAGE_PADDING
+        self.__width: float = width
+        self.__height: float = height
+
+    @classmethod
+    def fromQRectF(cls, rect: QRectF) -> Self:
+        return cls(rect.x(), rect.y(), rect.width(), rect.height())
+
+    @classmethod
+    def fromQRect(cls, rect: QRect) -> Self:
+        return cls(rect.x(), rect.y(), rect.width(), rect.height())
+
+    def toQRectF(self) -> QRectF:
+        return QRectF(self.__x_position, self.__y_position, self.__width, self.__height)
+
+    def toQRect(self) -> QRect:
+        return QRect(int(self.__x_position), int(self.__y_position), int(self.__width), int(self.__height))
 
     def xPosition(self) -> float:
         return self.__x_position
 
-    def setXPosition(self, x_position) -> None:
+    def setXPosition(self, x_position: float) -> None:
         self.__x_position = x_position
 
     def yPosition(self) -> float:
         return self.__y_position
 
-    def setYPosition(self, y_position) -> None:
+    def setYPosition(self, y_position: float) -> None:
         self.__y_position = y_position
 
     def position(self) -> PointF:
@@ -54,27 +60,6 @@ class Page:
 
     def setHeight(self, height: float) -> None:
         self.__height = height
-
-    def margin(self) -> float:
-        return self.__margin
-
-    def setMargin(self, margin: float) -> None:
-        self.__margin = margin
-
-    def padding(self) -> float:
-        return self.__padding
-
-    def setPadding(self, padding: float) -> None:
-        self.__padding = padding
-
-    def textWidth(self) -> float:
-        return self.__width - (self.__margin + self.__padding) * 2
-
-    def textHeight(self) -> float:
-        return self.__height - (self.__margin + self.__padding) * 2
-
-    def rect(self) -> RectF:
-        return RectF(self.__x_position, self.__y_position, self.__width, self.__height)
 
     def move(self, vector: PointF) -> None:
         self.__x_position += vector.xPosition()
