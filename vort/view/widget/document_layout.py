@@ -46,7 +46,7 @@ class DocumentLayout(QAbstractTextDocumentLayout):
             block_length: int = block.length()
 
             if cursor_position >= block_position and cursor_position < block_position + block_length:
-                block_layout.drawCursor(painter, carriage_position, cursor_position)
+                block_layout.drawCursor(painter, carriage_position, cursor_position - block_position)
 
             block_layout.draw(painter, carriage_position, selections, clip)
 
