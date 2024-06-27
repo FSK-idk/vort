@@ -64,3 +64,16 @@ class RectF:
     def move(self, vector: PointF) -> None:
         self.__x_position += vector.xPosition()
         self.__y_position += vector.yPosition()
+
+    def contains(self, point: PointF) -> bool:
+        vector_1 = PointF(0, self.__height)
+        vector_2 = PointF(self.__width, 0)
+        vector_3 = PointF(point.xPosition() - self.__x_position, point.yPosition() - self.__y_position)
+
+        dot_13 = PointF.dotProduct(vector_1, vector_3)
+        dot_11 = PointF.dotProduct(vector_1, vector_1)
+
+        dot_23 = PointF.dotProduct(vector_2, vector_3)
+        dot_22 = PointF.dotProduct(vector_2, vector_2)
+
+        return 0 <= dot_13 and dot_13 <= dot_11 and 0 <= dot_23 and dot_23 <= dot_22

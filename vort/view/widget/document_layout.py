@@ -175,16 +175,29 @@ class DocumentLayout(QAbstractTextDocumentLayout):
     def pageCount(self) -> int:
         return self.page_layout.pageCount()
 
-    def hitTest(self, point: QPointF, accuracy: Qt.HitTestAccuracy) -> int:
-        print(point.toTuple())
-        return 0
-        # root_frame: QTextFrame = self.document().rootFrame()
-        # root_frame_format: QTextFrameFormat = root_frame.frameFormat()
-        # position: int = 0
+    def hitTest(self, point: PointF) -> int:
 
-        # print(root_frame.children())
+        current_cursor_position = 0
 
-        # position = 0
+        for i in range(self.document().blockCount()):
+            block: QTextBlock = self.document().findBlockByNumber(i)
+            block_layout: QTextLayout = block.layout()
+            block_rect: RectF = RectF.fromQRectF(block_layout.boundingRect())
+            block_rect.move(self.page_layout.position())
 
-        # print(position)
-        # return position
+            if block_rect.contains(point):
+                for j in range(block_layout.lineCount()):
+                    line: QTextLine = block_layout.lineAt(j)
+                    line_rect: RectF = RectF.fromQRectF(line.rect())
+                    line_rect.move(self.page_layout.position())
+
+                    if line_rect.contains(point):
+                        x_coord = point.xPosition() - self.page_layout.xPosition()
+                        line_cursor_position = line.xToCursor(x_coord, QTextLine.CursorPosition.CursorBetweenCharacters)
+                        current_cursor_position += line_cursor_position
+
+                        return current_cursor_position
+
+            current_cursor_position += block.length()
+
+        return -1

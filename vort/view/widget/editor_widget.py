@@ -1,6 +1,7 @@
 from PySide6.QtWidgets import QWidget, QTextEdit, QVBoxLayout, QAbstractScrollArea, QFrame, QPushButton, QSizePolicy
 from PySide6.QtGui import (
     QKeyEvent,
+    QMouseEvent,
     QTextDocument,
     QTextCursor,
     QTextFrame,
@@ -48,10 +49,10 @@ class EditorWidget(QAbstractScrollArea):
     def setupScrollBar(self) -> None:
         self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
         self.verticalScrollBar().setPageStep(PAGE_HEIGHT)
-        self.verticalScrollBar().setSingleStep(2)
+        self.verticalScrollBar().setSingleStep(4)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
         self.horizontalScrollBar().setPageStep(PAGE_WIDTH)
-        self.horizontalScrollBar().setSingleStep(2)
+        self.horizontalScrollBar().setSingleStep(4)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
 
@@ -73,6 +74,22 @@ class EditorWidget(QAbstractScrollArea):
         context = PaintContext(rect, self.text_cursor.position(), palette)
 
         self.document_layout.draw(painter, context)
+
+    def mousePressEvent(self, event: QMouseEvent) -> None:
+        if event.button() == Qt.MouseButton.LeftButton:
+            point_position = PointF.fromQPointF(event.position())
+
+            screen_x = self.horizontalScrollBar().value()
+            screen_y = self.verticalScrollBar().value()
+
+            point_position.move(PointF(screen_x, screen_y))
+
+            position = self.document_layout.hitTest(point_position)
+
+            if position != -1:
+                self.text_cursor.setPosition(position)
+                self.viewport().repaint()
+                pass
 
     def keyPressEvent(self, event: QKeyEvent) -> None:
         match event.key():
