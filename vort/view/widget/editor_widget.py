@@ -62,6 +62,10 @@ class EditorWidget(QAbstractScrollArea):
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
 
+    # def viewportEvent(self, event: QEvent) -> bool:
+    #     if isinstance(event, ...): ...
+    #     return True
+
     def paintEvent(self, event: QPaintEvent) -> None:
         painter: QPainter = QPainter(self.viewport())
 
@@ -88,6 +92,9 @@ class EditorWidget(QAbstractScrollArea):
         context = PaintContext(rect, self.text_cursor.position(), palette, selections)
         self.document_layout.draw(painter, context)
 
+    def mouseReleaseEvent(self, event: QMouseEvent) -> None:
+        pass
+
     def mousePressEvent(self, event: QMouseEvent) -> None:
         if event.button() == Qt.MouseButton.LeftButton:
             point_position = PointF.fromQPointF(event.position())
@@ -100,10 +107,30 @@ class EditorWidget(QAbstractScrollArea):
             position = self.document_layout.hitTest(point_position)
 
             if position != -1:
-                self.text_cursor.setPosition(position)
+                self.text_cursor.setPosition(position, QTextCursor.MoveMode.MoveAnchor)
                 self.viewport().repaint()
 
                 self.cursorPositionChanged.emit(position)
+
+            self.mouse_pressed = True
+
+    def mouseMoveEvent(self, event: QMouseEvent) -> None:
+        if event.buttons() == Qt.MouseButton.LeftButton:
+            point_position = PointF.fromQPointF(event.position())
+
+            screen_x = self.horizontalScrollBar().value()
+            screen_y = self.verticalScrollBar().value()
+
+            point_position.move(PointF(screen_x, screen_y))
+
+            position = self.document_layout.hitTest(point_position)
+
+            if position != -1:
+                self.text_cursor.setPosition(position, QTextCursor.MoveMode.KeepAnchor)
+
+                self.viewport().repaint()
+                self.cursorPositionChanged.emit(position)
+        pass
 
     def keyReleaseEvent(self, event: QKeyEvent) -> None:
         # print(event)
