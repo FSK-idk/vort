@@ -11,6 +11,7 @@ from PySide6.QtGui import (
     QFontMetricsF,
     QTextCharFormat,
     QPalette,
+    QTextFormat,
     QTextFrameFormat,
     QPen,
     QColor,
@@ -24,16 +25,28 @@ from model.page_layout import PageLayout
 from model.page import Page
 
 
+class Selection:
+    def __init__(
+        self,
+        cursor: QTextCursor = QTextCursor(),
+        format: QTextCharFormat = QTextCharFormat(),
+    ) -> None:
+        self.cursor: QTextCursor = cursor
+        self.format: QTextCharFormat = format
+
+
 class PaintContext:
     def __init__(
         self,
         rect: RectF = RectF(),
         cursor_position: int = -1,
         palette: QPalette = QPalette(),
+        selections: list[Selection] = [],
     ) -> None:
         self.rect: RectF = rect
         self.cursor_position: int = cursor_position
         self.palette: QPalette = palette
+        self.selections: list[Selection] = selections
 
 
 class DocumentLayout(QAbstractTextDocumentLayout):
@@ -120,11 +133,10 @@ class DocumentLayout(QAbstractTextDocumentLayout):
 
     def drawPage(self, painter: QPainter, context: PaintContext) -> None:
         rect: RectF = context.rect
-        cursor_position: int = context.cursor_position
         palette: QPalette = context.palette
 
-        painter.setBrush(QColor("white"))
-        painter.setPen(QColor("blue"))
+        painter.setBrush(palette.color(QPalette.ColorGroup.Active, QPalette.ColorRole.Base))
+        painter.setPen(palette.color(QPalette.ColorGroup.Active, QPalette.ColorRole.Base))
 
         for i in range(self.page_layout.pageCount()):
             page_rect: RectF = self.page_layout.getPage(i).rect()
@@ -137,8 +149,9 @@ class DocumentLayout(QAbstractTextDocumentLayout):
         rect: RectF = context.rect
         cursor_position: int = context.cursor_position
         palette: QPalette = context.palette
+        selections: list[Selection] = context.selections
 
-        painter.setPen(QColor("red"))
+        painter.setPen(palette.color(QPalette.ColorGroup.Active, QPalette.ColorRole.Text))
 
         carriage_position: QPointF = QPointF(
             self.page_layout.xPosition() - rect.xPosition(), self.page_layout.yPosition() - rect.yPosition()
@@ -150,35 +163,30 @@ class DocumentLayout(QAbstractTextDocumentLayout):
             block_position: int = block.position()
             block_length: int = block.length()
 
+            format_ranges: list[QTextLayout.FormatRange] = []
+
+            for selection in selections:
+                selection_start: int = selection.cursor.selectionStart() - block_position
+                selection_end: int = selection.cursor.selectionEnd() - block_position
+                if selection_start < block_length and selection_end > 0:
+                    format_range: QTextLayout.FormatRange = QTextLayout.FormatRange()
+                    format_range.start = selection_start  #  type: ignore
+                    format_range.length = selection_end - selection_start  #  type: ignore
+                    format_range.format = selection.format  #  type: ignore
+                    format_ranges.append(format_range)
+
             if cursor_position >= block_position and cursor_position < block_position + block_length:
                 block_layout.drawCursor(painter, carriage_position, cursor_position - block_position)
 
-            block_layout.draw(painter, carriage_position, [], rect.toQRectF())
+            block_layout.draw(painter, carriage_position, format_ranges, rect.toQRectF())
 
     def resize(self, point: PointF):
         self.page_layout.setXPosition((point.xPosition() - self.page_layout.width()) / 2)
 
-    # def blockBoundingRect(self, block: QTextBlock) -> QRectF:
-    #     return block.layout().boundingRect()
-
-    # def frameBoundingRect(self, frame: QTextFrame) -> QRectF:
-    #     first_block: QTextBlock = frame.firstCursorPosition().block()
-    #     last_block: QTextBlock = frame.lastCursorPosition().block()
-    #     first_rect: QRectF = self.blockBoundingRect(first_block)
-    #     last_rect: QRectF = self.blockBoundingRect(last_block)
-    #     frame_rect: QRectF = first_rect.united(last_rect)
-    #     return frame_rect
-
-    # def documentSize(self) -> QSizeF:
-    #     root_frame: QTextFrame = self.document().rootFrame()
-    #     root_frame_rect: QRectF = self.frameBoundingRect(root_frame)
-    #     return root_frame_rect.size()
-
-    # def pageCount(self) -> int:
-    #     return self.page_layout.pageCount()
+    def pageCount(self) -> int:
+        return self.page_layout.pageCount()
 
     def hitTest(self, point: PointF) -> int:
-
         current_cursor_position = 0
 
         for i in range(self.document().blockCount()):

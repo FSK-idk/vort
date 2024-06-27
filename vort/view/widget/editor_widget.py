@@ -25,7 +25,7 @@ from utils.rect_f import RectF
 from model import Page, PageLayout
 from model.page import PAGE_WIDTH, PAGE_HEIGHT
 
-from view.widget.document_layout import DocumentLayout, PaintContext
+from view.widget.document_layout import DocumentLayout, Selection, PaintContext
 
 
 class EditorWidget(QAbstractScrollArea):
@@ -75,10 +75,17 @@ class EditorWidget(QAbstractScrollArea):
 
         rect = RectF(rect_x, rect_y, rect_w, rect_h)
 
-        # TODO: Add palette colors
         palette: QPalette = QPalette()
-        context = PaintContext(rect, self.text_cursor.position(), palette)
+        palette.setColor(QPalette.ColorGroup.Active, QPalette.ColorRole.Text, QColor("red"))
+        palette.setColor(QPalette.ColorGroup.Active, QPalette.ColorRole.Base, QColor("white"))
 
+        format: QTextCharFormat = QTextCharFormat()
+        format.setBackground(QColor("blue"))
+        format.setForeground(QColor("white"))
+
+        selections: list[Selection] = [Selection(self.text_cursor, format)]
+
+        context = PaintContext(rect, self.text_cursor.position(), palette, selections)
         self.document_layout.draw(painter, context)
 
     def mousePressEvent(self, event: QMouseEvent) -> None:
@@ -98,20 +105,39 @@ class EditorWidget(QAbstractScrollArea):
 
                 self.cursorPositionChanged.emit(position)
 
+    def keyReleaseEvent(self, event: QKeyEvent) -> None:
+        # print(event)
+        pass
+
     def keyPressEvent(self, event: QKeyEvent) -> None:
+        # print(event)
+
+        # move text cursor
+
+        move_mode = None
+        move_operation = None
+
+        match event.modifiers():
+            case Qt.KeyboardModifier.ShiftModifier:
+                move_mode = QTextCursor.MoveMode.KeepAnchor
+            case _:
+                move_mode = QTextCursor.MoveMode.MoveAnchor
+
         match event.key():
             case Qt.Key.Key_Up:
-                self.text_cursor.movePosition(QTextCursor.MoveOperation.Up)
-                self.cursorPositionChanged.emit(self.text_cursor.position())
+                move_operation = QTextCursor.MoveOperation.Up
             case Qt.Key.Key_Left:
-                self.text_cursor.movePosition(QTextCursor.MoveOperation.Left)
-                self.cursorPositionChanged.emit(self.text_cursor.position())
+                move_operation = QTextCursor.MoveOperation.Left
             case Qt.Key.Key_Down:
-                self.text_cursor.movePosition(QTextCursor.MoveOperation.Down)
-                self.cursorPositionChanged.emit(self.text_cursor.position())
+                move_operation = QTextCursor.MoveOperation.Down
             case Qt.Key.Key_Right:
-                self.text_cursor.movePosition(QTextCursor.MoveOperation.Right)
-                self.cursorPositionChanged.emit(self.text_cursor.position())
+                move_operation = QTextCursor.MoveOperation.Right
+
+        if move_mode and move_operation:
+            self.text_cursor.movePosition(move_operation, move_mode)
+            self.cursorPositionChanged.emit(self.text_cursor.position())
+
+        # write text
 
         if event.text():
             if event.text():
@@ -138,6 +164,7 @@ class EditorWidget(QAbstractScrollArea):
         # print("start?", self.text_cursor.atStart())
         # print("cursor pos:", self.text_cursor.position())
         # print(self.document.pageCount())
+        # print(self.text_cursor.hasSelection())
 
         self.viewport().repaint()
 
@@ -164,6 +191,7 @@ class EditorWidget(QAbstractScrollArea):
         format: QTextCharFormat = QTextCharFormat()
         format.setFontWeight(font_weight)
         self.text_cursor.mergeCharFormat(format)
+        self.viewport().repaint()
 
     def onCursorPositionChanged(self, position) -> None:
         format: QTextCharFormat = self.document_layout.format(position)
