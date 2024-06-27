@@ -9,6 +9,7 @@ from PySide6.QtGui import (
     QTextFrame,
     QFont,
     QFontMetricsF,
+    QTextCharFormat,
     QPalette,
     QTextFrameFormat,
     QPen,
@@ -72,7 +73,8 @@ class DocumentLayout(QAbstractTextDocumentLayout):
         current_y_position: float = current_page.yPosition() + current_page.margin() + current_page.padding()
 
         for i in range(self.document().blockCount()):
-            block_layout: QTextLayout = self.document().findBlockByNumber(i).layout()
+            block: QTextBlock = self.document().findBlockByNumber(i)
+            block_layout: QTextLayout = block.layout()
 
             block_layout.beginLayout()
             line: QTextLine = block_layout.createLine()
@@ -156,24 +158,24 @@ class DocumentLayout(QAbstractTextDocumentLayout):
     def resize(self, point: PointF):
         self.page_layout.setXPosition((point.xPosition() - self.page_layout.width()) / 2)
 
-    def blockBoundingRect(self, block: QTextBlock) -> QRectF:
-        return block.layout().boundingRect()
+    # def blockBoundingRect(self, block: QTextBlock) -> QRectF:
+    #     return block.layout().boundingRect()
 
-    def frameBoundingRect(self, frame: QTextFrame) -> QRectF:
-        first_block: QTextBlock = frame.firstCursorPosition().block()
-        last_block: QTextBlock = frame.lastCursorPosition().block()
-        first_rect: QRectF = self.blockBoundingRect(first_block)
-        last_rect: QRectF = self.blockBoundingRect(last_block)
-        frame_rect: QRectF = first_rect.united(last_rect)
-        return frame_rect
+    # def frameBoundingRect(self, frame: QTextFrame) -> QRectF:
+    #     first_block: QTextBlock = frame.firstCursorPosition().block()
+    #     last_block: QTextBlock = frame.lastCursorPosition().block()
+    #     first_rect: QRectF = self.blockBoundingRect(first_block)
+    #     last_rect: QRectF = self.blockBoundingRect(last_block)
+    #     frame_rect: QRectF = first_rect.united(last_rect)
+    #     return frame_rect
 
-    def documentSize(self) -> QSizeF:
-        root_frame: QTextFrame = self.document().rootFrame()
-        root_frame_rect: QRectF = self.frameBoundingRect(root_frame)
-        return root_frame_rect.size()
+    # def documentSize(self) -> QSizeF:
+    #     root_frame: QTextFrame = self.document().rootFrame()
+    #     root_frame_rect: QRectF = self.frameBoundingRect(root_frame)
+    #     return root_frame_rect.size()
 
-    def pageCount(self) -> int:
-        return self.page_layout.pageCount()
+    # def pageCount(self) -> int:
+    #     return self.page_layout.pageCount()
 
     def hitTest(self, point: PointF) -> int:
 

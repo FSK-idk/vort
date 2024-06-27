@@ -11,9 +11,11 @@ from PySide6.QtGui import (
     QPalette,
     QPaintEvent,
     QPainter,
+    QFont,
     QResizeEvent,
     QKeyEvent,
     QTextFormat,
+    QTextCharFormat,
 )
 from PySide6.QtCore import Qt, QSize, QEvent, QRect, QPoint, QRectF, Signal
 
@@ -27,6 +29,8 @@ from view.widget.document_layout import DocumentLayout, PaintContext
 
 
 class EditorWidget(QAbstractScrollArea):
+    cursorPositionChanged = Signal(int)
+    fontWeightChanged = Signal(QFont.Weight)
 
     def __init__(
         self,
@@ -45,6 +49,8 @@ class EditorWidget(QAbstractScrollArea):
         # setup
 
         self.setupScrollBar()
+
+        self.cursorPositionChanged.connect(self.onCursorPositionChanged)
 
     def setupScrollBar(self) -> None:
         self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
@@ -89,18 +95,23 @@ class EditorWidget(QAbstractScrollArea):
             if position != -1:
                 self.text_cursor.setPosition(position)
                 self.viewport().repaint()
-                pass
+
+                self.cursorPositionChanged.emit(position)
 
     def keyPressEvent(self, event: QKeyEvent) -> None:
         match event.key():
             case Qt.Key.Key_Up:
                 self.text_cursor.movePosition(QTextCursor.MoveOperation.Up)
+                self.cursorPositionChanged.emit(self.text_cursor.position())
             case Qt.Key.Key_Left:
                 self.text_cursor.movePosition(QTextCursor.MoveOperation.Left)
+                self.cursorPositionChanged.emit(self.text_cursor.position())
             case Qt.Key.Key_Down:
                 self.text_cursor.movePosition(QTextCursor.MoveOperation.Down)
+                self.cursorPositionChanged.emit(self.text_cursor.position())
             case Qt.Key.Key_Right:
                 self.text_cursor.movePosition(QTextCursor.MoveOperation.Right)
+                self.cursorPositionChanged.emit(self.text_cursor.position())
 
         if event.text():
             if event.text():
@@ -147,6 +158,16 @@ class EditorWidget(QAbstractScrollArea):
         if horizontal_scroll_bar_range < 0:
             horizontal_scroll_bar_range = 0
         self.horizontalScrollBar().setRange(0, int(horizontal_scroll_bar_range))
+
+    def setBold(self, is_bold) -> None:
+        font_weight = QFont.Weight.Bold if is_bold else QFont.Weight.Normal
+        format: QTextCharFormat = QTextCharFormat()
+        format.setFontWeight(font_weight)
+        self.text_cursor.mergeCharFormat(format)
+
+    def onCursorPositionChanged(self, position) -> None:
+        format: QTextCharFormat = self.document_layout.format(position)
+        self.fontWeightChanged.emit(format.fontWeight())
 
     # TODO: DEBUG
     def test(self) -> None:

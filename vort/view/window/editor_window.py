@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import QMainWindow, QPushButton, QMenuBar, QMenu, QToolBar
-from PySide6.QtGui import QAction
+from PySide6.QtGui import QAction, QFont
 
 from view.widget.editor_widget import EditorWidget
 
@@ -25,6 +25,8 @@ class EditorWindow(QMainWindow):
         self.setupAction()
         self.setupMenuBar()
         self.setupToolBar()
+
+        self.editor.fontWeightChanged.connect(self.onFontWeightChanged)
 
     def setupAction(self) -> None:
         # file
@@ -89,6 +91,7 @@ class EditorWindow(QMainWindow):
         # format
 
         self.bold_text_action: QAction = QAction("Bold")
+        self.bold_text_action.setCheckable(True)
         self.bold_text_action.triggered.connect(self.boldText)
         self.italic_text_action: QAction = QAction("Italic")
         self.italic_text_action.triggered.connect(self.italicText)
@@ -219,8 +222,12 @@ class EditorWindow(QMainWindow):
     def chooseFontSize(self) -> None:
         print("Choose Font Size")
 
-    def boldText(self) -> None:
-        print("Bold Text")
+    def boldText(self, checked) -> None:
+        print("Bold Text", checked)
+        self.editor.setBold(checked)
+
+    def onFontWeightChanged(self, weight: QFont.Weight) -> None:
+        self.bold_text_action.setChecked(weight == QFont.Weight.Bold)
 
     def italicText(self) -> None:
         print("Italic Text")
