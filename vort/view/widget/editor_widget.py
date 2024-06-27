@@ -1,4 +1,13 @@
-from PySide6.QtWidgets import QWidget, QTextEdit, QVBoxLayout, QAbstractScrollArea, QFrame, QPushButton, QSizePolicy
+from PySide6.QtWidgets import (
+    QWidget,
+    QApplication,
+    QTextEdit,
+    QVBoxLayout,
+    QAbstractScrollArea,
+    QFrame,
+    QPushButton,
+    QSizePolicy,
+)
 from PySide6.QtGui import (
     QKeyEvent,
     QMouseEvent,
@@ -17,7 +26,7 @@ from PySide6.QtGui import (
     QTextFormat,
     QTextCharFormat,
 )
-from PySide6.QtCore import Qt, QSize, QEvent, QRect, QPoint, QRectF, Signal
+from PySide6.QtCore import Qt, QSize, QEvent, QRect, QPoint, QRectF, Signal, QFlag
 
 from utils.point_f import PointF
 from utils.rect_f import RectF
@@ -65,6 +74,8 @@ class EditorWidget(QAbstractScrollArea):
     # def viewportEvent(self, event: QEvent) -> bool:
     #     if isinstance(event, ...): ...
     #     return True
+    def viewportEvent(self, event: QEvent) -> bool:
+        return super().viewportEvent(event)
 
     def paintEvent(self, event: QPaintEvent) -> None:
         painter: QPainter = QPainter(self.viewport())
@@ -137,63 +148,103 @@ class EditorWidget(QAbstractScrollArea):
         pass
 
     def keyPressEvent(self, event: QKeyEvent) -> None:
-        # print(event)
+        self.handleNavigationInput(event)
+        self.handleHotkeys(event)
+        self.handleTextInput(event)
 
-        # move text cursor
-
+    def handleNavigationInput(self, event: QKeyEvent) -> None:
         move_mode = None
         move_operation = None
 
-        match event.modifiers():
-            case Qt.KeyboardModifier.ShiftModifier:
-                move_mode = QTextCursor.MoveMode.KeepAnchor
-            case _:
-                move_mode = QTextCursor.MoveMode.MoveAnchor
+        if Qt.KeyboardModifier.ShiftModifier in event.modifiers():
+            move_mode = QTextCursor.MoveMode.KeepAnchor
+        else:
+            move_mode = QTextCursor.MoveMode.MoveAnchor
 
-        match event.key():
-            case Qt.Key.Key_Up:
-                move_operation = QTextCursor.MoveOperation.Up
-            case Qt.Key.Key_Left:
-                move_operation = QTextCursor.MoveOperation.Left
-            case Qt.Key.Key_Down:
-                move_operation = QTextCursor.MoveOperation.Down
-            case Qt.Key.Key_Right:
-                move_operation = QTextCursor.MoveOperation.Right
+        if Qt.KeyboardModifier.ControlModifier in event.modifiers():
+            match event.key():
+                case Qt.Key.Key_Left:
+                    move_operation = QTextCursor.MoveOperation.WordLeft
+                case Qt.Key.Key_Right:
+                    move_operation = QTextCursor.MoveOperation.WordRight
+                case Qt.Key.Key_Up:
+                    move_operation = QTextCursor.MoveOperation.PreviousBlock
+                case Qt.Key.Key_Down:
+                    move_operation = QTextCursor.MoveOperation.NextBlock
+                case Qt.Key.Key_Home:
+                    move_operation = QTextCursor.MoveOperation.StartOfBlock
+                case Qt.Key.Key_End:
+                    move_operation = QTextCursor.MoveOperation.EndOfBlock
+        else:
+            match event.key():
+                case Qt.Key.Key_Left:
+                    move_operation = QTextCursor.MoveOperation.Left
+                case Qt.Key.Key_Right:
+                    move_operation = QTextCursor.MoveOperation.Right
+                case Qt.Key.Key_Up:
+                    move_operation = QTextCursor.MoveOperation.Up
+                case Qt.Key.Key_Down:
+                    move_operation = QTextCursor.MoveOperation.Down
+                case Qt.Key.Key_Home:
+                    move_operation = QTextCursor.MoveOperation.StartOfLine
+                case Qt.Key.Key_End:
+                    move_operation = QTextCursor.MoveOperation.EndOfLine
 
         if move_mode and move_operation:
             self.text_cursor.movePosition(move_operation, move_mode)
             self.cursorPositionChanged.emit(self.text_cursor.position())
+            self.viewport().repaint()
 
-        # write text
+    def handleHotkeys(self, event: QKeyEvent) -> None:
+        used = True
 
-        if event.text():
-            if event.text():
-                if event.text() == "\r":  # Enter
-                    self.text_cursor.beginEditBlock()
-                    self.text_cursor.insertBlock()
-                    self.text_cursor.setPosition(self.text_cursor.block().position())
-                    self.text_cursor.endEditBlock()
-                elif event.text() == "\b":  # Backspace
-                    self.text_cursor.beginEditBlock()
-                    self.text_cursor.deletePreviousChar()
-                    self.text_cursor.endEditBlock()
-                elif event.text() == "\u007F":  # Delete
-                    self.text_cursor.beginEditBlock()
-                    self.text_cursor.deleteChar()
-                    self.text_cursor.endEditBlock()
-                else:
-                    self.text_cursor.beginEditBlock()
-                    self.text_cursor.insertText(event.text())
-                    self.text_cursor.endEditBlock()
+        if Qt.KeyboardModifier.ControlModifier in event.modifiers():
+            match event.key():
+                case Qt.Key.Key_X if self.text_cursor.hasSelection():
+                    selected_text = self.text_cursor.selectedText()
+                    QApplication.clipboard().setText(selected_text)
+                    self.text_cursor.removeSelectedText()
+                case Qt.Key.Key_C if self.text_cursor.hasSelection():
+                    selected_text = self.text_cursor.selectedText()
+                    QApplication.clipboard().setText(selected_text)
+                case Qt.Key.Key_V:
+                    copied_text = QApplication.clipboard().text()
+                    self.text_cursor.insertText(copied_text)
+                case Qt.Key.Key_A:
+                    self.text_cursor.select(QTextCursor.SelectionType.Document)
+                case Qt.Key.Key_Z:
+                    self.document.undo(self.text_cursor)
+                case Qt.Key.Key_Y:
+                    self.document.redo(self.text_cursor)
+                case _:
+                    used = False
 
-        # TODO: debug
-        # print("end?", self.text_cursor.atEnd())
-        # print("start?", self.text_cursor.atStart())
-        # print("cursor pos:", self.text_cursor.position())
-        # print(self.document.pageCount())
-        # print(self.text_cursor.hasSelection())
+        if used:
+            self.viewport().repaint()
 
-        self.viewport().repaint()
+    def handleTextInput(self, event: QKeyEvent) -> None:
+        if event.modifiers() in [Qt.KeyboardModifier.NoModifier, Qt.KeyboardModifier.ShiftModifier] and event.text():
+            if event.key() == Qt.Key.Key_Enter:
+                self.text_cursor.beginEditBlock()
+                self.text_cursor.insertBlock()
+                self.text_cursor.setPosition(self.text_cursor.block().position())
+                self.text_cursor.endEditBlock()
+            elif event.key() == Qt.Key.Key_Backspace:
+                self.text_cursor.beginEditBlock()
+                self.text_cursor.deletePreviousChar()
+                self.text_cursor.endEditBlock()
+            elif event.key() == Qt.Key.Key_Delete:
+                self.text_cursor.beginEditBlock()
+                self.text_cursor.deleteChar()
+                self.text_cursor.endEditBlock()
+            elif event.key() == Qt.Key.Key_Escape:
+                pass  # ignore
+            else:
+                self.text_cursor.beginEditBlock()
+                self.text_cursor.insertText(event.text())
+                self.text_cursor.endEditBlock()
+
+            self.viewport().repaint()
 
     def resizeEvent(self, event: QResizeEvent) -> None:
         self.document_layout.resize(PointF(event.size().width(), event.size().height()))
@@ -208,7 +259,7 @@ class EditorWidget(QAbstractScrollArea):
             vertical_scroll_bar_range = 0
         self.verticalScrollBar().setRange(0, int(vertical_scroll_bar_range))
 
-        horizontal_scroll_bar_range = (self.document_layout.page_layout.width() - viewport_width) / 2
+        horizontal_scroll_bar_range = self.document_layout.page_layout.width() - viewport_width
         if horizontal_scroll_bar_range < 0:
             horizontal_scroll_bar_range = 0
         self.horizontalScrollBar().setRange(0, int(horizontal_scroll_bar_range))

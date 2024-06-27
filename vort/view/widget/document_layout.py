@@ -170,15 +170,15 @@ class DocumentLayout(QAbstractTextDocumentLayout):
                 selection_end: int = selection.cursor.selectionEnd() - block_position
                 if selection_start < block_length and selection_end > 0:
                     format_range: QTextLayout.FormatRange = QTextLayout.FormatRange()
-                    format_range.start = selection_start  #  type: ignore
-                    format_range.length = selection_end - selection_start  #  type: ignore
-                    format_range.format = selection.format  #  type: ignore
+                    format_range.start = selection_start  # type: ignore
+                    format_range.length = selection_end - selection_start  # type: ignore
+                    format_range.format = selection.format  # type: ignore
                     format_ranges.append(format_range)
 
             if cursor_position >= block_position and cursor_position < block_position + block_length:
                 block_layout.drawCursor(painter, carriage_position, cursor_position - block_position)
 
-            block_layout.draw(painter, carriage_position, format_ranges, rect.toQRectF())
+            block_layout.draw(painter, carriage_position, format_ranges, painter.clipBoundingRect())
 
     def resize(self, point: PointF):
         self.page_layout.setXPosition((point.xPosition() - self.page_layout.width()) / 2)
