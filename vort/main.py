@@ -1,14 +1,13 @@
 from PySide6.QtWidgets import QApplication
 
-from view.window.editor_window import EditorWindow
+from controller.text_editor_window_controller import TextEditorWindowController
 
 
 def main() -> None:
     app = QApplication()
     app.setStyle("Fusion")
 
-    ex = EditorWindow()
-    ex.show()
+    ex = TextEditorWindowController()
 
     app.exec()
 

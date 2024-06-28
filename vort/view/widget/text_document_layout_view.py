@@ -6,23 +6,15 @@ from PySide6.QtGui import (
     QTextLine,
     QPainter,
     QTextCursor,
-    QTextFrame,
-    QFont,
-    QFontMetricsF,
     QTextCharFormat,
     QPalette,
-    QTextFormat,
-    QTextFrameFormat,
-    QPen,
-    QColor,
-    QBrush,
 )
-from PySide6.QtCore import QPointF, QRectF, QSizeF, Qt, QObject, Signal
+from PySide6.QtCore import QPointF, Signal
 
 from utils import PointF, RectF
 
-from model.page_layout import PageLayout
-from model.page import Page
+from model.page_layout_model import PageLayoutModel
+from model.page_model import PageModel
 
 
 class Selection:
@@ -49,35 +41,29 @@ class PaintContext:
         self.selections: list[Selection] = selections
 
 
-class DocumentLayout(QAbstractTextDocumentLayout):
-    def __init__(
-        self,
-        document: QTextDocument,
-    ) -> None:
+class TextDocumentLayoutView(QAbstractTextDocumentLayout):
+    pageCountChanged = Signal(int)
+
+    def __init__(self, document: QTextDocument) -> None:
         super().__init__(document)
 
+        # model
+
+        # TODO: add in config
         page_spacing: float = 10
 
-        self.page_layout: PageLayout = PageLayout(spacing=page_spacing)
+        self.page_layout: PageLayoutModel = PageLayoutModel(spacing=page_spacing)
         # has at least one page
         self.page_layout.addPage()
 
-        # root_frame: QTextFrame = self.document.rootFrame()
-        # root_frame_format: QTextFrameFormat = root_frame.frameFormat()
-        # root_frame_format.setWidth(self.__page_width)
-        # root_frame_format.setHeight(self.__page_height)
-        # root_frame_format.setMargin(self.__page_margin)
-        # root_frame_format.setPadding(self.__page_padding)
-        # root_frame_format.setBorderStyle(QTextFrameFormat.BorderStyle.BorderStyle_DotDotDash)
-        # root_frame_format.setBorderBrush(QBrush(Qt.GlobalColor.blue))
-        # root_frame_format.setPageBreakPolicy(QTextFormat.PageBreakFlag.PageBreak_Auto)
-        # self.document.rootFrame().setFrameFormat(root_frame_format)
+    def pageCount(self) -> int:
+        return self.page_layout.pageCount()
 
     def documentChanged(self, from_: int, charsRemoved: int, charsAdded: int) -> None:
         old_page_count: int = self.page_layout.pageCount()
 
         current_page_index: int = 0
-        current_page: Page = self.page_layout.getPage(current_page_index)
+        current_page: PageModel = self.page_layout.getPage(current_page_index)
 
         current_page_width: float = current_page.textWidth()
         current_page_height: float = current_page.textHeight()
@@ -180,12 +166,6 @@ class DocumentLayout(QAbstractTextDocumentLayout):
 
             block_layout.draw(painter, carriage_position, format_ranges, painter.clipBoundingRect())
 
-    def resize(self, point: PointF):
-        self.page_layout.setXPosition((point.xPosition() - self.page_layout.width()) / 2)
-
-    def pageCount(self) -> int:
-        return self.page_layout.pageCount()
-
     def hitTest(self, point: PointF) -> int:
         current_cursor_position = 0
 
@@ -211,3 +191,6 @@ class DocumentLayout(QAbstractTextDocumentLayout):
             current_cursor_position += block.length()
 
         return -1
+
+    def resizePageLayout(self, point: PointF):
+        self.page_layout.setXPosition((point.xPosition() - self.page_layout.width()) / 2)

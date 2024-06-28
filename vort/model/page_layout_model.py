@@ -1,8 +1,8 @@
-from model.page import Page
+from model.page_model import PageModel
 from utils import PointF
 
 
-class PageLayout:
+class PageLayoutModel:
     """
     By default all pages are centered
     """
@@ -11,12 +11,12 @@ class PageLayout:
         self,
         x_position: float = 0,
         y_position: float = 0,
-        pages: list[Page] = [],
+        pages: list[PageModel] = [],
         spacing: float = 0,
     ) -> None:
         self.__x_position: float = x_position
         self.__y_position: float = y_position
-        self.__pages: list[Page] = pages
+        self.__pages: list[PageModel] = pages
         self.__spacing: float = spacing
 
         self.__width: float = 0
@@ -62,13 +62,13 @@ class PageLayout:
     def pageCount(self) -> int:
         return len(self.__pages)
 
-    def getPage(self, index) -> Page:
+    def getPage(self, index) -> PageModel:
         """
         index in range(0, len(self.__pages))
         """
         return self.__pages[index]
 
-    def insertPage(self, index: int, inserted_page: Page) -> None:
+    def insertPage(self, index: int, inserted_page: PageModel) -> None:
         """
         index in range(0, len(self.__pages) + 1)
         """
@@ -99,7 +99,7 @@ class PageLayout:
         self.__height += inserted_page.height()
 
     def addPage(self) -> None:
-        self.insertPage(len(self.__pages), Page())
+        self.insertPage(len(self.__pages), PageModel())
 
     def deletePage(self, index: int) -> None:
         """

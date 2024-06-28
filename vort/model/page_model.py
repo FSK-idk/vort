@@ -7,7 +7,7 @@ PAGE_MARGIN = 20
 PAGE_PADDING = 10
 
 
-class Page:
+class PageModel:
     def __init__(
         self,
         x_position: float = 0,

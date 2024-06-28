@@ -1,2 +1,2 @@
-from model.page import Page
-from model.page_layout import PageLayout
+from model.page_model import PageModel
+from model.page_layout_model import PageLayoutModel

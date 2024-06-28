@@ -1,153 +1,108 @@
 from PySide6.QtWidgets import (
     QWidget,
     QApplication,
-    QTextEdit,
-    QVBoxLayout,
-    QAbstractScrollArea,
-    QFrame,
-    QPushButton,
-    QSizePolicy,
 )
 from PySide6.QtGui import (
     QKeyEvent,
     QMouseEvent,
     QTextDocument,
     QTextCursor,
-    QTextFrame,
-    QTextFrameFormat,
-    QBrush,
-    QColor,
-    QPalette,
-    QPaintEvent,
-    QPainter,
     QFont,
     QResizeEvent,
     QKeyEvent,
-    QTextFormat,
     QTextCharFormat,
+    QPaintEvent,
 )
-from PySide6.QtCore import Qt, QSize, QEvent, QRect, QPoint, QRectF, Signal, QFlag
+from PySide6.QtCore import Qt, Signal
 
-from utils.point_f import PointF
-from utils.rect_f import RectF
+from utils import PointF, RectF
 
-from model import Page, PageLayout
-from model.page import PAGE_WIDTH, PAGE_HEIGHT
+from view.widget.text_editor_view import TextEditorView
 
-from view.widget.document_layout import DocumentLayout, Selection, PaintContext
+from controller.controller import Controller
 
 
-class EditorWidget(QAbstractScrollArea):
+class TextEditorController(Controller):
     cursorPositionChanged = Signal(int)
     fontWeightChanged = Signal(QFont.Weight)
 
-    def __init__(
-        self,
-        parent: QWidget | None = None,
-    ) -> None:
+    def __init__(self, controller: Controller, parent: QWidget | None = None) -> None:
         super().__init__(parent)
 
+        self.ui: TextEditorView = TextEditorView(controller=self, parent=parent)
+
         self.document: QTextDocument = QTextDocument()
-        self.document_layout: DocumentLayout = DocumentLayout(self.document)
-        self.document.setDocumentLayout(self.document_layout)
+        self.ui.setDocument(self.document)
 
         self.text_cursor: QTextCursor = QTextCursor(self.document)
 
-        self.document_layout.pageCountChanged.connect(self.updateScrollBar)
-
-        # setup
-
-        self.setupScrollBar()
+        # signal
 
         self.cursorPositionChanged.connect(self.onCursorPositionChanged)
+        self.ui.mousePressed.connect(self.onMousePressed)
+        self.ui.mouseMoved.connect(self.onMouseMoved)
+        self.ui.keyPressed.connect(self.onKeyPressed)
+        self.ui.resized.connect(self.onResized)
+        self.ui.painted.connect(self.onPainted)
 
-    def setupScrollBar(self) -> None:
-        self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
-        self.verticalScrollBar().setPageStep(PAGE_HEIGHT)
-        self.verticalScrollBar().setSingleStep(4)
-        self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
-        self.horizontalScrollBar().setPageStep(PAGE_WIDTH)
-        self.horizontalScrollBar().setSingleStep(4)
-        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
-
-    # def viewportEvent(self, event: QEvent) -> bool:
-    #     if isinstance(event, ...): ...
-    #     return True
-    def viewportEvent(self, event: QEvent) -> bool:
-        return super().viewportEvent(event)
-
-    def paintEvent(self, event: QPaintEvent) -> None:
-        painter: QPainter = QPainter(self.viewport())
-
-        screen_x = self.horizontalScrollBar().value()
-        screen_y = self.verticalScrollBar().value()
-
-        rect_x = event.rect().x() + screen_x
-        rect_y = event.rect().y() + screen_y
-        rect_w = event.rect().width()
-        rect_h = event.rect().height()
-
-        rect = RectF(rect_x, rect_y, rect_w, rect_h)
-
-        palette: QPalette = QPalette()
-        palette.setColor(QPalette.ColorGroup.Active, QPalette.ColorRole.Text, QColor("red"))
-        palette.setColor(QPalette.ColorGroup.Active, QPalette.ColorRole.Base, QColor("white"))
-
+    def setBold(self, is_bold) -> None:
+        font_weight = QFont.Weight.Bold if is_bold else QFont.Weight.Normal
         format: QTextCharFormat = QTextCharFormat()
-        format.setBackground(QColor("blue"))
-        format.setForeground(QColor("white"))
+        format.setFontWeight(font_weight)
+        self.text_cursor.mergeCharFormat(format)
+        self.ui.repaint()
 
-        selections: list[Selection] = [Selection(self.text_cursor, format)]
+    def onCursorPositionChanged(self, position) -> None:
+        format: QTextCharFormat = self.ui.characterFormat(position)
+        self.fontWeightChanged.emit(format.fontWeight())
 
-        context = PaintContext(rect, self.text_cursor.position(), palette, selections)
-        self.document_layout.draw(painter, context)
-
-    def mouseReleaseEvent(self, event: QMouseEvent) -> None:
+    # TODO: DEBUG
+    def test(self) -> None:
+        # format_: QTextFrameFormat = self.text_edit.document().rootFrame().frameFormat()
+        # print("Root Frame Format:")
+        # print("width:", format_.width().rawValue())
+        # print("height:", format_.height().rawValue())
+        # print("margin:", format_.margin())
+        # print("padding:", format_.padding())
         pass
 
-    def mousePressEvent(self, event: QMouseEvent) -> None:
+    def onMousePressed(self, event: QMouseEvent) -> None:
         if event.button() == Qt.MouseButton.LeftButton:
             point_position = PointF.fromQPointF(event.position())
 
-            screen_x = self.horizontalScrollBar().value()
-            screen_y = self.verticalScrollBar().value()
+            screen_x = self.ui.horizontalScrollBar().value()
+            screen_y = self.ui.verticalScrollBar().value()
 
             point_position.move(PointF(screen_x, screen_y))
 
-            position = self.document_layout.hitTest(point_position)
+            position = self.ui.hitTest(point_position)
 
             if position != -1:
                 self.text_cursor.setPosition(position, QTextCursor.MoveMode.MoveAnchor)
-                self.viewport().repaint()
+                self.ui.repaint()
 
                 self.cursorPositionChanged.emit(position)
 
             self.mouse_pressed = True
 
-    def mouseMoveEvent(self, event: QMouseEvent) -> None:
+    def onMouseMoved(self, event: QMouseEvent) -> None:
         if event.buttons() == Qt.MouseButton.LeftButton:
             point_position = PointF.fromQPointF(event.position())
 
-            screen_x = self.horizontalScrollBar().value()
-            screen_y = self.verticalScrollBar().value()
+            screen_x = self.ui.horizontalScrollBar().value()
+            screen_y = self.ui.verticalScrollBar().value()
 
             point_position.move(PointF(screen_x, screen_y))
 
-            position = self.document_layout.hitTest(point_position)
+            position = self.ui.hitTest(point_position)
 
             if position != -1:
                 self.text_cursor.setPosition(position, QTextCursor.MoveMode.KeepAnchor)
 
-                self.viewport().repaint()
+                self.ui.repaint()
                 self.cursorPositionChanged.emit(position)
-        pass
 
-    def keyReleaseEvent(self, event: QKeyEvent) -> None:
-        # print(event)
-        pass
-
-    def keyPressEvent(self, event: QKeyEvent) -> None:
+    def onKeyPressed(self, event: QKeyEvent) -> None:
         self.handleNavigationInput(event)
         self.handleHotkeys(event)
         self.handleTextInput(event)
@@ -193,7 +148,7 @@ class EditorWidget(QAbstractScrollArea):
         if move_mode and move_operation:
             self.text_cursor.movePosition(move_operation, move_mode)
             self.cursorPositionChanged.emit(self.text_cursor.position())
-            self.viewport().repaint()
+            self.ui.repaint()
 
     def handleHotkeys(self, event: QKeyEvent) -> None:
         used = True
@@ -220,7 +175,7 @@ class EditorWidget(QAbstractScrollArea):
                     used = False
 
         if used:
-            self.viewport().repaint()
+            self.ui.repaint()
 
     def handleTextInput(self, event: QKeyEvent) -> None:
         if event.modifiers() in [Qt.KeyboardModifier.NoModifier, Qt.KeyboardModifier.ShiftModifier] and event.text():
@@ -244,43 +199,12 @@ class EditorWidget(QAbstractScrollArea):
                 self.text_cursor.insertText(event.text())
                 self.text_cursor.endEditBlock()
 
-            self.viewport().repaint()
+            self.ui.repaint()
 
-    def resizeEvent(self, event: QResizeEvent) -> None:
-        self.document_layout.resize(PointF(event.size().width(), event.size().height()))
-        self.updateScrollBar()
+    def onResized(self, event: QResizeEvent) -> None:
+        self.ui.resize(PointF(event.size().width(), event.size().height()))
 
-    def updateScrollBar(self) -> None:
-        viewport_width = self.viewport().width()
-        viewport_height = self.viewport().height()
+    def onPainted(self, event: QPaintEvent) -> None:
+        rect = RectF.fromQRect(event.rect())
 
-        vertical_scroll_bar_range = self.document_layout.page_layout.height() - viewport_height
-        if vertical_scroll_bar_range < 0:
-            vertical_scroll_bar_range = 0
-        self.verticalScrollBar().setRange(0, int(vertical_scroll_bar_range))
-
-        horizontal_scroll_bar_range = self.document_layout.page_layout.width() - viewport_width
-        if horizontal_scroll_bar_range < 0:
-            horizontal_scroll_bar_range = 0
-        self.horizontalScrollBar().setRange(0, int(horizontal_scroll_bar_range))
-
-    def setBold(self, is_bold) -> None:
-        font_weight = QFont.Weight.Bold if is_bold else QFont.Weight.Normal
-        format: QTextCharFormat = QTextCharFormat()
-        format.setFontWeight(font_weight)
-        self.text_cursor.mergeCharFormat(format)
-        self.viewport().repaint()
-
-    def onCursorPositionChanged(self, position) -> None:
-        format: QTextCharFormat = self.document_layout.format(position)
-        self.fontWeightChanged.emit(format.fontWeight())
-
-    # TODO: DEBUG
-    def test(self) -> None:
-        # format_: QTextFrameFormat = self.text_edit.document().rootFrame().frameFormat()
-        # print("Root Frame Format:")
-        # print("width:", format_.width().rawValue())
-        # print("height:", format_.height().rawValue())
-        # print("margin:", format_.margin())
-        # print("padding:", format_.padding())
-        pass
+        self.ui.paint(rect, self.text_cursor)
