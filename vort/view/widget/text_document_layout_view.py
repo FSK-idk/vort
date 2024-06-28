@@ -46,11 +46,14 @@ class PaintContext:
 
 class TextDocumentLayoutView(QAbstractTextDocumentLayout):
     pageCountChanged = Signal(int)
+    characterCountChanged = Signal(int)
 
     def __init__(self, document: QTextDocument) -> None:
         super().__init__(document)
 
         # model
+
+        self.__character_count: int = 0
 
         # TODO: add in config
         page_spacing: float = 10
@@ -62,8 +65,13 @@ class TextDocumentLayoutView(QAbstractTextDocumentLayout):
     def pageCount(self) -> int:
         return self.page_layout.pageCount()
 
+    def characterCount(self) -> int:
+        return self.__character_count
+
     def documentChanged(self, from_: int, charsRemoved: int, charsAdded: int) -> None:
         old_page_count: int = self.page_layout.pageCount()
+
+        character_count: int = 0
 
         current_page_index: int = 0
         current_page: PageModel = self.page_layout.getPage(current_page_index)
@@ -102,6 +110,8 @@ class TextDocumentLayoutView(QAbstractTextDocumentLayout):
                 current_y_position += line.height()
                 current_page_height -= line.height()
 
+                character_count += line.textLength()
+
                 line = block_layout.createLine()
 
             block_layout.endLayout()
@@ -113,6 +123,10 @@ class TextDocumentLayoutView(QAbstractTextDocumentLayout):
 
         if old_page_count != self.page_layout.pageCount():
             self.pageCountChanged.emit(self.page_layout.pageCount())
+
+        if self.__character_count != character_count:
+            self.__character_count = character_count
+            self.characterCountChanged.emit(self.__character_count)
 
     def draw(self, painter: QPainter, context: PaintContext):
         self.drawClear(painter, context)

@@ -37,6 +37,9 @@ class TextEditorView(QAbstractScrollArea):
     resized = Signal(QResizeEvent)
     paintedDocument = Signal(QPaintEvent)
 
+    pageCountChanged = Signal(int)
+    characterCountChanged = Signal(int)
+
     def __init__(self, controller: Controller, parent: QWidget | None = None) -> None:
         super().__init__(parent)
 
@@ -56,16 +59,19 @@ class TextEditorView(QAbstractScrollArea):
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
 
-        # signals
-
-        self.document_layout.pageCountChanged.connect(self.updateScrollBar)
+        self.setupSignal()
 
     def setDocument(self, document: QTextDocument) -> None:
         self.document = document
         self.document_layout = TextDocumentLayoutView(document)
         self.document.setDocumentLayout(self.document_layout)
 
+        self.setupSignal()
+
+    def setupSignal(self) -> None:
         self.document_layout.pageCountChanged.connect(self.updateScrollBar)
+        self.document_layout.pageCountChanged.connect(self.pageCountChanged.emit)
+        self.document_layout.characterCountChanged.connect(self.characterCountChanged.emit)
 
     def characterFormat(self, character_position: int) -> QTextCharFormat:
         return self.document_layout.format(character_position)

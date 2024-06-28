@@ -26,7 +26,10 @@ class TextEditorController(Controller):
     cursorPositionChanged = Signal(int)
     boldTurned = Signal(bool)
     italicTurned = Signal(bool)
-    underlineTurned = Signal(bool)
+    underlinedTurned = Signal(bool)
+
+    pageCountChanged = Signal(int)
+    characterCountChanged = Signal(int)
 
     def __init__(self, controller: Controller, parent: QWidget | None = None) -> None:
         super().__init__(parent)
@@ -47,6 +50,13 @@ class TextEditorController(Controller):
         self.ui.resized.connect(self.onResized)
         self.ui.paintedDocument.connect(self.onPaintedDocument)
 
+        self.ui.pageCountChanged.connect(self.pageCountChanged.emit)
+        self.ui.characterCountChanged.connect(self.characterCountChanged.emit)
+
+    # TODO: DEBUG
+    def test(self) -> None:
+        pass
+
     def turnBold(self, is_bold) -> None:
         bold = QFont.Weight.Bold if is_bold else QFont.Weight.Normal
         format: QTextCharFormat = QTextCharFormat()
@@ -60,7 +70,7 @@ class TextEditorController(Controller):
         self.text_cursor.mergeCharFormat(format)
         self.ui.viewport().repaint()
 
-    def turnUnderline(self, is_underline) -> None:
+    def turnUnderlined(self, is_underline) -> None:
         format: QTextCharFormat = QTextCharFormat()
         format.setFontUnderline(is_underline)
         self.text_cursor.mergeCharFormat(format)
@@ -70,7 +80,7 @@ class TextEditorController(Controller):
         format: QTextCharFormat = self.ui.characterFormat(position - 1)
         self.boldTurned.emit(format.fontWeight() == QFont.Weight.Bold)
         self.italicTurned.emit(format.fontItalic())
-        self.underlineTurned.emit(format.fontUnderline())
+        self.underlinedTurned.emit(format.fontUnderline())
 
     def undo(self) -> None:
         self.document.undo(self.text_cursor)
@@ -95,10 +105,6 @@ class TextEditorController(Controller):
 
     def selectAll(self) -> None:
         self.text_cursor.select(QTextCursor.SelectionType.Document)
-
-    # TODO: DEBUG
-    def test(self) -> None:
-        pass
 
     def onMousePressed(self, event: QMouseEvent) -> None:
         if event.button() == Qt.MouseButton.LeftButton:

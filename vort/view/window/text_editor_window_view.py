@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QMenuBar, QMenu, QToolBar, QComboBox, QMainWindow, QWidget
+from PySide6.QtWidgets import QMenuBar, QMenu, QToolBar, QComboBox, QMainWindow, QWidget, QStatusBar, QLabel
 from PySide6.QtGui import QAction
 from PySide6.QtCore import QEvent
 
@@ -33,59 +33,87 @@ class TextEditorWindowView(QMainWindow):
         self.setupAction()
         self.setupMenuBar()
         self.setupToolBar()
+        self.setupStatusBar()
 
     def setupAction(self) -> None:
         # file
         self.new_document_action: QAction = QAction("New")
+        self.new_document_action.setStatusTip("Create a document")
         self.open_document_action: QAction = QAction("Open")
+        self.open_document_action.setStatusTip("Open a document")
         self.close_document_action: QAction = QAction("Close")
+        self.close_document_action.setStatusTip("Close the document")
 
         self.exit_editor_action: QAction = QAction("Exit")
+        self.exit_editor_action.setStatusTip("Exit the application")
 
         # edit
         self.undo_action: QAction = QAction("Undo")
+        self.undo_action.setStatusTip("Undo the last action")
         self.redo_action: QAction = QAction("Redo")
+        self.redo_action.setStatusTip("Redo the last action")
 
         self.cut_action: QAction = QAction("Cut")
+        self.cut_action.setStatusTip("Cut the selected text")
         self.copy_action: QAction = QAction("Copy")
+        self.copy_action.setStatusTip("Copy the selected text")
         self.paste_action: QAction = QAction("Paste")
+        self.paste_action.setStatusTip("Paste from the clipboard")
 
         self.select_all_action: QAction = QAction("Select All")
+        self.select_all_action.setStatusTip("Select the entire document")
 
         self.find_action: QAction = QAction("Find")
+        self.find_action.setStatusTip("Find a word in the document")
         self.find_and_replace_action: QAction = QAction("Find and Replace")
+        self.find_and_replace_action.setStatusTip("Find and replace a word in the document")
 
         # insert
         self.insert_image_action: QAction = QAction("Image")
+        self.insert_image_action.setStatusTip("Insert an image")
         self.insert_hyperlink_action: QAction = QAction("Hylerlink")
+        self.insert_hyperlink_action.setStatusTip("Insert a hyperlink")
 
         # format
         self.turn_bold_action: QAction = QAction("Bold")
         self.turn_bold_action.setCheckable(True)
+        self.turn_bold_action.setStatusTip("Make the selected text bold")
         self.turn_italic_action: QAction = QAction("Italic")
         self.turn_italic_action.setCheckable(True)
-        self.turn_underline_action: QAction = QAction("Underline")
-        self.turn_underline_action.setCheckable(True)
+        self.turn_italic_action.setStatusTip("Make the selected text italic")
+        self.turn_underlined_action: QAction = QAction("Underline")
+        self.turn_underlined_action.setCheckable(True)
+        self.turn_underlined_action.setStatusTip("Make the selected text underlined")
 
         self.indent_right_action: QAction = QAction("Right")
+        self.indent_right_action.setStatusTip("Indent right")
         self.indent_left_action: QAction = QAction("Left")
+        self.indent_left_action.setStatusTip("Indent left")
 
-        self.choose_line_spacing_action: QAction = QAction("Line spacing")  # maybe new menu
-        self.choose_paragraph_spacing_action: QAction = QAction("Paragraph spacing")  # maybe new menu
+        self.select_line_spacing_action: QAction = QAction("Line spacing")  # maybe new menu
+        self.select_line_spacing_action.setStatusTip("Select the spacing between lines")
+        self.select_paragraph_spacing_action: QAction = QAction("Paragraph spacing")  # maybe new menu
+        self.select_paragraph_spacing_action.setStatusTip("Select the spacing between paragraphs")
 
         self.turn_pagination_action: QAction = QAction("Pages")
         self.turn_pagination_action.setCheckable(True)
+        self.turn_pagination_action.setStatusTip("Show pages")
 
         # style
         self.open_style_action: QAction = QAction("Styles")
+        self.open_style_action.setStatusTip("Manage custom styles")
         self.clear_style_action: QAction = QAction("Clear")
+        self.clear_style_action.setStatusTip("Clear the style of the selected text")
 
         # help
         self.show_guide_action: QAction = QAction("Guide")
+        self.show_guide_action.setStatusTip("View the user's guide")
         self.show_about_action: QAction = QAction("About")
+        self.show_about_action.setStatusTip("View application information")
 
         # TODO: DEBUG
         self.test_action: QAction = QAction("Test")
+        self.test_action.setStatusTip("Test")
 
     def setupMenuBar(self) -> None:
         self.menu_bar = QMenuBar()
@@ -120,13 +148,13 @@ class TextEditorWindowView(QMainWindow):
         self.format_menu: QMenu = QMenu("Format")
         self.format_menu.addAction(self.turn_bold_action)
         self.format_menu.addAction(self.turn_italic_action)
-        self.format_menu.addAction(self.turn_underline_action)
+        self.format_menu.addAction(self.turn_underlined_action)
         self.format_menu.addSeparator()
         self.format_menu.addAction(self.indent_right_action)
         self.format_menu.addAction(self.indent_left_action)
         self.format_menu.addSeparator()
-        self.format_menu.addAction(self.choose_line_spacing_action)
-        self.format_menu.addAction(self.choose_paragraph_spacing_action)
+        self.format_menu.addAction(self.select_line_spacing_action)
+        self.format_menu.addAction(self.select_paragraph_spacing_action)
         self.format_menu.addSeparator()
         self.format_menu.addAction(self.turn_pagination_action)
         self.menu_bar.addMenu(self.format_menu)
@@ -159,7 +187,7 @@ class TextEditorWindowView(QMainWindow):
         self.format_tool: QToolBar = QToolBar("Format")
         self.format_tool.addAction(self.turn_bold_action)
         self.format_tool.addAction(self.turn_italic_action)
-        self.format_tool.addAction(self.turn_underline_action)
+        self.format_tool.addAction(self.turn_underlined_action)
         self.addToolBar(self.format_tool)
 
         self.color_tool: QToolBar = QToolBar("Color")
@@ -171,3 +199,11 @@ class TextEditorWindowView(QMainWindow):
         self.indent_tool.addAction(self.indent_right_action)
         self.indent_tool.addAction(self.indent_left_action)
         self.addToolBar(self.indent_tool)
+
+    def setupStatusBar(self) -> None:
+        self.status_bar: QStatusBar = QStatusBar()
+
+        self.character_count = QLabel("0 characters")
+        self.status_bar.addPermanentWidget(self.character_count)
+
+        self.setStatusBar(self.status_bar)

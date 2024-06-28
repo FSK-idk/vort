@@ -15,7 +15,9 @@ class TextEditorWindowController(Controller):
 
         self.ui.editor.boldTurned.connect(self.ui.turn_bold_action.setChecked)
         self.ui.editor.italicTurned.connect(self.ui.turn_italic_action.setChecked)
-        self.ui.editor.underlineTurned.connect(self.ui.turn_underline_action.setChecked)
+        self.ui.editor.underlinedTurned.connect(self.ui.turn_underlined_action.setChecked)
+
+        self.ui.editor.characterCountChanged.connect(self.onCharacterCountChanged)
 
         self.ui.show()
 
@@ -46,13 +48,13 @@ class TextEditorWindowController(Controller):
         # format
         self.ui.turn_bold_action.triggered.connect(self.ui.editor.turnBold)
         self.ui.turn_italic_action.triggered.connect(self.ui.editor.turnItalic)
-        self.ui.turn_underline_action.triggered.connect(self.ui.editor.turnUnderline)
+        self.ui.turn_underlined_action.triggered.connect(self.ui.editor.turnUnderlined)
 
         self.ui.indent_right_action.triggered.connect(self.indentRight)
         self.ui.indent_left_action.triggered.connect(self.indentLeft)
 
-        self.ui.choose_line_spacing_action.triggered.connect(self.chooseLineSpacing)
-        self.ui.choose_paragraph_spacing_action.triggered.connect(self.chooseParagraphSpacing)
+        self.ui.select_line_spacing_action.triggered.connect(self.selectLineSpacing)
+        self.ui.select_paragraph_spacing_action.triggered.connect(self.selectParagraphSpacing)
 
         self.ui.turn_pagination_action.triggered.connect(self.turnPagination)
 
@@ -65,6 +67,12 @@ class TextEditorWindowController(Controller):
         self.ui.show_about_action.triggered.connect(self.showAbout)
 
         self.ui.test_action.triggered.connect(self.test)
+
+    def onCharacterCountChanged(self, character_count) -> None:
+        if character_count == 1:
+            self.ui.character_count.setText("1 character")
+        else:
+            self.ui.character_count.setText(f"{character_count} characters")
 
     def newDocument(self) -> None:
         print("newDocument")
@@ -93,11 +101,11 @@ class TextEditorWindowController(Controller):
     def indentLeft(self) -> None:
         print("indentLeft")
 
-    def chooseLineSpacing(self) -> None:
-        print("chooseLineSpacing")
+    def selectLineSpacing(self) -> None:
+        print("selectLineSpacing")
 
-    def chooseParagraphSpacing(self) -> None:
-        print("chooseParagraphSpacing")
+    def selectParagraphSpacing(self) -> None:
+        print("selectParagraphSpacing")
 
     def turnPagination(self) -> None:
         print("turnPagination")
