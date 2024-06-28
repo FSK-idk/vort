@@ -24,7 +24,9 @@ from controller.controller import Controller
 
 class TextEditorController(Controller):
     cursorPositionChanged = Signal(int)
-    fontWeightChanged = Signal(QFont.Weight)
+    boldTurned = Signal(bool)
+    italicTurned = Signal(bool)
+    underlineTurned = Signal(bool)
 
     def __init__(self, controller: Controller, parent: QWidget | None = None) -> None:
         super().__init__(parent)
@@ -45,16 +47,30 @@ class TextEditorController(Controller):
         self.ui.resized.connect(self.onResized)
         self.ui.paintedDocument.connect(self.onPaintedDocument)
 
-    def setBold(self, is_bold) -> None:
-        font_weight = QFont.Weight.Bold if is_bold else QFont.Weight.Normal
+    def turnBold(self, is_bold) -> None:
+        bold = QFont.Weight.Bold if is_bold else QFont.Weight.Normal
         format: QTextCharFormat = QTextCharFormat()
-        format.setFontWeight(font_weight)
+        format.setFontWeight(bold)
+        self.text_cursor.mergeCharFormat(format)
+        self.ui.viewport().repaint()
+
+    def turnItalic(self, is_italic) -> None:
+        format: QTextCharFormat = QTextCharFormat()
+        format.setFontItalic(is_italic)
+        self.text_cursor.mergeCharFormat(format)
+        self.ui.viewport().repaint()
+
+    def turnUnderline(self, is_underline) -> None:
+        format: QTextCharFormat = QTextCharFormat()
+        format.setFontUnderline(is_underline)
         self.text_cursor.mergeCharFormat(format)
         self.ui.viewport().repaint()
 
     def onCursorPositionChanged(self, position) -> None:
-        format: QTextCharFormat = self.ui.characterFormat(position)
-        self.fontWeightChanged.emit(format.fontWeight())
+        format: QTextCharFormat = self.ui.characterFormat(position - 1)
+        self.boldTurned.emit(format.fontWeight() == QFont.Weight.Bold)
+        self.italicTurned.emit(format.fontItalic())
+        self.underlineTurned.emit(format.fontUnderline())
 
     # TODO: DEBUG
     def test(self) -> None:

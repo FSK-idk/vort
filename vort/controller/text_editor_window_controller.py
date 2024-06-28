@@ -1,4 +1,4 @@
-from PySide6.QtGui import QFont
+from PySide6.QtGui import QFont, QTextCharFormat
 
 from view.window.text_editor_window_view import TextEditorWindowView
 
@@ -15,7 +15,9 @@ class TextEditorWindowController(Controller):
 
         # signal
 
-        self.ui.editor.fontWeightChanged.connect(self.onFontWeightChanged)
+        self.ui.editor.boldTurned.connect(self.ui.turn_bold_action.setChecked)
+        self.ui.editor.italicTurned.connect(self.ui.turn_italic_action.setChecked)
+        self.ui.editor.underlineTurned.connect(self.ui.turn_underline_action.setChecked)
 
         self.ui.show()
 
@@ -44,9 +46,9 @@ class TextEditorWindowController(Controller):
         self.ui.insert_hyperlink_action.triggered.connect(self.insertHyperlink)
 
         # format
-        self.ui.turn_bold_action.triggered.connect(self.turnBold)
-        self.ui.turn_italic_action.triggered.connect(self.turnItalic)
-        self.ui.turn_underline_action.triggered.connect(self.turnUnderline)
+        self.ui.turn_bold_action.triggered.connect(self.ui.editor.turnBold)
+        self.ui.turn_italic_action.triggered.connect(self.ui.editor.turnItalic)
+        self.ui.turn_underline_action.triggered.connect(self.ui.editor.turnUnderline)
 
         self.ui.indent_right_action.triggered.connect(self.indentRight)
         self.ui.indent_left_action.triggered.connect(self.indentLeft)
@@ -107,19 +109,6 @@ class TextEditorWindowController(Controller):
 
     def insertHyperlink(self) -> None:
         print("insertHyperlink")
-
-    def turnBold(self, checked) -> None:
-        print("turnBold", checked)
-        self.ui.editor.setBold(checked)
-
-    def onFontWeightChanged(self, weight: QFont.Weight) -> None:
-        self.ui.turn_bold_action.setChecked(weight == QFont.Weight.Bold)
-
-    def turnItalic(self) -> None:
-        print("turnItalic")
-
-    def turnUnderline(self) -> None:
-        print("turnUnderline")
 
     def indentRight(self) -> None:
         print("indentRight")
