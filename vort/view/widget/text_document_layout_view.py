@@ -8,8 +8,11 @@ from PySide6.QtGui import (
     QTextCursor,
     QTextCharFormat,
     QPalette,
+    QPen,
+    QBrush,
+    QColor,
 )
-from PySide6.QtCore import QPointF, Signal
+from PySide6.QtCore import QPointF, Signal, QEvent
 
 from utils import PointF, RectF
 
@@ -112,14 +115,34 @@ class TextDocumentLayoutView(QAbstractTextDocumentLayout):
             self.pageCountChanged.emit(self.page_layout.pageCount())
 
     def draw(self, painter: QPainter, context: PaintContext):
+        self.drawClear(painter, context)
         self.drawPage(painter, context)
         self.drawText(painter, context)
 
         self.update.emit()
 
+    def drawClear(self, painter: QPainter, context: PaintContext) -> None:
+        rect: RectF = context.rect
+        palette: QPalette = QPalette()
+        rect.move(PointF(-1, -1))
+
+        old_brush: QBrush = painter.brush()
+        old_pen: QPen = painter.pen()
+
+        painter.setBrush(palette.color(QPalette.ColorGroup.Active, QPalette.ColorRole.Base))
+        painter.setPen(palette.color(QPalette.ColorGroup.Active, QPalette.ColorRole.Base))
+
+        painter.drawRect(context.rect.toQRectF())
+
+        painter.setBrush(old_brush)
+        painter.setPen(old_pen)
+
     def drawPage(self, painter: QPainter, context: PaintContext) -> None:
         rect: RectF = context.rect
         palette: QPalette = context.palette
+
+        old_brush: QBrush = painter.brush()
+        old_pen: QPen = painter.pen()
 
         painter.setBrush(palette.color(QPalette.ColorGroup.Active, QPalette.ColorRole.Base))
         painter.setPen(palette.color(QPalette.ColorGroup.Active, QPalette.ColorRole.Base))
@@ -131,11 +154,16 @@ class TextDocumentLayoutView(QAbstractTextDocumentLayout):
             )
             painter.drawRect(page_rect.toQRectF())
 
+        painter.setBrush(old_brush)
+        painter.setPen(old_pen)
+
     def drawText(self, painter: QPainter, context: PaintContext):
         rect: RectF = context.rect
         cursor_position: int = context.cursor_position
         palette: QPalette = context.palette
         selections: list[Selection] = context.selections
+
+        old_pen: QPen = painter.pen()
 
         painter.setPen(palette.color(QPalette.ColorGroup.Active, QPalette.ColorRole.Text))
 
@@ -165,6 +193,8 @@ class TextDocumentLayoutView(QAbstractTextDocumentLayout):
                 block_layout.drawCursor(painter, carriage_position, cursor_position - block_position)
 
             block_layout.draw(painter, carriage_position, format_ranges, painter.clipBoundingRect())
+
+        painter.setPen(old_pen)
 
     def hitTest(self, point: PointF) -> int:
         current_cursor_position = 0

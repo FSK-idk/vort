@@ -35,7 +35,7 @@ class TextEditorView(QAbstractScrollArea):
     keyPressed = Signal(QKeyEvent)
     keyReleased = Signal(QKeyEvent)
     resized = Signal(QResizeEvent)
-    painted = Signal(QPaintEvent)
+    paintedDocument = Signal(QPaintEvent)
 
     def __init__(self, controller: Controller, parent: QWidget | None = None) -> None:
         super().__init__(parent)
@@ -70,7 +70,7 @@ class TextEditorView(QAbstractScrollArea):
     def characterFormat(self, character_position: int) -> QTextCharFormat:
         return self.document_layout.format(character_position)
 
-    def paint(self, rect: RectF, text_cursor: QTextCursor) -> None:
+    def paint_document(self, rect: RectF, text_cursor: QTextCursor) -> None:
         painter: QPainter = QPainter(self.viewport())
 
         screen_x = self.horizontalScrollBar().value()
@@ -112,10 +112,6 @@ class TextEditorView(QAbstractScrollArea):
         self.document_layout.resizePageLayout(point)
         self.updateScrollBar()
 
-    def repaint(self) -> None:
-        super().repaint()
-        self.viewport().repaint()
-
     def event(self, event: QEvent) -> bool:
         if isinstance(event, QKeyEvent):
             match event.type():
@@ -124,6 +120,11 @@ class TextEditorView(QAbstractScrollArea):
                     return True
                 case QEvent.Type.KeyRelease:
                     self.keyReleased.emit(event)
+                    return True
+        if isinstance(event, QPaintEvent):
+            match event.type():
+                case QEvent.Type.Paint:
+                    self.viewport().repaint()
                     return True
 
         return super().event(event)
@@ -148,6 +149,7 @@ class TextEditorView(QAbstractScrollArea):
         elif isinstance(event, QPaintEvent):
             match event.type():
                 case QEvent.Type.Paint:
-                    self.painted.emit(event)
+                    self.paintedDocument.emit(event)
                     return True
+
         return super().viewportEvent(event)

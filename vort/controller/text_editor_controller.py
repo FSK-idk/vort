@@ -43,14 +43,14 @@ class TextEditorController(Controller):
         self.ui.mouseMoved.connect(self.onMouseMoved)
         self.ui.keyPressed.connect(self.onKeyPressed)
         self.ui.resized.connect(self.onResized)
-        self.ui.painted.connect(self.onPainted)
+        self.ui.paintedDocument.connect(self.onPaintedDocument)
 
     def setBold(self, is_bold) -> None:
         font_weight = QFont.Weight.Bold if is_bold else QFont.Weight.Normal
         format: QTextCharFormat = QTextCharFormat()
         format.setFontWeight(font_weight)
         self.text_cursor.mergeCharFormat(format)
-        self.ui.repaint()
+        self.ui.viewport().repaint()
 
     def onCursorPositionChanged(self, position) -> None:
         format: QTextCharFormat = self.ui.characterFormat(position)
@@ -58,12 +58,6 @@ class TextEditorController(Controller):
 
     # TODO: DEBUG
     def test(self) -> None:
-        # format_: QTextFrameFormat = self.text_edit.document().rootFrame().frameFormat()
-        # print("Root Frame Format:")
-        # print("width:", format_.width().rawValue())
-        # print("height:", format_.height().rawValue())
-        # print("margin:", format_.margin())
-        # print("padding:", format_.padding())
         pass
 
     def onMousePressed(self, event: QMouseEvent) -> None:
@@ -79,7 +73,7 @@ class TextEditorController(Controller):
 
             if position != -1:
                 self.text_cursor.setPosition(position, QTextCursor.MoveMode.MoveAnchor)
-                self.ui.repaint()
+                self.ui.viewport().repaint()
 
                 self.cursorPositionChanged.emit(position)
 
@@ -99,7 +93,7 @@ class TextEditorController(Controller):
             if position != -1:
                 self.text_cursor.setPosition(position, QTextCursor.MoveMode.KeepAnchor)
 
-                self.ui.repaint()
+                self.ui.viewport().repaint()
                 self.cursorPositionChanged.emit(position)
 
     def onKeyPressed(self, event: QKeyEvent) -> None:
@@ -148,7 +142,7 @@ class TextEditorController(Controller):
         if move_mode and move_operation:
             self.text_cursor.movePosition(move_operation, move_mode)
             self.cursorPositionChanged.emit(self.text_cursor.position())
-            self.ui.repaint()
+            self.ui.viewport().repaint()
 
     def handleHotkeys(self, event: QKeyEvent) -> None:
         used = True
@@ -175,7 +169,7 @@ class TextEditorController(Controller):
                     used = False
 
         if used:
-            self.ui.repaint()
+            self.ui.viewport().repaint()
 
     def handleTextInput(self, event: QKeyEvent) -> None:
         if event.modifiers() in [Qt.KeyboardModifier.NoModifier, Qt.KeyboardModifier.ShiftModifier] and event.text():
@@ -199,12 +193,11 @@ class TextEditorController(Controller):
                 self.text_cursor.insertText(event.text())
                 self.text_cursor.endEditBlock()
 
-            self.ui.repaint()
+            self.ui.viewport().repaint()
 
     def onResized(self, event: QResizeEvent) -> None:
         self.ui.resize(PointF(event.size().width(), event.size().height()))
 
-    def onPainted(self, event: QPaintEvent) -> None:
+    def onPaintedDocument(self, event: QPaintEvent) -> None:
         rect = RectF.fromQRect(event.rect())
-
-        self.ui.paint(rect, self.text_cursor)
+        self.ui.paint_document(rect, self.text_cursor)

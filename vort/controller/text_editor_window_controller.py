@@ -20,141 +20,133 @@ class TextEditorWindowController(Controller):
         self.ui.show()
 
     def setupAction(self) -> None:
-        self.ui.new_file_action.triggered.connect(self.newFile)
-        self.ui.open_file_action.triggered.connect(self.openFile)
-        self.ui.close_file_action.triggered.connect(self.closeFile)
+        # file
+        self.ui.new_document_action.triggered.connect(self.newDocument)
+        self.ui.open_document_action.triggered.connect(self.openDocument)
+        self.ui.close_document_action.triggered.connect(self.closeDocument)
         self.ui.exit_editor_action.triggered.connect(self.exitEditor)
 
         # edit
+        self.ui.undo_action.triggered.connect(self.undo)
+        self.ui.redo_action.triggered.connect(self.redo)
 
-        self.ui.undo_last_action.triggered.connect(self.undoLast)
-        self.ui.redo_last_action.triggered.connect(self.redoLast)
+        self.ui.cut_action.triggered.connect(self.cut)
+        self.ui.copy_action.triggered.connect(self.copy)
+        self.ui.paste_action.triggered.connect(self.paste)
 
-        self.ui.cut_text_action.triggered.connect(self.cutText)
-        self.ui.copy_text_action.triggered.connect(self.copyText)
-        self.ui.paste_text_action.triggered.connect(self.pasteText)
+        self.ui.select_all_action.triggered.connect(self.selectAll)
 
-        self.ui.select_text_action.triggered.connect(self.selectText)
-        self.ui.find_text_action.triggered.connect(self.findText)
-        self.ui.find_and_replace_text_action.triggered.connect(self.findAndReplaceText)
+        self.ui.find_action.triggered.connect(self.find)
+        self.ui.find_and_replace_action.triggered.connect(self.findAndReplace)
 
         # insert
-
         self.ui.insert_image_action.triggered.connect(self.insertImage)
         self.ui.insert_hyperlink_action.triggered.connect(self.insertHyperlink)
 
-        # help
+        # format
+        self.ui.turn_bold_action.triggered.connect(self.turnBold)
+        self.ui.turn_italic_action.triggered.connect(self.turnItalic)
+        self.ui.turn_underline_action.triggered.connect(self.turnUnderline)
 
-        self.ui.show_about_action.triggered.connect(self.showAbout)
+        self.ui.indent_right_action.triggered.connect(self.indentRight)
+        self.ui.indent_left_action.triggered.connect(self.indentLeft)
+
+        self.ui.choose_line_spacing_action.triggered.connect(self.chooseLineSpacing)
+        self.ui.choose_paragraph_spacing_action.triggered.connect(self.chooseParagraphSpacing)
+
+        self.ui.turn_pagination_action.triggered.connect(self.turnPagination)
 
         # style
-
-        self.ui.choose_style_action.triggered.connect(self.chooseStyle)
+        self.ui.open_style_action.triggered.connect(self.openStyle)
         self.ui.clear_style_action.triggered.connect(self.clearStyle)
 
-        # font
+        # help
+        self.ui.show_guide_action.triggered.connect(self.showGuide)
+        self.ui.show_about_action.triggered.connect(self.showAbout)
 
-        self.ui.choose_font_action.triggered.connect(self.chooseFont)
-        self.ui.choose_font_size_action.triggered.connect(self.chooseFontSize)
-
-        # format
-
-        self.ui.bold_text_action.triggered.connect(self.boldText)
-        self.ui.italic_text_action.triggered.connect(self.italicText)
-        self.ui.underline_text_action.triggered.connect(self.underlineText)
-
-        # color
-
-        self.ui.color_text_action.triggered.connect(self.colorText)
-        self.ui.bg_color_text_action.triggered.connect(self.bgColorText)
-
-        # indent
-
-        self.ui.right_indent_action.triggered.connect(self.rightIndent)
-        self.ui.left_indent_action.triggered.connect(self.leftIndent)
         self.ui.test_action.triggered.connect(self.test)
 
-    def newFile(self) -> None:
-        print("New File")
+    def newDocument(self) -> None:
+        print("newDocument")
 
-    def openFile(self) -> None:
-        print("Open File")
+    def openDocument(self) -> None:
+        print("openDocument")
 
-    def closeFile(self) -> None:
-        print("Close File")
+    def closeDocument(self) -> None:
+        print("closeDocument")
 
     def exitEditor(self) -> None:
-        print("Exit Editor")
+        print("exitEditor")
 
-    def undoLast(self) -> None:
-        print("Undo Last")
+    def undo(self) -> None:
+        print("undo")
 
-    def redoLast(self) -> None:
-        print("Redo Last")
+    def redo(self) -> None:
+        print("redo")
 
-    def cutText(self) -> None:
-        print("Cut Text")
+    def cut(self) -> None:
+        print("cut")
 
-    def copyText(self) -> None:
-        print("Copy Text")
+    def copy(self) -> None:
+        print("copy")
 
-    def pasteText(self) -> None:
-        print("Paste Text")
+    def paste(self) -> None:
+        print("paste")
 
-    def selectText(self) -> None:
-        print("Select Text")
+    def selectAll(self) -> None:
+        print("selectAll")
 
-    def findText(self) -> None:
-        print("Find Text")
+    def find(self) -> None:
+        print("find")
 
-    def findAndReplaceText(self) -> None:
-        print("Find and Replace Text")
+    def findAndReplace(self) -> None:
+        print("findAndReplace")
 
     def insertImage(self) -> None:
-        print("Insert Image")
+        print("insertImage")
 
     def insertHyperlink(self) -> None:
-        print("Insert Hyperlink")
+        print("insertHyperlink")
 
-    def showAbout(self) -> None:
-        print("Show About")
-
-    def chooseStyle(self) -> None:
-        print("Choose Style")
-
-    def clearStyle(self) -> None:
-        print("Clear Style")
-
-    def chooseFont(self) -> None:
-        print("Choose Font")
-
-    def chooseFontSize(self) -> None:
-        print("Choose Font Size")
-
-    def boldText(self, checked) -> None:
-        print("Bold Text", checked)
+    def turnBold(self, checked) -> None:
+        print("turnBold", checked)
         self.ui.editor.setBold(checked)
 
     def onFontWeightChanged(self, weight: QFont.Weight) -> None:
-        self.ui.bold_text_action.setChecked(weight == QFont.Weight.Bold)
+        self.ui.turn_bold_action.setChecked(weight == QFont.Weight.Bold)
 
-    def italicText(self) -> None:
-        print("Italic Text")
+    def turnItalic(self) -> None:
+        print("turnItalic")
 
-    def underlineText(self) -> None:
-        print("Underline Text")
+    def turnUnderline(self) -> None:
+        print("turnUnderline")
 
-    def colorText(self) -> None:
-        print("Color Text")
+    def indentRight(self) -> None:
+        print("indentRight")
 
-    def bgColorText(self) -> None:
-        print("BG Color Text")
+    def indentLeft(self) -> None:
+        print("indentLeft")
 
-    def rightIndent(self) -> None:
-        print("Right Indent")
+    def chooseLineSpacing(self) -> None:
+        print("chooseLineSpacing")
 
-    def leftIndent(self) -> None:
-        print("Left Indent")
+    def chooseParagraphSpacing(self) -> None:
+        print("chooseParagraphSpacing")
+
+    def turnPagination(self) -> None:
+        print("turnPagination")
+
+    def openStyle(self) -> None:
+        print("openStyle")
+
+    def clearStyle(self) -> None:
+        print("clearStyle")
+
+    def showGuide(self) -> None:
+        print("showGuide")
+
+    def showAbout(self) -> None:
+        print("showAbout")
 
     # TODO: DEBUG
     def test(self) -> None:

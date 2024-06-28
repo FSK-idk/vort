@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QMenuBar, QMenu, QToolBar, QMainWindow, QWidget
+from PySide6.QtWidgets import QMenuBar, QMenu, QToolBar, QComboBox, QMainWindow, QWidget
 from PySide6.QtGui import QAction
 from PySide6.QtCore import QEvent
 
@@ -20,6 +20,12 @@ class TextEditorWindowView(QMainWindow):
 
         self.editor: TextEditorController = TextEditorController(controller=controller)
 
+        self.style_combobox = QComboBox()
+        self.font_combobox = QComboBox()
+        self.size_combobox = QComboBox()
+        self.color_combobox = QComboBox()
+        self.background_color_combobox = QComboBox()
+
         self.setCentralWidget(self.editor.ui)
 
         # setup
@@ -29,43 +35,54 @@ class TextEditorWindowView(QMainWindow):
         self.setupToolBar()
 
     def setupAction(self) -> None:
-        self.new_file_action: QAction = QAction("New")
-        self.open_file_action: QAction = QAction("Open")
-        self.close_file_action: QAction = QAction("Close")
+        # file
+        self.new_document_action: QAction = QAction("New")
+        self.open_document_action: QAction = QAction("Open")
+        self.close_document_action: QAction = QAction("Close")
+
         self.exit_editor_action: QAction = QAction("Exit")
 
-        self.undo_last_action: QAction = QAction("Undo")
-        self.redo_last_action: QAction = QAction("Redo")
-        self.cut_text_action: QAction = QAction("Cut")
-        self.copy_text_action: QAction = QAction("Copy")
-        self.paste_text_action: QAction = QAction("Paste")
-        self.select_text_action: QAction = QAction("Select")
-        self.find_text_action: QAction = QAction("Find")
-        self.find_and_replace_text_action: QAction = QAction("Find and Replace")
+        # edit
+        self.undo_action: QAction = QAction("Undo")
+        self.redo_action: QAction = QAction("Redo")
 
+        self.cut_action: QAction = QAction("Cut")
+        self.copy_action: QAction = QAction("Copy")
+        self.paste_action: QAction = QAction("Paste")
+
+        self.select_all_action: QAction = QAction("Select")
+
+        self.find_action: QAction = QAction("Find")
+        self.find_and_replace_action: QAction = QAction("Find and Replace")
+
+        # insert
         self.insert_image_action: QAction = QAction("Image")
         self.insert_hyperlink_action: QAction = QAction("Hylerlink")
 
-        self.show_about_action: QAction = QAction("About")
+        # format
+        self.turn_bold_action: QAction = QAction("Bold")
+        self.turn_bold_action.setCheckable(True)
+        self.turn_italic_action: QAction = QAction("Italic")
+        self.turn_italic_action.setCheckable(True)
+        self.turn_underline_action: QAction = QAction("Underline")
+        self.turn_underline_action.setCheckable(True)
 
-        self.choose_style_action: QAction = QAction("Style")
+        self.indent_right_action: QAction = QAction("Right")
+        self.indent_left_action: QAction = QAction("Left")
+
+        self.choose_line_spacing_action: QAction = QAction("Line spacing")  # maybe new menu
+        self.choose_paragraph_spacing_action: QAction = QAction("Paragraph spacing")  # maybe new menu
+
+        self.turn_pagination_action: QAction = QAction("Pages")
+        self.turn_pagination_action.setCheckable(True)
+
+        # style
+        self.open_style_action: QAction = QAction("Styles")
         self.clear_style_action: QAction = QAction("Clear")
 
-        self.choose_font_action: QAction = QAction("Font")
-        self.choose_font_size_action: QAction = QAction("Size")
-
-        self.bold_text_action: QAction = QAction("Bold")
-        self.bold_text_action.setCheckable(True)
-        self.italic_text_action: QAction = QAction("Italic")
-        self.italic_text_action.setCheckable(True)
-        self.underline_text_action: QAction = QAction("Underline")
-        self.underline_text_action.setCheckable(True)
-
-        self.color_text_action: QAction = QAction("Color")
-        self.bg_color_text_action: QAction = QAction("BG Color")
-
-        self.right_indent_action: QAction = QAction("Right")
-        self.left_indent_action: QAction = QAction("Left")
+        # help
+        self.show_guide_action: QAction = QAction("Guide")
+        self.show_about_action: QAction = QAction("About")
 
         # TODO: DEBUG
         self.test_action: QAction = QAction("Test")
@@ -74,24 +91,25 @@ class TextEditorWindowView(QMainWindow):
         self.menu_bar = QMenuBar()
 
         self.file_menu: QMenu = QMenu("File")
-        self.file_menu.addAction(self.new_file_action)
-        self.file_menu.addAction(self.open_file_action)
-        self.file_menu.addAction(self.close_file_action)
+        self.file_menu.addAction(self.new_document_action)
+        self.file_menu.addAction(self.open_document_action)
+        self.file_menu.addAction(self.close_document_action)
         self.file_menu.addSeparator()
         self.file_menu.addAction(self.exit_editor_action)
         self.menu_bar.addMenu(self.file_menu)
 
         self.edit_menu: QMenu = QMenu("Edit")
-        self.edit_menu.addAction(self.undo_last_action)
-        self.edit_menu.addAction(self.redo_last_action)
+        self.edit_menu.addAction(self.undo_action)
+        self.edit_menu.addAction(self.redo_action)
         self.edit_menu.addSeparator()
-        self.edit_menu.addAction(self.cut_text_action)
-        self.edit_menu.addAction(self.copy_text_action)
-        self.edit_menu.addAction(self.paste_text_action)
+        self.edit_menu.addAction(self.cut_action)
+        self.edit_menu.addAction(self.copy_action)
+        self.edit_menu.addAction(self.paste_action)
         self.edit_menu.addSeparator()
-        self.edit_menu.addAction(self.select_text_action)
-        self.edit_menu.addAction(self.find_text_action)
-        self.edit_menu.addAction(self.find_and_replace_text_action)
+        self.edit_menu.addAction(self.select_all_action)
+        self.edit_menu.addSeparator()
+        self.edit_menu.addAction(self.find_action)
+        self.edit_menu.addAction(self.find_and_replace_action)
         self.menu_bar.addMenu(self.edit_menu)
 
         self.insert_menu: QMenu = QMenu("Insert")
@@ -99,7 +117,26 @@ class TextEditorWindowView(QMainWindow):
         self.insert_menu.addAction(self.insert_hyperlink_action)
         self.menu_bar.addMenu(self.insert_menu)
 
+        self.format_menu: QMenu = QMenu("Format")
+        self.format_menu.addAction(self.turn_bold_action)
+        self.format_menu.addAction(self.turn_italic_action)
+        self.format_menu.addAction(self.turn_underline_action)
+        self.format_menu.addSeparator()
+        self.format_menu.addAction(self.indent_right_action)
+        self.format_menu.addAction(self.indent_left_action)
+        self.format_menu.addSeparator()
+        self.format_menu.addAction(self.choose_line_spacing_action)
+        self.format_menu.addAction(self.choose_paragraph_spacing_action)
+        self.format_menu.addSeparator()
+        self.format_menu.addAction(self.turn_pagination_action)
+        self.menu_bar.addMenu(self.format_menu)
+
+        self.style_menu: QMenu = QMenu("Style")
+        self.style_menu.addAction(self.open_style_action)
+        self.menu_bar.addMenu(self.style_menu)
+
         self.help_menu: QMenu = QMenu("Help")
+        self.help_menu.addAction(self.show_guide_action)
         self.help_menu.addAction(self.show_about_action)
         self.menu_bar.addMenu(self.help_menu)
 
@@ -110,30 +147,27 @@ class TextEditorWindowView(QMainWindow):
 
     def setupToolBar(self) -> None:
         self.style_tool: QToolBar = QToolBar("Style")
-        self.style_tool.addAction(self.choose_style_action)
+        self.style_tool.addWidget(self.style_combobox)
         self.style_tool.addAction(self.clear_style_action)
         self.addToolBar(self.style_tool)
 
         self.font_tool: QToolBar = QToolBar("Font")
-        self.font_tool.addAction(self.choose_font_action)
-        self.font_tool.addAction(self.choose_font_size_action)
+        self.font_tool.addWidget(self.font_combobox)
+        self.font_tool.addWidget(self.size_combobox)
         self.addToolBar(self.font_tool)
 
         self.format_tool: QToolBar = QToolBar("Format")
-        self.format_tool.addAction(self.bold_text_action)
-        self.format_tool.addAction(self.italic_text_action)
-        self.format_tool.addAction(self.underline_text_action)
+        self.format_tool.addAction(self.turn_bold_action)
+        self.format_tool.addAction(self.turn_italic_action)
+        self.format_tool.addAction(self.turn_underline_action)
         self.addToolBar(self.format_tool)
 
         self.color_tool: QToolBar = QToolBar("Color")
-        self.color_tool.addAction(self.color_text_action)
-        self.color_tool.addAction(self.bg_color_text_action)
+        self.color_tool.addWidget(self.color_combobox)
+        self.color_tool.addWidget(self.background_color_combobox)
         self.addToolBar(self.color_tool)
 
         self.indent_tool: QToolBar = QToolBar("Indent")
-        self.indent_tool.addAction(self.right_indent_action)
-        self.indent_tool.addAction(self.left_indent_action)
+        self.indent_tool.addAction(self.indent_right_action)
+        self.indent_tool.addAction(self.indent_left_action)
         self.addToolBar(self.indent_tool)
-
-    def event(self, event: QEvent) -> bool:
-        return super().event(event)
