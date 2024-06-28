@@ -50,7 +50,7 @@ class TextEditorWindowView(QMainWindow):
         self.copy_action: QAction = QAction("Copy")
         self.paste_action: QAction = QAction("Paste")
 
-        self.select_all_action: QAction = QAction("Select")
+        self.select_all_action: QAction = QAction("Select All")
 
         self.find_action: QAction = QAction("Find")
         self.find_and_replace_action: QAction = QAction("Find and Replace")

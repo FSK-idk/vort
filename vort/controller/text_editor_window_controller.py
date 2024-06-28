@@ -1,5 +1,3 @@
-from PySide6.QtGui import QFont, QTextCharFormat
-
 from view.window.text_editor_window_view import TextEditorWindowView
 
 from controller.controller import Controller
@@ -26,17 +24,17 @@ class TextEditorWindowController(Controller):
         self.ui.new_document_action.triggered.connect(self.newDocument)
         self.ui.open_document_action.triggered.connect(self.openDocument)
         self.ui.close_document_action.triggered.connect(self.closeDocument)
-        self.ui.exit_editor_action.triggered.connect(self.exitEditor)
+        self.ui.exit_editor_action.triggered.connect(self.ui.close)
 
         # edit
-        self.ui.undo_action.triggered.connect(self.undo)
-        self.ui.redo_action.triggered.connect(self.redo)
+        self.ui.undo_action.triggered.connect(self.ui.editor.undo)
+        self.ui.redo_action.triggered.connect(self.ui.editor.redo)
 
-        self.ui.cut_action.triggered.connect(self.cut)
-        self.ui.copy_action.triggered.connect(self.copy)
-        self.ui.paste_action.triggered.connect(self.paste)
+        self.ui.cut_action.triggered.connect(self.ui.editor.cut)
+        self.ui.copy_action.triggered.connect(self.ui.editor.copy)
+        self.ui.paste_action.triggered.connect(self.ui.editor.paste)
 
-        self.ui.select_all_action.triggered.connect(self.selectAll)
+        self.ui.select_all_action.triggered.connect(self.ui.editor.selectAll)
 
         self.ui.find_action.triggered.connect(self.find)
         self.ui.find_and_replace_action.triggered.connect(self.findAndReplace)
@@ -76,27 +74,6 @@ class TextEditorWindowController(Controller):
 
     def closeDocument(self) -> None:
         print("closeDocument")
-
-    def exitEditor(self) -> None:
-        print("exitEditor")
-
-    def undo(self) -> None:
-        print("undo")
-
-    def redo(self) -> None:
-        print("redo")
-
-    def cut(self) -> None:
-        print("cut")
-
-    def copy(self) -> None:
-        print("copy")
-
-    def paste(self) -> None:
-        print("paste")
-
-    def selectAll(self) -> None:
-        print("selectAll")
 
     def find(self) -> None:
         print("find")
@@ -139,4 +116,4 @@ class TextEditorWindowController(Controller):
 
     # TODO: DEBUG
     def test(self) -> None:
-        self.ui.editor.test()
+        print("A")

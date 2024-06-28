@@ -72,6 +72,30 @@ class TextEditorController(Controller):
         self.italicTurned.emit(format.fontItalic())
         self.underlineTurned.emit(format.fontUnderline())
 
+    def undo(self) -> None:
+        self.document.undo(self.text_cursor)
+
+    def redo(self) -> None:
+        self.document.redo(self.text_cursor)
+
+    def cut(self) -> None:
+        if self.text_cursor.hasSelection():
+            selected_text = self.text_cursor.selectedText()
+            QApplication.clipboard().setText(selected_text)
+            self.text_cursor.removeSelectedText()
+
+    def copy(self) -> None:
+        if self.text_cursor.hasSelection():
+            selected_text = self.text_cursor.selectedText()
+            QApplication.clipboard().setText(selected_text)
+
+    def paste(self) -> None:
+        copied_text = QApplication.clipboard().text()
+        self.text_cursor.insertText(copied_text)
+
+    def selectAll(self) -> None:
+        self.text_cursor.select(QTextCursor.SelectionType.Document)
+
     # TODO: DEBUG
     def test(self) -> None:
         pass
@@ -166,21 +190,17 @@ class TextEditorController(Controller):
         if Qt.KeyboardModifier.ControlModifier in event.modifiers():
             match event.key():
                 case Qt.Key.Key_X if self.text_cursor.hasSelection():
-                    selected_text = self.text_cursor.selectedText()
-                    QApplication.clipboard().setText(selected_text)
-                    self.text_cursor.removeSelectedText()
+                    self.cut()
                 case Qt.Key.Key_C if self.text_cursor.hasSelection():
-                    selected_text = self.text_cursor.selectedText()
-                    QApplication.clipboard().setText(selected_text)
+                    self.copy()
                 case Qt.Key.Key_V:
-                    copied_text = QApplication.clipboard().text()
-                    self.text_cursor.insertText(copied_text)
+                    self.paste()
                 case Qt.Key.Key_A:
-                    self.text_cursor.select(QTextCursor.SelectionType.Document)
+                    self.selectAll()
                 case Qt.Key.Key_Z:
-                    self.document.undo(self.text_cursor)
+                    self.undo()
                 case Qt.Key.Key_Y:
-                    self.document.redo(self.text_cursor)
+                    self.redo()
                 case _:
                     used = False
 
