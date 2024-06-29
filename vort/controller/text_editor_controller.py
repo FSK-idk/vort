@@ -12,6 +12,7 @@ from PySide6.QtGui import (
     QKeyEvent,
     QTextCharFormat,
     QPaintEvent,
+    QTextBlockFormat,
 )
 from PySide6.QtCore import Qt, Signal
 
@@ -24,6 +25,8 @@ from controller.controller import Controller
 
 class TextEditorController(Controller):
     cursorPositionChanged = Signal(int)
+    fontChanged = Signal(str)
+    sizeChanged = Signal(int)
     boldTurned = Signal(bool)
     italicTurned = Signal(bool)
     underlinedTurned = Signal(bool)
@@ -40,6 +43,9 @@ class TextEditorController(Controller):
         self.ui.setDocument(self.document)
 
         self.text_cursor: QTextCursor = QTextCursor(self.document)
+        format: QTextCharFormat = QTextCharFormat()
+        format.setFontPointSize(10)
+        # self.text_cursor.mergeCharFormat(format)
 
         # signal
 
@@ -56,28 +62,50 @@ class TextEditorController(Controller):
     # TODO: DEBUG
     def test(self) -> None:
         pass
+        # self.text_cursor.setBlockCharFormat(self.text_cursor.charFormat())
+        # print(self.text_cursor.position())
 
-    def turnBold(self, is_bold) -> None:
+    def setSize(self, font_size: int) -> None:
+        format: QTextCharFormat = QTextCharFormat()
+        format.setFontPointSize(font_size)
+        self.text_cursor.mergeCharFormat(format)
+        self.text_cursor.mergeBlockCharFormat(self.text_cursor.charFormat())
+        self.ui.viewport().repaint()
+
+    def setFont(self, font_family: str) -> None:
+        format: QTextCharFormat = QTextCharFormat()
+        format.setFontFamily(font_family)
+        self.text_cursor.mergeCharFormat(format)
+        self.text_cursor.setBlockCharFormat(self.text_cursor.charFormat())
+        self.ui.viewport().repaint()
+
+    def turnBold(self, is_bold: bool) -> None:
         bold = QFont.Weight.Bold if is_bold else QFont.Weight.Normal
         format: QTextCharFormat = QTextCharFormat()
         format.setFontWeight(bold)
         self.text_cursor.mergeCharFormat(format)
+        self.text_cursor.mergeBlockCharFormat(self.text_cursor.charFormat())
         self.ui.viewport().repaint()
 
-    def turnItalic(self, is_italic) -> None:
+    def turnItalic(self, is_italic: bool) -> None:
         format: QTextCharFormat = QTextCharFormat()
         format.setFontItalic(is_italic)
         self.text_cursor.mergeCharFormat(format)
+        self.text_cursor.mergeBlockCharFormat(self.text_cursor.charFormat())
         self.ui.viewport().repaint()
 
-    def turnUnderlined(self, is_underline) -> None:
+    def turnUnderlined(self, is_underline: bool) -> None:
         format: QTextCharFormat = QTextCharFormat()
         format.setFontUnderline(is_underline)
         self.text_cursor.mergeCharFormat(format)
+        self.text_cursor.mergeBlockCharFormat(self.text_cursor.charFormat())
         self.ui.viewport().repaint()
 
-    def onCursorPositionChanged(self, position) -> None:
-        format: QTextCharFormat = self.ui.characterFormat(position - 1)
+    def onCursorPositionChanged(self, position: int) -> None:
+        format: QTextCharFormat = self.text_cursor.charFormat()
+
+        self.fontChanged.emit(format.font().family())
+        self.sizeChanged.emit(format.font().pointSize())
         self.boldTurned.emit(format.fontWeight() == QFont.Weight.Bold)
         self.italicTurned.emit(format.fontItalic())
         self.underlinedTurned.emit(format.fontUnderline())
@@ -119,9 +147,8 @@ class TextEditorController(Controller):
 
             if position != -1:
                 self.text_cursor.setPosition(position, QTextCursor.MoveMode.MoveAnchor)
+                self.cursorPositionChanged.emit(self.text_cursor.position())
                 self.ui.viewport().repaint()
-
-                self.cursorPositionChanged.emit(position)
 
             self.mouse_pressed = True
 
@@ -138,9 +165,8 @@ class TextEditorController(Controller):
 
             if position != -1:
                 self.text_cursor.setPosition(position, QTextCursor.MoveMode.KeepAnchor)
-
+                self.cursorPositionChanged.emit(self.text_cursor.position())
                 self.ui.viewport().repaint()
-                self.cursorPositionChanged.emit(position)
 
     def onKeyPressed(self, event: QKeyEvent) -> None:
         self.handleNavigationInput(event)
@@ -224,17 +250,17 @@ class TextEditorController(Controller):
                 self.text_cursor.beginEditBlock()
                 self.text_cursor.deletePreviousChar()
                 self.text_cursor.endEditBlock()
-            elif event.key() == Qt.Key.Key_Delete:
+            elif event.key() == Qt.Key.Key_Delete and not self.text_cursor.hasSelection():
                 self.text_cursor.beginEditBlock()
                 self.text_cursor.deleteChar()
                 self.text_cursor.endEditBlock()
             elif event.key() == Qt.Key.Key_Escape:
-                pass  # ignore
+                return  # ignore
             else:
                 self.text_cursor.beginEditBlock()
                 self.text_cursor.insertText(event.text())
                 self.text_cursor.endEditBlock()
-
+            self.cursorPositionChanged.emit(self.text_cursor.position())
             self.ui.viewport().repaint()
 
     def onResized(self, event: QResizeEvent) -> None:

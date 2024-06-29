@@ -1,6 +1,18 @@
-from PySide6.QtWidgets import QMenuBar, QMenu, QToolBar, QComboBox, QMainWindow, QWidget, QStatusBar, QLabel
-from PySide6.QtGui import QAction
-from PySide6.QtCore import QEvent
+from PySide6.QtWidgets import (
+    QMenuBar,
+    QMenu,
+    QToolBar,
+    QComboBox,
+    QMainWindow,
+    QWidget,
+    QStatusBar,
+    QLabel,
+    QFontComboBox,
+    QLineEdit,
+    QCompleter,
+)
+from PySide6.QtGui import QAction, QIntValidator, QRegularExpressionValidator, QValidator
+from PySide6.QtCore import QEvent, QObject, Qt, QRegularExpression, QRegularExpressionMatch
 
 from controller.text_editor_controller import TextEditorController
 from controller.controller import Controller
@@ -21,8 +33,19 @@ class TextEditorWindowView(QMainWindow):
         self.editor: TextEditorController = TextEditorController(controller=controller)
 
         self.style_combobox = QComboBox()
-        self.font_combobox = QComboBox()
+        self.font_combobox = QFontComboBox()
         self.size_combobox = QComboBox()
+
+        self.size_combobox.setEditable(True)
+        self.size_combobox.setCompleter(QCompleter())
+        self.size_combobox.setInsertPolicy(QComboBox.InsertPolicy.NoInsert)
+        self.size_combobox.lineEdit().setValidator(QRegularExpressionValidator("[1-9][0-9]?( pt)?$"))
+        # self.size_combobox.lineEdit().setFixedWidth(50)
+        default_sizes = [6, 8, 10, 12, 14, 16, 18, 20, 24, 30, 36, 42, 48]
+        self.size_combobox.addItems([str(size) + " pt" for size in default_sizes])
+        self.no_point_re: QRegularExpression = QRegularExpression("[1-9][0-9]?$")
+        self.size_combobox.lineEdit().returnPressed.connect(self.addPointSuffix)
+
         self.color_combobox = QComboBox()
         self.background_color_combobox = QComboBox()
 
@@ -207,3 +230,8 @@ class TextEditorWindowView(QMainWindow):
         self.status_bar.addPermanentWidget(self.character_count)
 
         self.setStatusBar(self.status_bar)
+
+    def addPointSuffix(self) -> None:
+        rem: QRegularExpressionMatch = self.no_point_re.match(self.size_combobox.currentText())
+        if rem.hasMatch():
+            self.size_combobox.setEditText(self.size_combobox.currentText() + " pt")

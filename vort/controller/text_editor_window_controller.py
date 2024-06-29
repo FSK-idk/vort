@@ -1,3 +1,5 @@
+from PySide6.QtGui import QFont
+
 from view.window.text_editor_window_view import TextEditorWindowView
 
 from controller.controller import Controller
@@ -13,11 +15,23 @@ class TextEditorWindowController(Controller):
 
         # signal
 
-        self.ui.editor.boldTurned.connect(self.ui.turn_bold_action.setChecked)
-        self.ui.editor.italicTurned.connect(self.ui.turn_italic_action.setChecked)
-        self.ui.editor.underlinedTurned.connect(self.ui.turn_underlined_action.setChecked)
+        self.ui.font_combobox.currentFontChanged.connect(self.selectFont)
+        self.ui.font_combobox.lineEdit().returnPressed.connect(self.ui.editor.ui.setFocus)
+        self.ui.font_combobox.activated.connect(self.ui.editor.ui.setFocus)
+        self.ui.editor.fontChanged.connect(self.onFontChanged)
+
+        self.ui.size_combobox.activated.connect(self.selectSize)
+        self.ui.size_combobox.lineEdit().returnPressed.connect(self.ui.editor.ui.setFocus)
+        self.ui.size_combobox.activated.connect(self.ui.editor.ui.setFocus)
+        self.ui.editor.sizeChanged.connect(self.onSizeChanged)
+
+        self.ui.editor.boldTurned.connect(self.onBoldTurned)
+        self.ui.editor.italicTurned.connect(self.onItalicTurned)
+        self.ui.editor.underlinedTurned.connect(self.onUnderlinedTurned)
 
         self.ui.editor.characterCountChanged.connect(self.onCharacterCountChanged)
+
+        self.setupDefault()
 
         self.ui.show()
 
@@ -46,9 +60,9 @@ class TextEditorWindowController(Controller):
         self.ui.insert_hyperlink_action.triggered.connect(self.insertHyperlink)
 
         # format
-        self.ui.turn_bold_action.triggered.connect(self.ui.editor.turnBold)
-        self.ui.turn_italic_action.triggered.connect(self.ui.editor.turnItalic)
-        self.ui.turn_underlined_action.triggered.connect(self.ui.editor.turnUnderlined)
+        self.ui.turn_bold_action.triggered.connect(self.turnBold)
+        self.ui.turn_italic_action.triggered.connect(self.turnItalic)
+        self.ui.turn_underlined_action.triggered.connect(self.turnUnderlined)
 
         self.ui.indent_right_action.triggered.connect(self.indentRight)
         self.ui.indent_left_action.triggered.connect(self.indentLeft)
@@ -67,6 +81,19 @@ class TextEditorWindowController(Controller):
         self.ui.show_about_action.triggered.connect(self.showAbout)
 
         self.ui.test_action.triggered.connect(self.test)
+
+    def setupDefault(self) -> None:
+        self.turnBold(False)
+        self.onBoldTurned(False)
+        self.turnItalic(False)
+        self.onItalicTurned(False)
+        self.turnUnderlined(False)
+        self.onUnderlinedTurned(False)
+        self.selectFont(QFont())
+        self.onFontChanged(QFont().family())
+        self.ui.size_combobox.setEditText("16 pt")
+        self.selectSize()
+        self.onSizeChanged(16)
 
     def onCharacterCountChanged(self, character_count) -> None:
         if character_count == 1:
@@ -88,6 +115,41 @@ class TextEditorWindowController(Controller):
 
     def findAndReplace(self) -> None:
         print("findAndReplace")
+
+    def turnBold(self, is_bold) -> None:
+        self.ui.editor.turnBold(is_bold)
+
+    def onBoldTurned(self, is_bold) -> None:
+        self.ui.turn_bold_action.setChecked(is_bold)
+
+    def turnItalic(self, is_italic) -> None:
+        self.ui.editor.turnItalic(is_italic)
+
+    def onItalicTurned(self, is_italic) -> None:
+        self.ui.turn_italic_action.setChecked(is_italic)
+
+    def turnUnderlined(self, is_underlined) -> None:
+        self.ui.editor.turnUnderlined(is_underlined)
+
+    def onUnderlinedTurned(self, is_underlined) -> None:
+        self.ui.turn_underlined_action.setChecked(is_underlined)
+
+    def selectFont(self, font: QFont) -> None:
+        self.ui.editor.setFont(font.family())
+
+    def onFontChanged(self, font: str) -> None:
+        self.ui.font_combobox.blockSignals(True)
+        self.ui.font_combobox.setCurrentFont(font)
+        self.ui.font_combobox.blockSignals(False)
+
+    def selectSize(self) -> None:
+        text = self.ui.size_combobox.currentText()
+        self.ui.editor.setSize(int(text[:-3]))
+
+    def onSizeChanged(self, size: int) -> None:
+        self.ui.size_combobox.blockSignals(True)
+        self.ui.size_combobox.setEditText(str(size) + " pt")
+        self.ui.size_combobox.blockSignals(False)
 
     def insertImage(self) -> None:
         print("insertImage")
@@ -124,4 +186,5 @@ class TextEditorWindowController(Controller):
 
     # TODO: DEBUG
     def test(self) -> None:
-        print("A")
+        self.ui.editor.test()
+        pass

@@ -203,7 +203,7 @@ class TextDocumentLayoutView(QAbstractTextDocumentLayout):
                     format_range.format = selection.format  # type: ignore
                     format_ranges.append(format_range)
 
-            if cursor_position >= block_position and cursor_position < block_position + block_length:
+            if cursor_position >= block_position and cursor_position < block_position + block_length and not selections:
                 block_layout.drawCursor(painter, carriage_position, cursor_position - block_position)
 
             block_layout.draw(painter, carriage_position, format_ranges, painter.clipBoundingRect())

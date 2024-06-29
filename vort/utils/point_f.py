@@ -39,5 +39,9 @@ class PointF:
         self.__y_position += vector.yPosition()
 
     @classmethod
+    def difference(cls, vector_1: Self, vector_2: Self) -> Self:
+        return cls(vector_1.xPosition() - vector_2.xPosition(), vector_1.yPosition() - vector_2.yPosition())
+
+    @classmethod
     def dotProduct(cls, vector_1: Self, vector_2: Self) -> float:
         return vector_1.xPosition() * vector_2.xPosition() + vector_1.yPosition() * vector_2.yPosition()

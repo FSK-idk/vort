@@ -1,8 +1,4 @@
-from PySide6.QtWidgets import (
-    QWidget,
-    QAbstractScrollArea,
-    QSizePolicy,
-)
+from PySide6.QtWidgets import QWidget, QAbstractScrollArea, QSizePolicy
 from PySide6.QtGui import (
     QKeyEvent,
     QMouseEvent,
@@ -73,9 +69,6 @@ class TextEditorView(QAbstractScrollArea):
         self.document_layout.pageCountChanged.connect(self.pageCountChanged.emit)
         self.document_layout.characterCountChanged.connect(self.characterCountChanged.emit)
 
-    def characterFormat(self, character_position: int) -> QTextCharFormat:
-        return self.document_layout.format(character_position)
-
     def paint_document(self, rect: RectF, text_cursor: QTextCursor) -> None:
         painter: QPainter = QPainter(self.viewport())
 
@@ -92,7 +85,9 @@ class TextEditorView(QAbstractScrollArea):
         format.setBackground(QColor("blue"))
         format.setForeground(QColor("white"))
 
-        selections: list[Selection] = [Selection(text_cursor, format)]
+        selections: list[Selection] = []
+        if text_cursor.hasSelection():
+            selections.append(Selection(text_cursor, format))
 
         context = PaintContext(rect, text_cursor.position(), palette, selections)
         self.document_layout.draw(painter, context)
