@@ -1,4 +1,5 @@
-from PySide6.QtGui import QFont
+from PySide6.QtGui import QFont, QColor
+from PySide6.QtCore import Qt
 
 from view.window.text_editor_window_view import TextEditorWindowView
 
@@ -28,6 +29,10 @@ class TextEditorWindowController(Controller):
         self.ui.editor.boldTurned.connect(self.onBoldTurned)
         self.ui.editor.italicTurned.connect(self.onItalicTurned)
         self.ui.editor.underlinedTurned.connect(self.onUnderlinedTurned)
+
+        self.ui.color_picker.colorSelected.connect(self.selectColor)
+        self.ui.color_picker.colorSelected.connect(self.ui.editor.ui.setFocus)
+        self.ui.editor.colorSelected.connect(self.onColorSelected)
 
         self.ui.editor.characterCountChanged.connect(self.onCharacterCountChanged)
 
@@ -97,6 +102,8 @@ class TextEditorWindowController(Controller):
         self.selectSize()
         self.onSizeChanged(16)
         self.ui.character_count.setText("0 characters")
+        self.selectColor(QColor(Qt.GlobalColor.black))
+        self.onColorSelected(QColor(Qt.GlobalColor.black))
 
     def onCharacterCountChanged(self, character_count) -> None:
         if character_count == 1:
@@ -156,6 +163,12 @@ class TextEditorWindowController(Controller):
         self.ui.size_combobox.blockSignals(True)
         self.ui.size_combobox.setEditText(str(size) + " pt")
         self.ui.size_combobox.blockSignals(False)
+
+    def selectColor(self, color: QColor) -> None:
+        self.ui.editor.selectColor(color)
+
+    def onColorSelected(self, color: QColor) -> None:
+        self.ui.color_picker.setColor(color)
 
     def insertImage(self) -> None:
         print("insertImage")

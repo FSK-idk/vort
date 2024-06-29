@@ -9,13 +9,16 @@ from PySide6.QtWidgets import (
     QLabel,
     QFontComboBox,
     QLineEdit,
+    QColorDialog,
     QCompleter,
 )
-from PySide6.QtGui import QAction, QIntValidator, QRegularExpressionValidator, QValidator
+from PySide6.QtGui import QAction, QPixmap, QIntValidator, QRegularExpressionValidator, QValidator, QColor
 from PySide6.QtCore import QEvent, QObject, Qt, QRegularExpression, QRegularExpressionMatch
 
 from controller.text_editor_controller import TextEditorController
 from controller.controller import Controller
+
+from view.widget.color_picker import ColorPicker
 
 
 class TextEditorWindowView(QMainWindow):
@@ -45,8 +48,8 @@ class TextEditorWindowView(QMainWindow):
         self.no_point_re: QRegularExpression = QRegularExpression("[1-9][0-9]?$")
         self.size_combobox.lineEdit().returnPressed.connect(self.addPointSuffix)
 
-        self.color_combobox = QComboBox()
-        self.background_color_combobox = QComboBox()
+        self.color_picker = ColorPicker("Color")
+        self.background_color_picker = ColorPicker("Bg Color")
 
         self.setCentralWidget(self.editor.ui)
 
@@ -241,8 +244,8 @@ class TextEditorWindowView(QMainWindow):
         self.addToolBar(self.format_tool)
 
         self.color_tool: QToolBar = QToolBar("Color")
-        self.color_tool.addWidget(self.color_combobox)
-        self.color_tool.addWidget(self.background_color_combobox)
+        self.color_tool.addWidget(self.color_picker)
+        self.color_tool.addWidget(self.background_color_picker)
         self.addToolBar(self.color_tool)
 
         self.indent_tool: QToolBar = QToolBar("Indent")

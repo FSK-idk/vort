@@ -177,10 +177,6 @@ class TextDocumentLayoutView(QAbstractTextDocumentLayout):
         palette: QPalette = context.palette
         selections: list[Selection] = context.selections
 
-        old_pen: QPen = painter.pen()
-
-        painter.setPen(palette.color(QPalette.ColorGroup.Active, QPalette.ColorRole.Text))
-
         carriage_position: QPointF = QPointF(
             self.page_layout.xPosition() - rect.xPosition(), self.page_layout.yPosition() - rect.yPosition()
         )
@@ -207,8 +203,6 @@ class TextDocumentLayoutView(QAbstractTextDocumentLayout):
                 block_layout.drawCursor(painter, carriage_position, cursor_position - block_position)
 
             block_layout.draw(painter, carriage_position, format_ranges, painter.clipBoundingRect())
-
-        painter.setPen(old_pen)
 
     def hitTest(self, point: PointF) -> int:
         current_cursor_position = 0

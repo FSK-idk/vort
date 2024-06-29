@@ -15,6 +15,7 @@ from PySide6.QtGui import (
     QTextBlockFormat,
     QClipboard,
     QTextDocumentFragment,
+    QColor,
 )
 from PySide6.QtCore import Qt, Signal, QMimeData
 
@@ -32,6 +33,7 @@ class TextEditorController(Controller):
     boldTurned = Signal(bool)
     italicTurned = Signal(bool)
     underlinedTurned = Signal(bool)
+    colorSelected = Signal(QColor)
 
     pageCountChanged = Signal(int)
     characterCountChanged = Signal(int)
@@ -103,6 +105,13 @@ class TextEditorController(Controller):
         self.text_cursor.mergeBlockCharFormat(self.text_cursor.charFormat())
         self.ui.viewport().repaint()
 
+    def selectColor(self, color: QColor) -> None:
+        format: QTextCharFormat = QTextCharFormat()
+        format.setForeground(color)
+        self.text_cursor.mergeCharFormat(format)
+        self.text_cursor.mergeBlockCharFormat(self.text_cursor.charFormat())
+        self.ui.viewport().repaint()
+
     def onCursorPositionChanged(self, position: int) -> None:
         format: QTextCharFormat = self.text_cursor.charFormat()
 
@@ -111,6 +120,7 @@ class TextEditorController(Controller):
         self.boldTurned.emit(format.fontWeight() == QFont.Weight.Bold)
         self.italicTurned.emit(format.fontItalic())
         self.underlinedTurned.emit(format.fontUnderline())
+        self.colorSelected.emit(format.foreground().color())
 
     def undo(self) -> None:
         self.document.undo(self.text_cursor)
