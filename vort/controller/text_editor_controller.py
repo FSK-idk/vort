@@ -114,9 +114,11 @@ class TextEditorController(Controller):
 
     def undo(self) -> None:
         self.document.undo(self.text_cursor)
+        self.ui.viewport().repaint()
 
     def redo(self) -> None:
         self.document.redo(self.text_cursor)
+        self.ui.viewport().repaint()
 
     def cut(self) -> None:
         if self.text_cursor.hasSelection():
@@ -126,6 +128,7 @@ class TextEditorController(Controller):
             mime_data.setHtml(selection.toHtml())
             QApplication.clipboard().setMimeData(mime_data)
             self.text_cursor.removeSelectedText()
+            self.ui.viewport().repaint()
 
     def copy(self) -> None:
         if self.text_cursor.hasSelection():
@@ -134,6 +137,7 @@ class TextEditorController(Controller):
             mime_data.setText(selection.toPlainText())
             mime_data.setHtml(selection.toHtml())
             QApplication.clipboard().setMimeData(mime_data)
+            self.ui.viewport().repaint()
 
     def paste(self) -> None:
         mime_data = QApplication.clipboard().mimeData()
@@ -141,13 +145,16 @@ class TextEditorController(Controller):
             self.text_cursor.insertFragment(QTextDocumentFragment.fromHtml(mime_data.html()))
         else:
             self.text_cursor.insertFragment(QTextDocumentFragment.fromPlainText(mime_data.text()))
+        self.ui.viewport().repaint()
 
     def pastePlain(self) -> None:
         mime_data = QApplication.clipboard().mimeData()
         self.text_cursor.insertFragment(QTextDocumentFragment.fromPlainText(mime_data.text()))
+        self.ui.viewport().repaint()
 
     def selectAll(self) -> None:
         self.text_cursor.select(QTextCursor.SelectionType.Document)
+        self.ui.viewport().repaint()
 
     def onMousePressed(self, event: QMouseEvent) -> None:
         if event.button() == Qt.MouseButton.LeftButton:
@@ -185,7 +192,6 @@ class TextEditorController(Controller):
 
     def onKeyPressed(self, event: QKeyEvent) -> None:
         self.handleNavigationInput(event)
-        self.handleHotkeys(event)
         self.handleTextInput(event)
 
     def handleNavigationInput(self, event: QKeyEvent) -> None:
@@ -229,32 +235,6 @@ class TextEditorController(Controller):
         if move_mode and move_operation:
             self.text_cursor.movePosition(move_operation, move_mode)
             self.cursorPositionChanged.emit(self.text_cursor.position())
-            self.ui.viewport().repaint()
-
-    def handleHotkeys(self, event: QKeyEvent) -> None:
-        used = True
-
-        if Qt.KeyboardModifier.ControlModifier in event.modifiers():
-            match event.key():
-                case Qt.Key.Key_X if self.text_cursor.hasSelection():
-                    self.cut()
-                case Qt.Key.Key_C if self.text_cursor.hasSelection():
-                    self.copy()
-                case Qt.Key.Key_V:
-                    if Qt.KeyboardModifier.ShiftModifier in event.modifiers():
-                        self.pastePlain()
-                    else:
-                        self.paste()
-                case Qt.Key.Key_A:
-                    self.selectAll()
-                case Qt.Key.Key_Z:
-                    self.undo()
-                case Qt.Key.Key_Y:
-                    self.redo()
-                case _:
-                    used = False
-
-        if used:
             self.ui.viewport().repaint()
 
     def handleTextInput(self, event: QKeyEvent) -> None:

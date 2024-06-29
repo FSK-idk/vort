@@ -40,6 +40,7 @@ class TextEditorWindowController(Controller):
         self.ui.new_document_action.triggered.connect(self.newDocument)
         self.ui.open_document_action.triggered.connect(self.openDocument)
         self.ui.close_document_action.triggered.connect(self.closeDocument)
+        self.ui.save_document_action.triggered.connect(self.saveDocument)
         self.ui.exit_editor_action.triggered.connect(self.ui.close)
 
         # edit
@@ -111,6 +112,9 @@ class TextEditorWindowController(Controller):
 
     def closeDocument(self) -> None:
         print("closeDocument")
+
+    def saveDocument(self) -> None:
+        print("saveDocument")
 
     def find(self) -> None:
         print("find")

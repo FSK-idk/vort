@@ -24,7 +24,7 @@ class TextEditorWindowView(QMainWindow):
 
         # self
 
-        self.setGeometry(0, 0, 800, 600)
+        self.setGeometry(0, 0, 900, 600)
         self.setMinimumSize(400, 300)
         self.setWindowTitle("vort")
 
@@ -40,7 +40,6 @@ class TextEditorWindowView(QMainWindow):
         self.size_combobox.setCompleter(QCompleter())
         self.size_combobox.setInsertPolicy(QComboBox.InsertPolicy.NoInsert)
         self.size_combobox.lineEdit().setValidator(QRegularExpressionValidator("[1-9][0-9]?( pt)?$"))
-        # self.size_combobox.lineEdit().setFixedWidth(50)
         default_sizes = [6, 8, 10, 12, 14, 16, 18, 20, 24, 30, 36, 42, 48]
         self.size_combobox.addItems([str(size) + " pt" for size in default_sizes])
         self.no_point_re: QRegularExpression = QRegularExpression("[1-9][0-9]?$")
@@ -62,36 +61,53 @@ class TextEditorWindowView(QMainWindow):
         # file
         self.new_document_action: QAction = QAction("New")
         self.new_document_action.setStatusTip("Create a document")
+        self.new_document_action.setShortcut("Ctrl+N")
         self.open_document_action: QAction = QAction("Open")
         self.open_document_action.setStatusTip("Open a document")
+        self.open_document_action.setShortcut("Ctrl+O")
         self.close_document_action: QAction = QAction("Close")
         self.close_document_action.setStatusTip("Close the document")
+        self.close_document_action.setShortcut("Ctrl+W")
+
+        self.save_document_action: QAction = QAction("Save")
+        self.save_document_action.setStatusTip("Save the document")
+        self.save_document_action.setShortcut("Ctrl+S")
 
         self.exit_editor_action: QAction = QAction("Exit")
         self.exit_editor_action.setStatusTip("Exit the application")
+        self.exit_editor_action.setShortcut("Ctrl+Q")
 
         # edit
         self.undo_action: QAction = QAction("Undo")
         self.undo_action.setStatusTip("Undo the last action")
+        self.undo_action.setShortcut("Ctrl+Z")
         self.redo_action: QAction = QAction("Redo")
         self.redo_action.setStatusTip("Redo the last action")
+        self.redo_action.setShortcut("Ctrl+Y")
 
         self.cut_action: QAction = QAction("Cut")
         self.cut_action.setStatusTip("Cut the selected text")
+        self.cut_action.setShortcut("Ctrl+X")
         self.copy_action: QAction = QAction("Copy")
         self.copy_action.setStatusTip("Copy the selected text")
+        self.copy_action.setShortcut("Ctrl+C")
         self.paste_action: QAction = QAction("Paste")
         self.paste_action.setStatusTip("Paste text from the clipboard")
+        self.paste_action.setShortcut("Ctrl+V")
         self.paste_plain_action: QAction = QAction("Paste Plain")
         self.paste_plain_action.setStatusTip("Paste plain text from the clipboard")
+        self.paste_plain_action.setShortcut("Ctrl+Shift+V")
 
         self.select_all_action: QAction = QAction("Select All")
         self.select_all_action.setStatusTip("Select the entire document")
+        self.select_all_action.setShortcut("Ctrl+A")
 
         self.find_action: QAction = QAction("Find")
         self.find_action.setStatusTip("Find a word in the document")
+        self.find_action.setShortcut("Ctrl+F")
         self.find_and_replace_action: QAction = QAction("Find and Replace")
         self.find_and_replace_action.setStatusTip("Find and replace a word in the document")
+        self.find_and_replace_action.setShortcut("Ctrl+H")
 
         # insert
         self.insert_image_action: QAction = QAction("Image")
@@ -103,17 +119,22 @@ class TextEditorWindowView(QMainWindow):
         self.turn_bold_action: QAction = QAction("Bold")
         self.turn_bold_action.setCheckable(True)
         self.turn_bold_action.setStatusTip("Make the selected text bold")
+        self.turn_bold_action.setShortcut("Ctrl+B")
         self.turn_italic_action: QAction = QAction("Italic")
         self.turn_italic_action.setCheckable(True)
         self.turn_italic_action.setStatusTip("Make the selected text italic")
+        self.turn_italic_action.setShortcut("Ctrl+I")
         self.turn_underlined_action: QAction = QAction("Underline")
         self.turn_underlined_action.setCheckable(True)
         self.turn_underlined_action.setStatusTip("Make the selected text underlined")
+        self.turn_underlined_action.setShortcut("Ctrl+U")
 
         self.indent_right_action: QAction = QAction("Right")
         self.indent_right_action.setStatusTip("Indent right")
+        self.indent_right_action.setShortcut("Ctrl+]")
         self.indent_left_action: QAction = QAction("Left")
         self.indent_left_action.setStatusTip("Indent left")
+        self.indent_left_action.setShortcut("Ctrl+[")
 
         self.select_line_spacing_action: QAction = QAction("Line spacing")  # maybe new menu
         self.select_line_spacing_action.setStatusTip("Select the spacing between lines")
@@ -133,6 +154,7 @@ class TextEditorWindowView(QMainWindow):
         # help
         self.show_guide_action: QAction = QAction("Guide")
         self.show_guide_action.setStatusTip("View the user's guide")
+        self.show_guide_action.setShortcut("F1")
         self.show_about_action: QAction = QAction("About")
         self.show_about_action.setStatusTip("View application information")
 
@@ -147,6 +169,8 @@ class TextEditorWindowView(QMainWindow):
         self.file_menu.addAction(self.new_document_action)
         self.file_menu.addAction(self.open_document_action)
         self.file_menu.addAction(self.close_document_action)
+        self.file_menu.addSeparator()
+        self.file_menu.addAction(self.save_document_action)
         self.file_menu.addSeparator()
         self.file_menu.addAction(self.exit_editor_action)
         self.menu_bar.addMenu(self.file_menu)
