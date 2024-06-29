@@ -81,7 +81,9 @@ class TextEditorWindowView(QMainWindow):
         self.copy_action: QAction = QAction("Copy")
         self.copy_action.setStatusTip("Copy the selected text")
         self.paste_action: QAction = QAction("Paste")
-        self.paste_action.setStatusTip("Paste from the clipboard")
+        self.paste_action.setStatusTip("Paste text from the clipboard")
+        self.paste_plain_action: QAction = QAction("Paste Plain")
+        self.paste_plain_action.setStatusTip("Paste plain text from the clipboard")
 
         self.select_all_action: QAction = QAction("Select All")
         self.select_all_action.setStatusTip("Select the entire document")
@@ -156,6 +158,7 @@ class TextEditorWindowView(QMainWindow):
         self.edit_menu.addAction(self.cut_action)
         self.edit_menu.addAction(self.copy_action)
         self.edit_menu.addAction(self.paste_action)
+        self.edit_menu.addAction(self.paste_plain_action)
         self.edit_menu.addSeparator()
         self.edit_menu.addAction(self.select_all_action)
         self.edit_menu.addSeparator()
@@ -226,7 +229,7 @@ class TextEditorWindowView(QMainWindow):
     def setupStatusBar(self) -> None:
         self.status_bar: QStatusBar = QStatusBar()
 
-        self.character_count = QLabel("0 characters")
+        self.character_count = QLabel()
         self.status_bar.addPermanentWidget(self.character_count)
 
         self.setStatusBar(self.status_bar)

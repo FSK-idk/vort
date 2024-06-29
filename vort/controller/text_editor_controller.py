@@ -13,8 +13,10 @@ from PySide6.QtGui import (
     QTextCharFormat,
     QPaintEvent,
     QTextBlockFormat,
+    QClipboard,
+    QTextDocumentFragment,
 )
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Qt, Signal, QMimeData
 
 from utils import PointF, RectF
 
@@ -76,7 +78,7 @@ class TextEditorController(Controller):
         format: QTextCharFormat = QTextCharFormat()
         format.setFontFamily(font_family)
         self.text_cursor.mergeCharFormat(format)
-        self.text_cursor.setBlockCharFormat(self.text_cursor.charFormat())
+        self.text_cursor.mergeBlockCharFormat(self.text_cursor.charFormat())
         self.ui.viewport().repaint()
 
     def turnBold(self, is_bold: bool) -> None:
@@ -118,18 +120,31 @@ class TextEditorController(Controller):
 
     def cut(self) -> None:
         if self.text_cursor.hasSelection():
-            selected_text = self.text_cursor.selectedText()
-            QApplication.clipboard().setText(selected_text)
+            mime_data: QMimeData = QMimeData()
+            selection = self.text_cursor.selection()
+            mime_data.setText(selection.toPlainText())
+            mime_data.setHtml(selection.toHtml())
+            QApplication.clipboard().setMimeData(mime_data)
             self.text_cursor.removeSelectedText()
 
     def copy(self) -> None:
         if self.text_cursor.hasSelection():
-            selected_text = self.text_cursor.selectedText()
-            QApplication.clipboard().setText(selected_text)
+            mime_data: QMimeData = QMimeData()
+            selection = self.text_cursor.selection()
+            mime_data.setText(selection.toPlainText())
+            mime_data.setHtml(selection.toHtml())
+            QApplication.clipboard().setMimeData(mime_data)
 
     def paste(self) -> None:
-        copied_text = QApplication.clipboard().text()
-        self.text_cursor.insertText(copied_text)
+        mime_data = QApplication.clipboard().mimeData()
+        if mime_data.hasHtml():
+            self.text_cursor.insertFragment(QTextDocumentFragment.fromHtml(mime_data.html()))
+        else:
+            self.text_cursor.insertFragment(QTextDocumentFragment.fromPlainText(mime_data.text()))
+
+    def pastePlain(self) -> None:
+        mime_data = QApplication.clipboard().mimeData()
+        self.text_cursor.insertFragment(QTextDocumentFragment.fromPlainText(mime_data.text()))
 
     def selectAll(self) -> None:
         self.text_cursor.select(QTextCursor.SelectionType.Document)
@@ -226,7 +241,10 @@ class TextEditorController(Controller):
                 case Qt.Key.Key_C if self.text_cursor.hasSelection():
                     self.copy()
                 case Qt.Key.Key_V:
-                    self.paste()
+                    if Qt.KeyboardModifier.ShiftModifier in event.modifiers():
+                        self.pastePlain()
+                    else:
+                        self.paste()
                 case Qt.Key.Key_A:
                     self.selectAll()
                 case Qt.Key.Key_Z:

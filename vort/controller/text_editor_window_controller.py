@@ -49,6 +49,7 @@ class TextEditorWindowController(Controller):
         self.ui.cut_action.triggered.connect(self.ui.editor.cut)
         self.ui.copy_action.triggered.connect(self.ui.editor.copy)
         self.ui.paste_action.triggered.connect(self.ui.editor.paste)
+        self.ui.paste_plain_action.triggered.connect(self.ui.editor.pastePlain)
 
         self.ui.select_all_action.triggered.connect(self.ui.editor.selectAll)
 
@@ -94,6 +95,7 @@ class TextEditorWindowController(Controller):
         self.ui.size_combobox.setEditText("16 pt")
         self.selectSize()
         self.onSizeChanged(16)
+        self.ui.character_count.setText("0 characters")
 
     def onCharacterCountChanged(self, character_count) -> None:
         if character_count == 1:
