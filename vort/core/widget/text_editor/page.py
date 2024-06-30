@@ -1,4 +1,4 @@
-from utils import PointF, RectF
+from util import PointF, RectF
 
 # TODO: Move in config
 PAGE_WIDTH = 360
@@ -7,7 +7,7 @@ PAGE_MARGIN = 20
 PAGE_PADDING = 10
 
 
-class PageModel:
+class Page:
     def __init__(
         self,
         x_position: float = 0,

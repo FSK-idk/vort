@@ -1,6 +1,8 @@
 from typing import Self
+
 from PySide6.QtCore import QRectF, QRect
-from utils.point_f import PointF
+
+from util.point_f import PointF
 
 
 class RectF:

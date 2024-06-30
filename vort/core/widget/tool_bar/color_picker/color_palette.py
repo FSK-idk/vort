@@ -1,12 +1,12 @@
+from PySide6.QtCore import Signal
 from PySide6.QtWidgets import QWidget, QGridLayout
 from PySide6.QtGui import QColor
-from PySide6.QtCore import Signal
 
-from view.widget.button_color_view import ButtonColorView
+from core.widget.tool_bar.color_picker.color_button import ColorButton
 
 
-class ColorPaletteView(QWidget):
-    colorSelected = Signal(QColor)
+class ColorPalette(QWidget):
+    colorClicked = Signal(QColor)
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
@@ -22,17 +22,17 @@ class ColorPaletteView(QWidget):
         ]
         # fmt: on
 
-        self.buttons: list[ButtonColorView] = []
-        self.main_layout: QGridLayout = QGridLayout()
-        self.main_layout.setContentsMargins(4, 4, 4, 4)
-        self.main_layout.setSpacing(4)
+        self.buttons: list[ColorButton] = []
+        main_layout: QGridLayout = QGridLayout()
+        main_layout.setContentsMargins(4, 4, 4, 4)
+        main_layout.setSpacing(4)
 
         for row, color_row in enumerate(self.colors):
             for col, color in enumerate(color_row):
-                button: ButtonColorView = ButtonColorView()
+                button: ColorButton = ColorButton()
                 button.setColor(color)
-                button.colorClicked.connect(self.colorSelected.emit)
+                button.colorClicked.connect(self.colorClicked.emit)
                 self.buttons.append(button)
-                self.main_layout.addWidget(button, row, col)
+                main_layout.addWidget(button, row, col)
 
-        self.setLayout(self.main_layout)
+        self.setLayout(main_layout)

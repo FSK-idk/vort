@@ -1,3 +1,4 @@
+from PySide6.QtCore import Qt, Signal, QMimeData, QObject
 from PySide6.QtWidgets import (
     QWidget,
     QApplication,
@@ -17,31 +18,42 @@ from PySide6.QtGui import (
     QTextDocumentFragment,
     QColor,
 )
-from PySide6.QtCore import Qt, Signal, QMimeData, QObject
 
-from utils import PointF, RectF
+from util import PointF, RectF
 
-from view.widget.text_editor_view import TextEditorView
+from core.widget.text_editor.text_editor_ui import TextEditorUI
 
 
-class TextEditorController(QObject):
-    cursorPositionChanged = Signal(int)
-    fontChanged = Signal(str)
-    sizeChanged = Signal(int)
+class TextEditor(QObject):
+    # font
+    fontFamilySelected = Signal(str)
+    fontSizeSelected = Signal(int)
+
+    # format
     boldTurned = Signal(bool)
     italicTurned = Signal(bool)
     underlinedTurned = Signal(bool)
-    colorSelected = Signal(QColor)
+
+    # color
+    foregroundColorSelected = Signal(QColor)
     backgroundColorSelected = Signal(QColor)
+
+    # indent
     firstLineIndentTurned = Signal(bool)
 
+    # page
     pageCountChanged = Signal(int)
+
+    # status
     characterCountChanged = Signal(int)
+
+    # internal
+    cursorPositionChanged = Signal(int)
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
 
-        self.ui: TextEditorView = TextEditorView(parent)
+        self.ui: TextEditorUI = TextEditorUI(parent)
 
         self.__paragraph_indent = 48
         self.__first_line_indent = 48
@@ -79,19 +91,23 @@ class TextEditorController(QObject):
         self.ui.viewport().repaint()
         pass
 
-    def setSize(self, font_size: int) -> None:
+    # font
+
+    def selectFontFamily(self, font_family: str) -> None:
+        format: QTextCharFormat = QTextCharFormat()
+        format.setFontFamily(font_family)
+        self.text_cursor.mergeCharFormat(format)
+        self.text_cursor.mergeBlockCharFormat(self.text_cursor.charFormat())
+        self.ui.viewport().repaint()
+
+    def selectFontSize(self, font_size: int) -> None:
         format: QTextCharFormat = QTextCharFormat()
         format.setFontPointSize(font_size)
         self.text_cursor.mergeCharFormat(format)
         self.text_cursor.mergeBlockCharFormat(self.text_cursor.charFormat())
         self.ui.viewport().repaint()
 
-    def setFont(self, font_family: str) -> None:
-        format: QTextCharFormat = QTextCharFormat()
-        format.setFontFamily(font_family)
-        self.text_cursor.mergeCharFormat(format)
-        self.text_cursor.mergeBlockCharFormat(self.text_cursor.charFormat())
-        self.ui.viewport().repaint()
+    # format
 
     def turnBold(self, is_bold: bool) -> None:
         bold = QFont.Weight.Bold if is_bold else QFont.Weight.Normal
@@ -115,7 +131,9 @@ class TextEditorController(QObject):
         self.text_cursor.mergeBlockCharFormat(self.text_cursor.charFormat())
         self.ui.viewport().repaint()
 
-    def selectColor(self, color: QColor) -> None:
+    # color
+
+    def selectForegroundColor(self, color: QColor) -> None:
         format: QTextCharFormat = QTextCharFormat()
         format.setForeground(color)
         self.text_cursor.mergeCharFormat(format)
@@ -128,6 +146,8 @@ class TextEditorController(QObject):
         self.text_cursor.mergeCharFormat(format)
         self.text_cursor.mergeBlockCharFormat(self.text_cursor.charFormat())
         self.ui.viewport().repaint()
+
+    # indent
 
     def turnFirstLineIndent(self, is_indent) -> None:
         new_indent = self.__first_line_indent if is_indent else 0
@@ -156,13 +176,35 @@ class TextEditorController(QObject):
         char_format: QTextCharFormat = self.text_cursor.charFormat()
         block_format: QTextBlockFormat = self.text_cursor.blockFormat()
 
-        self.fontChanged.emit(char_format.font().family())
-        self.sizeChanged.emit(char_format.font().pointSize())
-        self.boldTurned.emit(char_format.fontWeight() == QFont.Weight.Bold)
-        self.italicTurned.emit(char_format.fontItalic())
-        self.underlinedTurned.emit(char_format.fontUnderline())
-        self.colorSelected.emit(char_format.foreground().color())
-        self.backgroundColorSelected.emit(char_format.background().color())
+        # font
+
+        font_family: str = char_format.font().family()
+        self.fontFamilySelected.emit(font_family)
+
+        font_size: int = char_format.font().pointSize()
+        self.fontSizeSelected.emit(font_size)
+
+        # format
+
+        is_bold = char_format.fontWeight() == QFont.Weight.Bold
+        self.boldTurned.emit(is_bold)
+
+        is_italic = char_format.fontItalic()
+        self.italicTurned.emit(is_italic)
+
+        is_underlined = char_format.fontUnderline()
+        self.underlinedTurned.emit(is_underlined)
+
+        # color
+
+        foreground_color = char_format.foreground().color()
+        self.foregroundColorSelected.emit(foreground_color)
+
+        background_color = char_format.background().color()
+        self.backgroundColorSelected.emit(background_color)
+
+        # indent
+
         self.firstLineIndentTurned.emit(block_format.textIndent() != 0)
 
     def undo(self) -> None:

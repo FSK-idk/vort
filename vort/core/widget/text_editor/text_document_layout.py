@@ -15,10 +15,10 @@ from PySide6.QtGui import (
 )
 from PySide6.QtCore import QPointF, Signal, QEvent
 
-from utils import PointF, RectF
+from util import PointF, RectF
 
-from model.page_layout_model import PageLayoutModel
-from model.page_model import PageModel
+from core.widget.text_editor.page_layout import PageLayout
+from core.widget.text_editor.page import Page
 
 
 class Selection:
@@ -45,7 +45,7 @@ class PaintContext:
         self.selections: list[Selection] = selections
 
 
-class TextDocumentLayoutView(QAbstractTextDocumentLayout):
+class TextDocumentLayout(QAbstractTextDocumentLayout):
     pageCountChanged = Signal(int)
     characterCountChanged = Signal(int)
 
@@ -59,7 +59,7 @@ class TextDocumentLayoutView(QAbstractTextDocumentLayout):
         # TODO: add in config
         page_spacing: float = 10
 
-        self.page_layout: PageLayoutModel = PageLayoutModel(spacing=page_spacing)
+        self.page_layout: PageLayout = PageLayout(spacing=page_spacing)
         # has at least one page
         self.page_layout.addPage()
 
@@ -75,7 +75,7 @@ class TextDocumentLayoutView(QAbstractTextDocumentLayout):
         character_count: int = 0
 
         current_page_index: int = 0
-        current_page: PageModel = self.page_layout.getPage(current_page_index)
+        current_page: Page = self.page_layout.getPage(current_page_index)
 
         current_page_width: float = current_page.textWidth()
         current_page_height: float = current_page.textHeight()

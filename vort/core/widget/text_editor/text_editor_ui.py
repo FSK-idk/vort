@@ -1,3 +1,4 @@
+from PySide6.QtCore import Qt, QEvent, Signal
 from PySide6.QtWidgets import QWidget, QAbstractScrollArea, QSizePolicy
 from PySide6.QtGui import (
     QKeyEvent,
@@ -12,17 +13,16 @@ from PySide6.QtGui import (
     QKeyEvent,
     QTextCharFormat,
 )
-from PySide6.QtCore import Qt, QEvent, Signal
 
-from utils.point_f import PointF
-from utils.rect_f import RectF
-
-from model.page_model import PAGE_WIDTH, PAGE_HEIGHT
-
-from view.widget.text_document_layout_view import TextDocumentLayoutView, Selection, PaintContext
+from util.point_f import PointF
+from util.rect_f import RectF
 
 
-class TextEditorView(QAbstractScrollArea):
+from core.widget.text_editor.page import PAGE_WIDTH, PAGE_HEIGHT
+from core.widget.text_editor.text_document_layout import TextDocumentLayout, Selection, PaintContext
+
+
+class TextEditorUI(QAbstractScrollArea):
     mousePressed = Signal(QMouseEvent)
     mouseReleased = Signal(QMouseEvent)
     mouseMoved = Signal(QMouseEvent)
@@ -40,7 +40,7 @@ class TextEditorView(QAbstractScrollArea):
         # widget
 
         self.document = QTextDocument()
-        self.document_layout: TextDocumentLayoutView = TextDocumentLayoutView(self.document)
+        self.document_layout: TextDocumentLayout = TextDocumentLayout(self.document)
 
         # scroll bar
 
@@ -57,7 +57,7 @@ class TextEditorView(QAbstractScrollArea):
 
     def setDocument(self, document: QTextDocument) -> None:
         self.document = document
-        self.document_layout = TextDocumentLayoutView(document)
+        self.document_layout = TextDocumentLayout(document)
         self.document.setDocumentLayout(self.document_layout)
 
         self.setupSignal()

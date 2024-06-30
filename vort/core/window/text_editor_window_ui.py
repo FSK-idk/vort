@@ -1,3 +1,4 @@
+from PySide6.QtCore import QEvent, QObject, Qt, Slot, Signal
 from PySide6.QtWidgets import (
     QMenuBar,
     QMenu,
@@ -7,20 +8,19 @@ from PySide6.QtWidgets import (
     QWidget,
     QStatusBar,
     QLabel,
-    QFontComboBox,
-    QLineEdit,
-    QColorDialog,
-    QCompleter,
 )
-from PySide6.QtGui import QAction, QPixmap, QRegularExpressionValidator, QColor
-from PySide6.QtCore import QEvent, QObject, Qt, QRegularExpression, QRegularExpressionMatch
+from PySide6.QtGui import QAction, QPixmap, QFont, QColor
 
-from controller.text_editor_controller import TextEditorController
+from core.widget.tool_bar.color_picker.color_picker import ColorPicker
+from core.widget.tool_bar.font_size_combo_box import FontSizeComboBox
+from core.widget.tool_bar.font_combo_box import FontComboBox
 
-from controller.color_picker_controller import ColorPickerController
+from core.widget.status_bar.character_count_label import CharacterCountLabel
+
+from core.widget.text_editor.text_editor import TextEditor
 
 
-class TextEditorWindowView(QMainWindow):
+class TextEditorWindowUI(QMainWindow):
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
 
@@ -32,43 +32,34 @@ class TextEditorWindowView(QMainWindow):
 
         # widget
 
-        self.editor: TextEditorController = TextEditorController()
-
-        self.style_combobox = QComboBox()
-        self.font_combobox = QFontComboBox()
-        self.size_combobox = QComboBox()
-
-        self.size_combobox.setEditable(True)
-        self.size_combobox.setCompleter(QCompleter())
-        self.size_combobox.setInsertPolicy(QComboBox.InsertPolicy.NoInsert)
-        self.size_combobox.lineEdit().setValidator(QRegularExpressionValidator("[1-9][0-9]?( pt)?$"))
-        default_sizes = [6, 8, 10, 12, 14, 16, 18, 20, 24, 30, 36, 42, 48]
-        self.size_combobox.addItems([str(size) + " pt" for size in default_sizes])
-        self.no_point_re: QRegularExpression = QRegularExpression("[1-9][0-9]?$")
-        self.size_combobox.lineEdit().returnPressed.connect(self.addPointSuffix)
-
-        self.color_picker = ColorPickerController(self)
-        self.color_picker.setText("Color")
-        self.background_color_picker = ColorPickerController(self)
-        self.background_color_picker.setText("Bg Color")
-
-        self.setCentralWidget(self.editor.ui)
+        self.text_editor: TextEditor = TextEditor()
+        self.setCentralWidget(self.text_editor.ui)
 
         # setup
 
         self.setupAction()
+        self.setupWidget()
         self.setupMenuBar()
         self.setupToolBar()
         self.setupStatusBar()
 
     def setupAction(self) -> None:
+        # app
+
+        self.exit_application_action: QAction = QAction("Exit")
+        self.exit_application_action.setStatusTip("Exit the application")
+        self.exit_application_action.setShortcut("Ctrl+Q")
+
         # file
+
         self.new_document_action: QAction = QAction("New")
         self.new_document_action.setStatusTip("Create a document")
         self.new_document_action.setShortcut("Ctrl+N")
+
         self.open_document_action: QAction = QAction("Open")
         self.open_document_action.setStatusTip("Open a document")
         self.open_document_action.setShortcut("Ctrl+O")
+
         self.close_document_action: QAction = QAction("Close")
         self.close_document_action.setStatusTip("Close the document")
         self.close_document_action.setShortcut("Ctrl+W")
@@ -77,97 +68,143 @@ class TextEditorWindowView(QMainWindow):
         self.save_document_action.setStatusTip("Save the document")
         self.save_document_action.setShortcut("Ctrl+S")
 
-        self.exit_editor_action: QAction = QAction("Exit")
-        self.exit_editor_action.setStatusTip("Exit the application")
-        self.exit_editor_action.setShortcut("Ctrl+Q")
+        # last
 
-        # edit
         self.undo_action: QAction = QAction("Undo")
         self.undo_action.setStatusTip("Undo the last action")
         self.undo_action.setShortcut("Ctrl+Z")
+
         self.redo_action: QAction = QAction("Redo")
         self.redo_action.setStatusTip("Redo the last action")
         self.redo_action.setShortcut("Ctrl+Y")
 
+        # copy paste
+
         self.cut_action: QAction = QAction("Cut")
         self.cut_action.setStatusTip("Cut the selected text")
         self.cut_action.setShortcut("Ctrl+X")
+
         self.copy_action: QAction = QAction("Copy")
         self.copy_action.setStatusTip("Copy the selected text")
         self.copy_action.setShortcut("Ctrl+C")
+
         self.paste_action: QAction = QAction("Paste")
         self.paste_action.setStatusTip("Paste text from the clipboard")
         self.paste_action.setShortcut("Ctrl+V")
+
         self.paste_plain_action: QAction = QAction("Paste Plain")
         self.paste_plain_action.setStatusTip("Paste plain text from the clipboard")
         self.paste_plain_action.setShortcut("Ctrl+Shift+V")
+
+        # select
 
         self.select_all_action: QAction = QAction("Select All")
         self.select_all_action.setStatusTip("Select the entire document")
         self.select_all_action.setShortcut("Ctrl+A")
 
+        # search
+
         self.find_action: QAction = QAction("Find")
         self.find_action.setStatusTip("Find a word in the document")
         self.find_action.setShortcut("Ctrl+F")
+
         self.find_and_replace_action: QAction = QAction("Find and Replace")
         self.find_and_replace_action.setStatusTip("Find and replace a word in the document")
         self.find_and_replace_action.setShortcut("Ctrl+H")
 
         # insert
+
         self.insert_image_action: QAction = QAction("Image")
         self.insert_image_action.setStatusTip("Insert an image")
+
         self.insert_hyperlink_action: QAction = QAction("Hylerlink")
         self.insert_hyperlink_action.setStatusTip("Insert a hyperlink")
 
         # format
+
         self.turn_bold_action: QAction = QAction("Bold")
         self.turn_bold_action.setCheckable(True)
         self.turn_bold_action.setStatusTip("Make the selected text bold")
         self.turn_bold_action.setShortcut("Ctrl+B")
+
         self.turn_italic_action: QAction = QAction("Italic")
         self.turn_italic_action.setCheckable(True)
         self.turn_italic_action.setStatusTip("Make the selected text italic")
         self.turn_italic_action.setShortcut("Ctrl+I")
-        self.turn_underlined_action: QAction = QAction("Underline")
+
+        self.turn_underlined_action: QAction = QAction("Underlined")
         self.turn_underlined_action.setCheckable(True)
         self.turn_underlined_action.setStatusTip("Make the selected text underlined")
         self.turn_underlined_action.setShortcut("Ctrl+U")
 
+        # indent
+
         self.indent_paragraph_right_action: QAction = QAction("Right")
         self.indent_paragraph_right_action.setStatusTip("Indent paragraph right")
         self.indent_paragraph_right_action.setShortcut("Ctrl+]")
+
         self.indent_paragraph_left_action: QAction = QAction("Left")
         self.indent_paragraph_left_action.setStatusTip("Indent paragraph left")
         self.indent_paragraph_left_action.setShortcut("Ctrl+[")
+
         self.turn_first_line_indent_action: QAction = QAction("First line indent")
         self.turn_first_line_indent_action.setCheckable(True)
         self.turn_first_line_indent_action.setStatusTip("Indent first line right")
 
+        # space
+
         self.select_line_spacing_action: QAction = QAction("Line spacing")  # maybe new menu
         self.select_line_spacing_action.setStatusTip("Select the spacing between lines")
+
         self.select_paragraph_spacing_action: QAction = QAction("Paragraph spacing")  # maybe new menu
         self.select_paragraph_spacing_action.setStatusTip("Select the spacing between paragraphs")
+
+        # page
 
         self.turn_pagination_action: QAction = QAction("Pages")
         self.turn_pagination_action.setCheckable(True)
         self.turn_pagination_action.setStatusTip("Show pages")
 
         # style
+
         self.open_style_action: QAction = QAction("Styles")
         self.open_style_action.setStatusTip("Manage custom styles")
+
         self.clear_style_action: QAction = QAction("Clear")
         self.clear_style_action.setStatusTip("Clear the style of the selected text")
 
         # help
+
         self.show_guide_action: QAction = QAction("Guide")
         self.show_guide_action.setStatusTip("View the user's guide")
         self.show_guide_action.setShortcut("F1")
+
         self.show_about_action: QAction = QAction("About")
         self.show_about_action.setStatusTip("View application information")
 
         # TODO: DEBUG
         self.test_action: QAction = QAction("Test")
         self.test_action.setStatusTip("Test")
+
+    def setupWidget(self) -> None:
+
+        # font
+
+        self.font_family_combo_box = FontComboBox()
+
+        self.font_size_combo_box = FontSizeComboBox()
+
+        # color
+
+        self.foreground_color_picker = ColorPicker(self)
+        self.foreground_color_picker.setText("Color")
+
+        self.background_color_picker = ColorPicker(self)
+        self.background_color_picker.setText("Bg Color")
+
+        # style
+
+        self.style_combobox = QComboBox()  # TODO:
 
     def setupMenuBar(self) -> None:
         self.menu_bar = QMenuBar()
@@ -179,7 +216,7 @@ class TextEditorWindowView(QMainWindow):
         self.file_menu.addSeparator()
         self.file_menu.addAction(self.save_document_action)
         self.file_menu.addSeparator()
-        self.file_menu.addAction(self.exit_editor_action)
+        self.file_menu.addAction(self.exit_application_action)
         self.menu_bar.addMenu(self.file_menu)
 
         self.edit_menu: QMenu = QMenu("Edit")
@@ -238,8 +275,8 @@ class TextEditorWindowView(QMainWindow):
         self.addToolBar(self.style_tool)
 
         self.font_tool: QToolBar = QToolBar("Font")
-        self.font_tool.addWidget(self.font_combobox)
-        self.font_tool.addWidget(self.size_combobox)
+        self.font_tool.addWidget(self.font_family_combo_box)
+        self.font_tool.addWidget(self.font_size_combo_box)
         self.addToolBar(self.font_tool)
 
         self.format_tool: QToolBar = QToolBar("Format")
@@ -249,7 +286,7 @@ class TextEditorWindowView(QMainWindow):
         self.addToolBar(self.format_tool)
 
         self.color_tool: QToolBar = QToolBar("Color")
-        self.color_tool.addWidget(self.color_picker.ui)
+        self.color_tool.addWidget(self.foreground_color_picker.ui)
         self.color_tool.addWidget(self.background_color_picker.ui)
         self.addToolBar(self.color_tool)
 
@@ -261,12 +298,7 @@ class TextEditorWindowView(QMainWindow):
     def setupStatusBar(self) -> None:
         self.status_bar: QStatusBar = QStatusBar()
 
-        self.character_count = QLabel()
+        self.character_count = CharacterCountLabel()
         self.status_bar.addPermanentWidget(self.character_count)
 
         self.setStatusBar(self.status_bar)
-
-    def addPointSuffix(self) -> None:
-        rem: QRegularExpressionMatch = self.no_point_re.match(self.size_combobox.currentText())
-        if rem.hasMatch():
-            self.size_combobox.setEditText(self.size_combobox.currentText() + " pt")

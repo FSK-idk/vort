@@ -1,14 +1,14 @@
+from PySide6.QtCore import QEvent, QObject, Signal, Slot
 from PySide6.QtWidgets import QWidget
 from PySide6.QtGui import QPixmap, QColor, QMouseEvent
-from PySide6.QtCore import QEvent, QObject, Signal
 
-from utils import PointF, RectF
+from util import PointF, RectF
 
-from view.widget.color_picker_view import ColorPickerView
+from core.widget.tool_bar.color_picker.color_picker_ui import ColorPickerUI
 
 
 # there is a problem with hiding the popup color palette.
-# the palette closes regardless of whether I pressed the button or not.
+# the palette closes regardless of whether you pressed the button or not.
 # therefore, when you click the button to close, the palette will not close
 # to solve this, I use a filter to somehow affect the process of hiding the palette and checking the button.
 
@@ -25,20 +25,21 @@ class MousePressedFilter(QObject):
         return True
 
 
-class ColorPickerController(QWidget):
-    colorSelected = Signal(QColor)
+class ColorPicker(QWidget):
+    colorChanged = Signal(QColor)
+    closed = Signal()
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
 
-        self.ui: ColorPickerView = ColorPickerView(parent)
+        self.ui: ColorPickerUI = ColorPickerUI(parent)
 
         self.ui.button.clicked.connect(self.onClicked)
-        self.ui.color_palette.colorSelected.connect(self.onColorSelected)
+        self.ui.color_palette.colorClicked.connect(self.onColorSelected)
 
         self.mouse_pressed_filter = MousePressedFilter()
-        self.ui.color_palette.installEventFilter(self.mouse_pressed_filter)
         self.mouse_pressed_filter.mousePressed.connect(self.onMousePressed)
+        self.ui.color_palette.installEventFilter(self.mouse_pressed_filter)
 
     def setText(self, text: str) -> None:
         self.ui.button.setText(text)
@@ -48,19 +49,23 @@ class ColorPickerController(QWidget):
         icon.fill(color)
         self.ui.button.setIcon(icon)
 
+    @Slot(QColor)
     def onColorSelected(self, color: QColor) -> None:
         icon: QPixmap = QPixmap(16, 16)
         icon.fill(color)
         self.ui.button.setIcon(icon)
         self.ui.button.setChecked(False)
-        self.ui.color_palette.hide()
-        self.colorSelected.emit(color)
+        self.ui.hidePalette()
+        self.colorChanged.emit(color)
+        self.closed.emit()
 
+    @Slot(bool)
     def onClicked(self, checked) -> None:
         # only if the button is checked, the other case is considered in the mouse event
         if checked:
             self.ui.showPalette()
 
+    @Slot(QMouseEvent)
     def onMousePressed(self, event: QMouseEvent) -> None:
         # calculate rects with own classes to make sure the math is ok
         point: PointF = PointF.fromQPointF(self.ui.color_palette.mapToGlobal(event.position()))
@@ -80,4 +85,5 @@ class ColorPickerController(QWidget):
                 self.ui.button.setChecked(True)
             else:
                 self.ui.button.setChecked(False)
-            self.ui.color_palette.hide()
+            self.ui.hidePalette()
+            self.closed.emit()

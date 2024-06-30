@@ -1,8 +1,8 @@
-from model.page_model import PageModel
-from utils import PointF
+from core.widget.text_editor.page import Page
+from util import PointF
 
 
-class PageLayoutModel:
+class PageLayout:
     """
     By default all pages are centered
     """
@@ -11,12 +11,12 @@ class PageLayoutModel:
         self,
         x_position: float = 0,
         y_position: float = 0,
-        pages: list[PageModel] = [],
+        pages: list[Page] = [],
         spacing: float = 0,
     ) -> None:
         self.__x_position: float = x_position
         self.__y_position: float = y_position
-        self.__pages: list[PageModel] = pages
+        self.__pages: list[Page] = pages
         self.__spacing: float = spacing
 
         self.__width: float = 0
@@ -62,13 +62,13 @@ class PageLayoutModel:
     def pageCount(self) -> int:
         return len(self.__pages)
 
-    def getPage(self, index) -> PageModel:
+    def getPage(self, index) -> Page:
         """
         index in range(0, len(self.__pages))
         """
         return self.__pages[index]
 
-    def insertPage(self, index: int, inserted_page: PageModel) -> None:
+    def insertPage(self, index: int, inserted_page: Page) -> None:
         """
         index in range(0, len(self.__pages) + 1)
         """
@@ -99,7 +99,7 @@ class PageLayoutModel:
         self.__height += inserted_page.height()
 
     def addPage(self) -> None:
-        self.insertPage(len(self.__pages), PageModel())
+        self.insertPage(len(self.__pages), Page())
 
     def deletePage(self, index: int) -> None:
         """
