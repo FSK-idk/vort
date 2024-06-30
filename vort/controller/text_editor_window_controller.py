@@ -32,6 +32,10 @@ class TextEditorWindowController(QObject):
         self.ui.color_picker.colorSelected.connect(self.ui.editor.ui.setFocus)
         self.ui.editor.colorSelected.connect(self.onColorSelected)
 
+        self.ui.background_color_picker.colorSelected.connect(self.selectBackgroundColor)
+        self.ui.background_color_picker.colorSelected.connect(self.ui.editor.ui.setFocus)
+        self.ui.editor.backgroundColorSelected.connect(self.onBackgroundColorSelected)
+
         self.ui.editor.characterCountChanged.connect(self.onCharacterCountChanged)
 
         self.setupDefault()
@@ -102,6 +106,8 @@ class TextEditorWindowController(QObject):
         self.ui.character_count.setText("0 characters")
         self.selectColor(QColor(Qt.GlobalColor.black))
         self.onColorSelected(QColor(Qt.GlobalColor.black))
+        self.selectBackgroundColor(QColor(Qt.GlobalColor.white))
+        self.onBackgroundColorSelected(QColor(Qt.GlobalColor.white))
 
     def onCharacterCountChanged(self, character_count) -> None:
         if character_count == 1:
@@ -167,6 +173,12 @@ class TextEditorWindowController(QObject):
 
     def onColorSelected(self, color: QColor) -> None:
         self.ui.color_picker.setColor(color)
+
+    def selectBackgroundColor(self, color: QColor) -> None:
+        self.ui.editor.selectBackgroundColor(color)
+
+    def onBackgroundColorSelected(self, color: QColor) -> None:
+        self.ui.background_color_picker.setColor(color)
 
     def insertImage(self) -> None:
         print("insertImage")

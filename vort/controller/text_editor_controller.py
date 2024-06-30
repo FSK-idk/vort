@@ -32,6 +32,7 @@ class TextEditorController(QObject):
     italicTurned = Signal(bool)
     underlinedTurned = Signal(bool)
     colorSelected = Signal(QColor)
+    backgroundColorSelected = Signal(QColor)
 
     pageCountChanged = Signal(int)
     characterCountChanged = Signal(int)
@@ -110,6 +111,13 @@ class TextEditorController(QObject):
         self.text_cursor.mergeBlockCharFormat(self.text_cursor.charFormat())
         self.ui.viewport().repaint()
 
+    def selectBackgroundColor(self, color: QColor) -> None:
+        format: QTextCharFormat = QTextCharFormat()
+        format.setBackground(color)
+        self.text_cursor.mergeCharFormat(format)
+        self.text_cursor.mergeBlockCharFormat(self.text_cursor.charFormat())
+        self.ui.viewport().repaint()
+
     def onCursorPositionChanged(self, position: int) -> None:
         format: QTextCharFormat = self.text_cursor.charFormat()
 
@@ -119,6 +127,7 @@ class TextEditorController(QObject):
         self.italicTurned.emit(format.fontItalic())
         self.underlinedTurned.emit(format.fontUnderline())
         self.colorSelected.emit(format.foreground().color())
+        self.backgroundColorSelected.emit(format.background().color())
 
     def undo(self) -> None:
         self.document.undo(self.text_cursor)
