@@ -1,16 +1,20 @@
-from PySide6.QtWidgets import QWidget, QPushButton, QGridLayout
+from PySide6.QtWidgets import QWidget, QGridLayout
 from PySide6.QtGui import QColor
-from PySide6.QtCore import Signal, QEvent
+from PySide6.QtCore import Signal, Qt, QPoint
 
-from view.widget.button_color import ButtonColor
+from utils import PointF
+
+from view.widget.button_color_view import ButtonColorView
 
 
-class ColorPalette(QWidget):
-    hidden = Signal()
+class ColorPaletteView(QWidget):
     colorSelected = Signal(QColor)
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
+
+        self.setWindowFlags(Qt.WindowType.Popup)
+
         # fmt: off
         self.colors: list[list[QColor]] = [
             [QColor("#000000"), QColor("#242424"), QColor("#494949"), QColor("#6D6D6D"), QColor("#929292"), QColor("#B6B6B6"), QColor("#DBDBDB"), QColor("#FFFFFF")],
@@ -22,23 +26,21 @@ class ColorPalette(QWidget):
         ]
         # fmt: on
 
-        self.buttons: list[QPushButton] = []
+        self.buttons: list[ButtonColorView] = []
         self.main_layout: QGridLayout = QGridLayout()
         self.main_layout.setContentsMargins(4, 4, 4, 4)
         self.main_layout.setSpacing(4)
 
         for row, color_row in enumerate(self.colors):
             for col, color in enumerate(color_row):
-                button: ButtonColor = ButtonColor()
+                button: ButtonColorView = ButtonColorView()
                 button.setColor(color)
-                button.colorClicked.connect(self.colorSelected)
+                button.colorClicked.connect(self.colorSelected.emit)
                 self.buttons.append(button)
                 self.main_layout.addWidget(button, row, col)
 
         self.setLayout(self.main_layout)
-        self.colorSelected.connect(self.hide)
 
-    def event(self, event: QEvent) -> bool:
-        if event.type() == QEvent.Type.Hide:
-            self.hidden.emit()
-        return super().event(event)
+    def show(self, point: QPoint):
+        self.move(point)
+        self.setVisible(True)

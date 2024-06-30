@@ -12,17 +12,16 @@ from PySide6.QtWidgets import (
     QColorDialog,
     QCompleter,
 )
-from PySide6.QtGui import QAction, QPixmap, QIntValidator, QRegularExpressionValidator, QValidator, QColor
+from PySide6.QtGui import QAction, QPixmap, QRegularExpressionValidator, QColor
 from PySide6.QtCore import QEvent, QObject, Qt, QRegularExpression, QRegularExpressionMatch
 
 from controller.text_editor_controller import TextEditorController
-from controller.controller import Controller
 
 from view.widget.color_picker import ColorPicker
 
 
 class TextEditorWindowView(QMainWindow):
-    def __init__(self, controller: Controller, parent: QWidget | None = None) -> None:
+    def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
 
         # self
@@ -33,7 +32,7 @@ class TextEditorWindowView(QMainWindow):
 
         # widget
 
-        self.editor: TextEditorController = TextEditorController(controller=controller)
+        self.editor: TextEditorController = TextEditorController()
 
         self.style_combobox = QComboBox()
         self.font_combobox = QFontComboBox()

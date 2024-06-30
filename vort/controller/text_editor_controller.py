@@ -17,16 +17,14 @@ from PySide6.QtGui import (
     QTextDocumentFragment,
     QColor,
 )
-from PySide6.QtCore import Qt, Signal, QMimeData
+from PySide6.QtCore import Qt, Signal, QMimeData, QObject
 
 from utils import PointF, RectF
 
 from view.widget.text_editor_view import TextEditorView
 
-from controller.controller import Controller
 
-
-class TextEditorController(Controller):
+class TextEditorController(QObject):
     cursorPositionChanged = Signal(int)
     fontChanged = Signal(str)
     sizeChanged = Signal(int)
@@ -38,10 +36,10 @@ class TextEditorController(Controller):
     pageCountChanged = Signal(int)
     characterCountChanged = Signal(int)
 
-    def __init__(self, controller: Controller, parent: QWidget | None = None) -> None:
+    def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
 
-        self.ui: TextEditorView = TextEditorView(controller=self, parent=parent)
+        self.ui: TextEditorView = TextEditorView(parent)
 
         self.document: QTextDocument = QTextDocument()
         self.ui.setDocument(self.document)

@@ -21,8 +21,6 @@ from model.page_model import PAGE_WIDTH, PAGE_HEIGHT
 
 from view.widget.text_document_layout_view import TextDocumentLayoutView, Selection, PaintContext
 
-from controller.controller import Controller
-
 
 class TextEditorView(QAbstractScrollArea):
     mousePressed = Signal(QMouseEvent)
@@ -36,7 +34,7 @@ class TextEditorView(QAbstractScrollArea):
     pageCountChanged = Signal(int)
     characterCountChanged = Signal(int)
 
-    def __init__(self, controller: Controller, parent: QWidget | None = None) -> None:
+    def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
 
         # widget

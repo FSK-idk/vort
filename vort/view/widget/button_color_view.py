@@ -3,7 +3,7 @@ from PySide6.QtGui import QPixmap, QColor
 from PySide6.QtCore import Signal
 
 
-class ButtonColor(QPushButton):
+class ButtonColorView(QPushButton):
     colorClicked = Signal(QColor)
 
     def __init__(self, parent: QWidget | None = None) -> None:

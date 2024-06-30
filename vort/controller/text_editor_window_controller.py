@@ -1,16 +1,14 @@
 from PySide6.QtGui import QFont, QColor
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QObject
 
 from view.window.text_editor_window_view import TextEditorWindowView
 
-from controller.controller import Controller
 
-
-class TextEditorWindowController(Controller):
+class TextEditorWindowController(QObject):
     def __init__(self) -> None:
         super().__init__()
 
-        self.ui: TextEditorWindowView = TextEditorWindowView(controller=self)
+        self.ui: TextEditorWindowView = TextEditorWindowView()
 
         self.setupAction()
 
