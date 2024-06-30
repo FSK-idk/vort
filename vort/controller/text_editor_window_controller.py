@@ -36,6 +36,8 @@ class TextEditorWindowController(QObject):
         self.ui.background_color_picker.colorSelected.connect(self.ui.editor.ui.setFocus)
         self.ui.editor.backgroundColorSelected.connect(self.onBackgroundColorSelected)
 
+        self.ui.editor.firstLineIndentTurned.connect(self.onFirstLineIndentTurned)
+
         self.ui.editor.characterCountChanged.connect(self.onCharacterCountChanged)
 
         self.setupDefault()
@@ -73,8 +75,9 @@ class TextEditorWindowController(QObject):
         self.ui.turn_italic_action.triggered.connect(self.turnItalic)
         self.ui.turn_underlined_action.triggered.connect(self.turnUnderlined)
 
-        self.ui.indent_right_action.triggered.connect(self.indentRight)
-        self.ui.indent_left_action.triggered.connect(self.indentLeft)
+        self.ui.indent_paragraph_right_action.triggered.connect(self.indentParagraphRight)
+        self.ui.indent_paragraph_left_action.triggered.connect(self.indentParagraphLeft)
+        self.ui.turn_first_line_indent_action.triggered.connect(self.turnFirstLineIndent)
 
         self.ui.select_line_spacing_action.triggered.connect(self.selectLineSpacing)
         self.ui.select_paragraph_spacing_action.triggered.connect(self.selectParagraphSpacing)
@@ -186,11 +189,17 @@ class TextEditorWindowController(QObject):
     def insertHyperlink(self) -> None:
         print("insertHyperlink")
 
-    def indentRight(self) -> None:
-        print("indentRight")
+    def indentParagraphRight(self) -> None:
+        self.ui.editor.indentParagraphRight()
 
-    def indentLeft(self) -> None:
-        print("indentLeft")
+    def indentParagraphLeft(self) -> None:
+        self.ui.editor.indentParagraphLeft()
+
+    def turnFirstLineIndent(self, is_indent) -> None:
+        self.ui.editor.turnFirstLineIndent(is_indent)
+
+    def onFirstLineIndentTurned(self, is_indent) -> None:
+        self.ui.turn_first_line_indent_action.setChecked(is_indent)
 
     def selectLineSpacing(self) -> None:
         print("selectLineSpacing")

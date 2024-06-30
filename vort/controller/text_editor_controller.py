@@ -33,6 +33,7 @@ class TextEditorController(QObject):
     underlinedTurned = Signal(bool)
     colorSelected = Signal(QColor)
     backgroundColorSelected = Signal(QColor)
+    firstLineIndentTurned = Signal(bool)
 
     pageCountChanged = Signal(int)
     characterCountChanged = Signal(int)
@@ -42,13 +43,14 @@ class TextEditorController(QObject):
 
         self.ui: TextEditorView = TextEditorView(parent)
 
+        self.__paragraph_indent = 48
+        self.__first_line_indent = 48
+
         self.document: QTextDocument = QTextDocument()
         self.ui.setDocument(self.document)
 
         self.text_cursor: QTextCursor = QTextCursor(self.document)
-        format: QTextCharFormat = QTextCharFormat()
-        format.setFontPointSize(10)
-        # self.text_cursor.mergeCharFormat(format)
+        self.text_cursor.setBlockFormat(QTextBlockFormat())
 
         # signal
 
@@ -64,9 +66,18 @@ class TextEditorController(QObject):
 
     # TODO: DEBUG
     def test(self) -> None:
+        print("test")
+        # char_format: QTextCharFormat = QTextCharFormat()
+        # block_format: QTextBlockFormat = QTextBlockFormat()
+        # block_format.setIndent(48)
+        # block_format.setTextIndent(48)
+        # block_format: QTextBlockFormat = self.text_cursor.blockFormat()
+        # print("indent", block_format.indent())
+        # print("text indent", block_format.textIndent())
+        # print("line height", block_format.lineHeight())
+        # self.text_cursor.setBlockFormat(block_format)
+        self.ui.viewport().repaint()
         pass
-        # self.text_cursor.setBlockCharFormat(self.text_cursor.charFormat())
-        # print(self.text_cursor.position())
 
     def setSize(self, font_size: int) -> None:
         format: QTextCharFormat = QTextCharFormat()
@@ -118,16 +129,41 @@ class TextEditorController(QObject):
         self.text_cursor.mergeBlockCharFormat(self.text_cursor.charFormat())
         self.ui.viewport().repaint()
 
-    def onCursorPositionChanged(self, position: int) -> None:
-        format: QTextCharFormat = self.text_cursor.charFormat()
+    def turnFirstLineIndent(self, is_indent) -> None:
+        new_indent = self.__first_line_indent if is_indent else 0
+        format: QTextBlockFormat = QTextBlockFormat()
+        format.setTextIndent(new_indent)
+        self.text_cursor.mergeBlockFormat(format)
+        self.ui.viewport().repaint()
 
-        self.fontChanged.emit(format.font().family())
-        self.sizeChanged.emit(format.font().pointSize())
-        self.boldTurned.emit(format.fontWeight() == QFont.Weight.Bold)
-        self.italicTurned.emit(format.fontItalic())
-        self.underlinedTurned.emit(format.fontUnderline())
-        self.colorSelected.emit(format.foreground().color())
-        self.backgroundColorSelected.emit(format.background().color())
+    def indentParagraphRight(self) -> None:
+        new_indent: int = self.text_cursor.blockFormat().indent() + self.__paragraph_indent
+        format: QTextBlockFormat = QTextBlockFormat()
+        format.setIndent(new_indent)
+        self.text_cursor.mergeBlockFormat(format)
+        self.ui.viewport().repaint()
+
+    def indentParagraphLeft(self) -> None:
+        new_indent: int = self.text_cursor.blockFormat().indent() - self.__paragraph_indent
+        if new_indent < 0:
+            return
+        format: QTextBlockFormat = QTextBlockFormat()
+        format.setIndent(new_indent)
+        self.text_cursor.mergeBlockFormat(format)
+        self.ui.viewport().repaint()
+
+    def onCursorPositionChanged(self, position: int) -> None:
+        char_format: QTextCharFormat = self.text_cursor.charFormat()
+        block_format: QTextBlockFormat = self.text_cursor.blockFormat()
+
+        self.fontChanged.emit(char_format.font().family())
+        self.sizeChanged.emit(char_format.font().pointSize())
+        self.boldTurned.emit(char_format.fontWeight() == QFont.Weight.Bold)
+        self.italicTurned.emit(char_format.fontItalic())
+        self.underlinedTurned.emit(char_format.fontUnderline())
+        self.colorSelected.emit(char_format.foreground().color())
+        self.backgroundColorSelected.emit(char_format.background().color())
+        self.firstLineIndentTurned.emit(block_format.textIndent() != 0)
 
     def undo(self) -> None:
         self.document.undo(self.text_cursor)

@@ -133,12 +133,15 @@ class TextEditorWindowView(QMainWindow):
         self.turn_underlined_action.setStatusTip("Make the selected text underlined")
         self.turn_underlined_action.setShortcut("Ctrl+U")
 
-        self.indent_right_action: QAction = QAction("Right")
-        self.indent_right_action.setStatusTip("Indent right")
-        self.indent_right_action.setShortcut("Ctrl+]")
-        self.indent_left_action: QAction = QAction("Left")
-        self.indent_left_action.setStatusTip("Indent left")
-        self.indent_left_action.setShortcut("Ctrl+[")
+        self.indent_paragraph_right_action: QAction = QAction("Right")
+        self.indent_paragraph_right_action.setStatusTip("Indent paragraph right")
+        self.indent_paragraph_right_action.setShortcut("Ctrl+]")
+        self.indent_paragraph_left_action: QAction = QAction("Left")
+        self.indent_paragraph_left_action.setStatusTip("Indent paragraph left")
+        self.indent_paragraph_left_action.setShortcut("Ctrl+[")
+        self.turn_first_line_indent_action: QAction = QAction("First line indent")
+        self.turn_first_line_indent_action.setCheckable(True)
+        self.turn_first_line_indent_action.setStatusTip("Indent first line right")
 
         self.select_line_spacing_action: QAction = QAction("Line spacing")  # maybe new menu
         self.select_line_spacing_action.setStatusTip("Select the spacing between lines")
@@ -204,8 +207,9 @@ class TextEditorWindowView(QMainWindow):
         self.format_menu.addAction(self.turn_italic_action)
         self.format_menu.addAction(self.turn_underlined_action)
         self.format_menu.addSeparator()
-        self.format_menu.addAction(self.indent_right_action)
-        self.format_menu.addAction(self.indent_left_action)
+        self.format_menu.addAction(self.turn_first_line_indent_action)
+        self.format_menu.addAction(self.indent_paragraph_right_action)
+        self.format_menu.addAction(self.indent_paragraph_left_action)
         self.format_menu.addSeparator()
         self.format_menu.addAction(self.select_line_spacing_action)
         self.format_menu.addAction(self.select_paragraph_spacing_action)
@@ -250,8 +254,8 @@ class TextEditorWindowView(QMainWindow):
         self.addToolBar(self.color_tool)
 
         self.indent_tool: QToolBar = QToolBar("Indent")
-        self.indent_tool.addAction(self.indent_right_action)
-        self.indent_tool.addAction(self.indent_left_action)
+        self.indent_tool.addAction(self.indent_paragraph_right_action)
+        self.indent_tool.addAction(self.indent_paragraph_left_action)
         self.addToolBar(self.indent_tool)
 
     def setupStatusBar(self) -> None:

@@ -11,6 +11,7 @@ from PySide6.QtGui import (
     QPen,
     QBrush,
     QColor,
+    QTextBlockFormat,
 )
 from PySide6.QtCore import QPointF, Signal, QEvent
 
@@ -85,12 +86,23 @@ class TextDocumentLayoutView(QAbstractTextDocumentLayout):
         for i in range(self.document().blockCount()):
             block: QTextBlock = self.document().findBlockByNumber(i)
             block_layout: QTextLayout = block.layout()
+            block_format: QTextBlockFormat = block.blockFormat()
 
             block_layout.beginLayout()
             line: QTextLine = block_layout.createLine()
+            is_first_line = True
             while line.isValid():
-                line.setLineWidth(current_page_width)
-                line.setPosition(QPointF(current_x_position, current_y_position))
+                if is_first_line:
+                    line.setLineWidth(current_page_width - block_format.indent() - block_format.textIndent())
+                    line.setPosition(
+                        QPointF(
+                            current_x_position + block_format.indent() + block_format.textIndent(), current_y_position
+                        )
+                    )
+                    is_first_line = False
+                else:
+                    line.setLineWidth(current_page_width - block_format.indent())
+                    line.setPosition(QPointF(current_x_position + block_format.indent(), current_y_position))
 
                 while current_page_height - line.height() < 0:
                     current_page_index += 1
@@ -104,8 +116,18 @@ class TextDocumentLayoutView(QAbstractTextDocumentLayout):
                     current_x_position = current_page.xPosition() + current_page.margin() + current_page.padding()
                     current_y_position = current_page.yPosition() + current_page.margin() + current_page.padding()
 
-                    line.setLineWidth(current_page_width)
-                    line.setPosition(QPointF(current_x_position, current_y_position))
+                    if is_first_line:
+                        line.setLineWidth(current_page_width - block_format.indent() - block_format.textIndent())
+                        line.setPosition(
+                            QPointF(
+                                current_x_position + block_format.indent() + block_format.textIndent(),
+                                current_y_position,
+                            )
+                        )
+                        is_first_line = False
+                    else:
+                        line.setLineWidth(current_page_width - block_format.indent())
+                        line.setPosition(QPointF(current_x_position + block_format.indent(), current_y_position))
 
                 current_y_position += line.height()
                 current_page_height -= line.height()
