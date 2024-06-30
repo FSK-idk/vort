@@ -1,8 +1,6 @@
 from PySide6.QtWidgets import QWidget, QGridLayout
 from PySide6.QtGui import QColor
-from PySide6.QtCore import Signal, Qt, QPoint
-
-from utils import PointF
+from PySide6.QtCore import Signal
 
 from view.widget.button_color_view import ButtonColorView
 
@@ -12,8 +10,6 @@ class ColorPaletteView(QWidget):
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
-
-        self.setWindowFlags(Qt.WindowType.Popup)
 
         # fmt: off
         self.colors: list[list[QColor]] = [
@@ -40,7 +36,3 @@ class ColorPaletteView(QWidget):
                 self.main_layout.addWidget(button, row, col)
 
         self.setLayout(self.main_layout)
-
-    def show(self, point: QPoint):
-        self.move(point)
-        self.setVisible(True)
