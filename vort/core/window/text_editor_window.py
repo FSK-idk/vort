@@ -27,25 +27,25 @@ class TextEditorWindow(QObject):
 
         self.ui.save_document_action.triggered.connect(self.saveDocument)
 
-        # last
+        # history
 
-        self.ui.undo_action.triggered.connect(self.ui.text_editor.undo)
+        self.ui.undo_action.triggered.connect(self.undo)
 
-        self.ui.redo_action.triggered.connect(self.ui.text_editor.redo)
+        self.ui.redo_action.triggered.connect(self.redo)
 
         # copy paste
 
-        self.ui.cut_action.triggered.connect(self.ui.text_editor.cut)
+        self.ui.cut_action.triggered.connect(self.cut)
 
-        self.ui.copy_action.triggered.connect(self.ui.text_editor.copy)
+        self.ui.copy_action.triggered.connect(self.copy)
 
-        self.ui.paste_action.triggered.connect(self.ui.text_editor.paste)
+        self.ui.paste_action.triggered.connect(self.paste)
 
-        self.ui.paste_plain_action.triggered.connect(self.ui.text_editor.pastePlain)
+        self.ui.paste_plain_action.triggered.connect(self.pastePlain)
 
         # select
 
-        self.ui.select_all_action.triggered.connect(self.ui.text_editor.selectAll)
+        self.ui.select_all_action.triggered.connect(self.selectAll)
 
         # search
 
@@ -181,6 +181,42 @@ class TextEditorWindow(QObject):
     def saveDocument(self) -> None:
         print("saveDocument")
 
+    # history
+
+    @Slot()
+    def undo(self) -> None:
+        self.ui.text_editor.history_component.undo()
+
+    @Slot()
+    def redo(self) -> None:
+        self.ui.text_editor.history_component.redo()
+
+    # copy paste
+
+    @Slot()
+    def cut(self) -> None:
+        self.ui.text_editor.copy_paste_component.cut()
+
+    @Slot()
+    def copy(self) -> None:
+        self.ui.text_editor.copy_paste_component.copy()
+
+    @Slot()
+    def paste(self) -> None:
+        self.ui.text_editor.copy_paste_component.paste()
+
+    @Slot()
+    def pastePlain(self) -> None:
+        self.ui.text_editor.copy_paste_component.pastePlain()
+
+    # select
+
+    @Slot()
+    def selectAll(self) -> None:
+        self.ui.text_editor.select_component.selectAll()
+
+    # search
+
     def find(self) -> None:
         print("find")
 
@@ -199,7 +235,7 @@ class TextEditorWindow(QObject):
 
     @Slot(str)
     def selectFontFamily(self, font_family: str) -> None:
-        self.ui.text_editor.selectFontFamily(font_family)
+        self.ui.text_editor.font_component.setFontFamily(font_family)
 
     @Slot(str)
     def onFontFamilySelected(self, font_family: str) -> None:
@@ -209,7 +245,7 @@ class TextEditorWindow(QObject):
 
     @Slot(int)
     def selectFontSize(self, font_size: int) -> None:
-        self.ui.text_editor.selectFontSize(font_size)
+        self.ui.text_editor.font_component.setFontSize(font_size)
 
     @Slot(int)
     def onFontSizeSelected(self, font_size: int) -> None:
@@ -221,7 +257,7 @@ class TextEditorWindow(QObject):
 
     @Slot(bool)
     def turnBold(self, is_bold) -> None:
-        self.ui.text_editor.turnBold(is_bold)
+        self.ui.text_editor.format_component.turnBold(is_bold)
 
     @Slot(bool)
     def onBoldTurned(self, is_bold) -> None:
@@ -231,7 +267,7 @@ class TextEditorWindow(QObject):
 
     @Slot(bool)
     def turnItalic(self, is_italic) -> None:
-        self.ui.text_editor.turnItalic(is_italic)
+        self.ui.text_editor.format_component.turnItalic(is_italic)
 
     @Slot(bool)
     def onItalicTurned(self, is_italic) -> None:
@@ -241,7 +277,7 @@ class TextEditorWindow(QObject):
 
     @Slot(bool)
     def turnUnderlined(self, is_underlined) -> None:
-        self.ui.text_editor.turnUnderlined(is_underlined)
+        self.ui.text_editor.format_component.turnUnderlined(is_underlined)
 
     @Slot(bool)
     def onUnderlinedTurned(self, is_underlined) -> None:
@@ -253,7 +289,7 @@ class TextEditorWindow(QObject):
 
     @Slot(QColor)
     def selectForegroundColor(self, color: QColor) -> None:
-        self.ui.text_editor.selectForegroundColor(color)
+        self.ui.text_editor.color_component.setForegroundColor(color)
 
     @Slot(QColor)
     def onForegroundColorSelected(self, color: QColor) -> None:
@@ -263,7 +299,7 @@ class TextEditorWindow(QObject):
 
     @Slot(QColor)
     def selectBackgroundColor(self, color: QColor) -> None:
-        self.ui.text_editor.selectBackgroundColor(color)
+        self.ui.text_editor.color_component.setBackgroundColor(color)
 
     @Slot(QColor)
     def onBackgroundColorSelected(self, color: QColor) -> None:
@@ -275,7 +311,7 @@ class TextEditorWindow(QObject):
 
     @Slot(bool)
     def turnFirstLineIndent(self, is_indent) -> None:
-        self.ui.text_editor.turnFirstLineIndent(is_indent)
+        self.ui.text_editor.indent_component.turnFirstLineIndent(is_indent)
 
     @Slot(bool)
     def onFirstLineIndentTurned(self, is_indent) -> None:
@@ -285,11 +321,11 @@ class TextEditorWindow(QObject):
 
     @Slot()
     def indentParagraphRight(self) -> None:
-        self.ui.text_editor.indentParagraphRight()
+        self.ui.text_editor.indent_component.indentParagraphRight()
 
     @Slot()
     def indentParagraphLeft(self) -> None:
-        self.ui.text_editor.indentParagraphLeft()
+        self.ui.text_editor.indent_component.indentParagraphLeft()
 
     # select
 

@@ -68,7 +68,7 @@ class TextEditorWindowUI(QMainWindow):
         self.save_document_action.setStatusTip("Save the document")
         self.save_document_action.setShortcut("Ctrl+S")
 
-        # last
+        # history
 
         self.undo_action: QAction = QAction("Undo")
         self.undo_action.setStatusTip("Undo the last action")

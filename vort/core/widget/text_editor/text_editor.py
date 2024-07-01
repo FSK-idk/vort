@@ -1,4 +1,4 @@
-from PySide6.QtCore import Qt, Signal, QMimeData, QObject
+from PySide6.QtCore import Qt, Signal, QMimeData, QObject, Slot
 from PySide6.QtWidgets import (
     QWidget,
     QApplication,
@@ -23,31 +23,49 @@ from util import PointF, RectF
 
 from core.widget.text_editor.text_editor_ui import TextEditorUI
 
+from core.widget.text_editor.component.font_component import FontComponent
+from core.widget.text_editor.component.format_component import FormatComponent
+from core.widget.text_editor.component.color_component import ColorComponent
+from core.widget.text_editor.component.indent_component import IndentComponent
+from core.widget.text_editor.component.copy_paste_component import CopyPasteComponent
+from core.widget.text_editor.component.select_component import SelectComponent
+from core.widget.text_editor.component.history_component import HistoryComponent
+
+
+# text editor only supports one cursor at a time
+
 
 class TextEditor(QObject):
     # font
+
     fontFamilySelected = Signal(str)
     fontSizeSelected = Signal(int)
 
     # format
+
     boldTurned = Signal(bool)
     italicTurned = Signal(bool)
     underlinedTurned = Signal(bool)
 
     # color
+
     foregroundColorSelected = Signal(QColor)
     backgroundColorSelected = Signal(QColor)
 
     # indent
+
     firstLineIndentTurned = Signal(bool)
 
     # page
+
     pageCountChanged = Signal(int)
 
     # status
+
     characterCountChanged = Signal(int)
 
     # internal
+
     cursorPositionChanged = Signal(int)
 
     def __init__(self, parent: QWidget | None = None) -> None:
@@ -55,14 +73,34 @@ class TextEditor(QObject):
 
         self.ui: TextEditorUI = TextEditorUI(parent)
 
-        self.__paragraph_indent = 48
-        self.__first_line_indent = 48
-
         self.document: QTextDocument = QTextDocument()
         self.ui.setDocument(self.document)
 
         self.text_cursor: QTextCursor = QTextCursor(self.document)
         self.text_cursor.setBlockFormat(QTextBlockFormat())
+
+        # component
+
+        self.font_component: FontComponent = FontComponent(self.text_cursor)
+        self.font_component.applied.connect(self.repaintViewport)
+
+        self.format_component: FormatComponent = FormatComponent(self.text_cursor)
+        self.format_component.applied.connect(self.repaintViewport)
+
+        self.color_component: ColorComponent = ColorComponent(self.text_cursor)
+        self.color_component.applied.connect(self.repaintViewport)
+
+        self.indent_component: IndentComponent = IndentComponent(self.text_cursor)
+        self.indent_component.applied.connect(self.repaintViewport)
+
+        self.copy_paste_component: CopyPasteComponent = CopyPasteComponent(self.text_cursor)
+        self.copy_paste_component.applied.connect(self.repaintViewport)
+
+        self.select_component: SelectComponent = SelectComponent(self.text_cursor)
+        self.select_component.applied.connect(self.repaintViewport)
+
+        self.history_component: HistoryComponent = HistoryComponent(self.text_cursor)
+        self.history_component.applied.connect(self.repaintViewport)
 
         # signal
 
@@ -79,98 +117,7 @@ class TextEditor(QObject):
     # TODO: DEBUG
     def test(self) -> None:
         print("test")
-        # char_format: QTextCharFormat = QTextCharFormat()
-        # block_format: QTextBlockFormat = QTextBlockFormat()
-        # block_format.setIndent(48)
-        # block_format.setTextIndent(48)
-        # block_format: QTextBlockFormat = self.text_cursor.blockFormat()
-        # print("indent", block_format.indent())
-        # print("text indent", block_format.textIndent())
-        # print("line height", block_format.lineHeight())
-        # self.text_cursor.setBlockFormat(block_format)
-        self.ui.viewport().repaint()
         pass
-
-    # font
-
-    def selectFontFamily(self, font_family: str) -> None:
-        format: QTextCharFormat = QTextCharFormat()
-        format.setFontFamily(font_family)
-        self.text_cursor.mergeCharFormat(format)
-        self.text_cursor.mergeBlockCharFormat(self.text_cursor.charFormat())
-        self.ui.viewport().repaint()
-
-    def selectFontSize(self, font_size: int) -> None:
-        format: QTextCharFormat = QTextCharFormat()
-        format.setFontPointSize(font_size)
-        self.text_cursor.mergeCharFormat(format)
-        self.text_cursor.mergeBlockCharFormat(self.text_cursor.charFormat())
-        self.ui.viewport().repaint()
-
-    # format
-
-    def turnBold(self, is_bold: bool) -> None:
-        bold = QFont.Weight.Bold if is_bold else QFont.Weight.Normal
-        format: QTextCharFormat = QTextCharFormat()
-        format.setFontWeight(bold)
-        self.text_cursor.mergeCharFormat(format)
-        self.text_cursor.mergeBlockCharFormat(self.text_cursor.charFormat())
-        self.ui.viewport().repaint()
-
-    def turnItalic(self, is_italic: bool) -> None:
-        format: QTextCharFormat = QTextCharFormat()
-        format.setFontItalic(is_italic)
-        self.text_cursor.mergeCharFormat(format)
-        self.text_cursor.mergeBlockCharFormat(self.text_cursor.charFormat())
-        self.ui.viewport().repaint()
-
-    def turnUnderlined(self, is_underline: bool) -> None:
-        format: QTextCharFormat = QTextCharFormat()
-        format.setFontUnderline(is_underline)
-        self.text_cursor.mergeCharFormat(format)
-        self.text_cursor.mergeBlockCharFormat(self.text_cursor.charFormat())
-        self.ui.viewport().repaint()
-
-    # color
-
-    def selectForegroundColor(self, color: QColor) -> None:
-        format: QTextCharFormat = QTextCharFormat()
-        format.setForeground(color)
-        self.text_cursor.mergeCharFormat(format)
-        self.text_cursor.mergeBlockCharFormat(self.text_cursor.charFormat())
-        self.ui.viewport().repaint()
-
-    def selectBackgroundColor(self, color: QColor) -> None:
-        format: QTextCharFormat = QTextCharFormat()
-        format.setBackground(color)
-        self.text_cursor.mergeCharFormat(format)
-        self.text_cursor.mergeBlockCharFormat(self.text_cursor.charFormat())
-        self.ui.viewport().repaint()
-
-    # indent
-
-    def turnFirstLineIndent(self, is_indent) -> None:
-        new_indent = self.__first_line_indent if is_indent else 0
-        format: QTextBlockFormat = QTextBlockFormat()
-        format.setTextIndent(new_indent)
-        self.text_cursor.mergeBlockFormat(format)
-        self.ui.viewport().repaint()
-
-    def indentParagraphRight(self) -> None:
-        new_indent: int = self.text_cursor.blockFormat().indent() + self.__paragraph_indent
-        format: QTextBlockFormat = QTextBlockFormat()
-        format.setIndent(new_indent)
-        self.text_cursor.mergeBlockFormat(format)
-        self.ui.viewport().repaint()
-
-    def indentParagraphLeft(self) -> None:
-        new_indent: int = self.text_cursor.blockFormat().indent() - self.__paragraph_indent
-        if new_indent < 0:
-            return
-        format: QTextBlockFormat = QTextBlockFormat()
-        format.setIndent(new_indent)
-        self.text_cursor.mergeBlockFormat(format)
-        self.ui.viewport().repaint()
 
     def onCursorPositionChanged(self, position: int) -> None:
         char_format: QTextCharFormat = self.text_cursor.charFormat()
@@ -205,51 +152,8 @@ class TextEditor(QObject):
 
         # indent
 
-        self.firstLineIndentTurned.emit(block_format.textIndent() != 0)
-
-    def undo(self) -> None:
-        self.document.undo(self.text_cursor)
-        self.ui.viewport().repaint()
-
-    def redo(self) -> None:
-        self.document.redo(self.text_cursor)
-        self.ui.viewport().repaint()
-
-    def cut(self) -> None:
-        if self.text_cursor.hasSelection():
-            mime_data: QMimeData = QMimeData()
-            selection = self.text_cursor.selection()
-            mime_data.setText(selection.toPlainText())
-            mime_data.setHtml(selection.toHtml())
-            QApplication.clipboard().setMimeData(mime_data)
-            self.text_cursor.removeSelectedText()
-            self.ui.viewport().repaint()
-
-    def copy(self) -> None:
-        if self.text_cursor.hasSelection():
-            mime_data: QMimeData = QMimeData()
-            selection = self.text_cursor.selection()
-            mime_data.setText(selection.toPlainText())
-            mime_data.setHtml(selection.toHtml())
-            QApplication.clipboard().setMimeData(mime_data)
-            self.ui.viewport().repaint()
-
-    def paste(self) -> None:
-        mime_data = QApplication.clipboard().mimeData()
-        if mime_data.hasHtml():
-            self.text_cursor.insertFragment(QTextDocumentFragment.fromHtml(mime_data.html()))
-        else:
-            self.text_cursor.insertFragment(QTextDocumentFragment.fromPlainText(mime_data.text()))
-        self.ui.viewport().repaint()
-
-    def pastePlain(self) -> None:
-        mime_data = QApplication.clipboard().mimeData()
-        self.text_cursor.insertFragment(QTextDocumentFragment.fromPlainText(mime_data.text()))
-        self.ui.viewport().repaint()
-
-    def selectAll(self) -> None:
-        self.text_cursor.select(QTextCursor.SelectionType.Document)
-        self.ui.viewport().repaint()
+        is_indent = block_format.textIndent() != 0
+        self.firstLineIndentTurned.emit(is_indent)
 
     def onMousePressed(self, event: QMouseEvent) -> None:
         if event.button() == Qt.MouseButton.LeftButton:
@@ -380,3 +284,7 @@ class TextEditor(QObject):
     def onPaintedDocument(self, event: QPaintEvent) -> None:
         rect = RectF.fromQRect(event.rect())
         self.ui.paint_document(rect, self.text_cursor)
+
+    @Slot()
+    def repaintViewport(self):
+        self.ui.viewport().repaint()
