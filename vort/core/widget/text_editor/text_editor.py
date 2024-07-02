@@ -22,13 +22,15 @@ from util import PointF, RectF
 
 from core.widget.text_editor.text_editor_ui import TextEditorUI
 
+from core.widget.text_editor.component.history_component import HistoryComponent
+from core.widget.text_editor.component.copy_paste_component import CopyPasteComponent
+from core.widget.text_editor.component.select_component import SelectComponent
 from core.widget.text_editor.component.font_component import FontComponent
 from core.widget.text_editor.component.format_component import FormatComponent
 from core.widget.text_editor.component.color_component import ColorComponent
 from core.widget.text_editor.component.indent_component import IndentComponent
-from core.widget.text_editor.component.copy_paste_component import CopyPasteComponent
-from core.widget.text_editor.component.select_component import SelectComponent
-from core.widget.text_editor.component.history_component import HistoryComponent
+from core.widget.text_editor.component.move_component import MoveComponent
+from core.widget.text_editor.component.input_component import InputComponent
 
 from core.widget.text_editor.text_canvas import TextCanvas
 
@@ -68,7 +70,7 @@ class TextEditor(QObject):
 
     # internal
 
-    cursorPositionChanged = Signal(int)
+    cursorPositionChanged = Signal()
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
@@ -90,6 +92,18 @@ class TextEditor(QObject):
 
         # component
 
+        self.history_component: HistoryComponent = HistoryComponent(self.text_cursor)
+        self.history_component.applied.connect(self.repaintViewport)
+
+        self.history_component: HistoryComponent = HistoryComponent(self.text_cursor)
+        self.history_component.applied.connect(self.repaintViewport)
+
+        self.copy_paste_component: CopyPasteComponent = CopyPasteComponent(self.text_cursor)
+        self.copy_paste_component.applied.connect(self.repaintViewport)
+
+        self.select_component: SelectComponent = SelectComponent(self.text_cursor)
+        self.select_component.applied.connect(self.repaintViewport)
+
         self.font_component: FontComponent = FontComponent(self.text_cursor)
         self.font_component.applied.connect(self.repaintViewport)
 
@@ -102,14 +116,13 @@ class TextEditor(QObject):
         self.indent_component: IndentComponent = IndentComponent(self.text_cursor)
         self.indent_component.applied.connect(self.repaintViewport)
 
-        self.copy_paste_component: CopyPasteComponent = CopyPasteComponent(self.text_cursor)
-        self.copy_paste_component.applied.connect(self.repaintViewport)
+        self.move_component: MoveComponent = MoveComponent(self.text_cursor, self.text_canvas)
+        self.move_component.applied.connect(self.repaintViewport)
+        self.move_component.applied.connect(self.cursorPositionChanged.emit)
 
-        self.select_component: SelectComponent = SelectComponent(self.text_cursor)
-        self.select_component.applied.connect(self.repaintViewport)
-
-        self.history_component: HistoryComponent = HistoryComponent(self.text_cursor)
-        self.history_component.applied.connect(self.repaintViewport)
+        self.input_component: InputComponent = InputComponent(self.text_cursor)
+        self.input_component.applied.connect(self.repaintViewport)
+        self.input_component.applied.connect(self.cursorPositionChanged.emit)
 
         # signal
 
@@ -122,8 +135,6 @@ class TextEditor(QObject):
 
         self.ui.zoomFactorChanged.connect(self.zoomFactorSelected.emit)
 
-        self.cursorPositionChanged.connect(self.onCursorPositionChanged)
-
     # TODO: DEBUG
     def test(self) -> None:
         print("test")
@@ -132,10 +143,12 @@ class TextEditor(QObject):
     def setZoomFactor(self, zoom_factor: float) -> None:
         self.ui.setZoomFactor(zoom_factor)
 
+    @Slot(PointF)
     def onCanvasSizeChanged(self, size: PointF) -> None:
         self.scene.setSceneRect(QRectF(0, 0, size.xPosition(), size.yPosition()))
 
-    def onCursorPositionChanged(self, position: int) -> None:
+    @Slot()
+    def onCursorPositionChanged(self) -> None:
         char_format: QTextCharFormat = self.text_cursor.charFormat()
         block_format: QTextBlockFormat = self.text_cursor.blockFormat()
 
@@ -171,116 +184,22 @@ class TextEditor(QObject):
         is_indent = block_format.textIndent() != 0
         self.firstLineIndentTurned.emit(is_indent)
 
+    @Slot(QMouseEvent)
     def onMousePressed(self, event: QMouseEvent) -> None:
         if event.button() == Qt.MouseButton.LeftButton:
-            point_position = PointF.fromQPointF(self.ui.mapToScene(event.position().toPoint()))
-            position = self.text_canvas.hitTest(point_position)
+            point = PointF.fromQPointF(self.ui.mapToScene(event.position().toPoint()))
+            self.move_component.pointPress(point)
 
-            if position != -1:
-                self.text_cursor.setPosition(position, QTextCursor.MoveMode.MoveAnchor)
-                self.cursorPositionChanged.emit(self.text_cursor.position())
-                self.ui.viewport().repaint()
-
-            self.mouse_pressed = True
-
+    @Slot(QMouseEvent)
     def onMouseMoved(self, event: QMouseEvent) -> None:
         if event.buttons() == Qt.MouseButton.LeftButton:
-            point_position = PointF.fromQPointF(self.ui.mapToScene(event.position().toPoint()))
-            position = self.text_canvas.hitTest(point_position)
+            point = PointF.fromQPointF(self.ui.mapToScene(event.position().toPoint()))
+            self.move_component.pointMove(point)
 
-            if position != -1:
-                self.text_cursor.setPosition(position, QTextCursor.MoveMode.KeepAnchor)
-                self.cursorPositionChanged.emit(self.text_cursor.position())
-                self.ui.viewport().repaint()
-
+    @Slot(QKeyEvent)
     def onKeyPressed(self, event: QKeyEvent) -> None:
-        self.keyboardMove(event)
-        self.keyboardInput(event)
-
-    def keyboardMove(self, event: QKeyEvent) -> None:
-        move_mode = None
-        move_operation = None
-
-        if Qt.KeyboardModifier.ShiftModifier in QGuiApplication.keyboardModifiers():
-            move_mode = QTextCursor.MoveMode.KeepAnchor
-        else:
-            move_mode = QTextCursor.MoveMode.MoveAnchor
-
-        if Qt.KeyboardModifier.ControlModifier in QGuiApplication.keyboardModifiers():
-            match event.key():
-                case Qt.Key.Key_Left:
-                    move_operation = QTextCursor.MoveOperation.WordLeft
-                case Qt.Key.Key_Right:
-                    move_operation = QTextCursor.MoveOperation.WordRight
-                case Qt.Key.Key_Up:
-                    move_operation = QTextCursor.MoveOperation.PreviousBlock
-                case Qt.Key.Key_Down:
-                    move_operation = QTextCursor.MoveOperation.NextBlock
-                case Qt.Key.Key_Home:
-                    move_operation = QTextCursor.MoveOperation.StartOfBlock
-                case Qt.Key.Key_End:
-                    move_operation = QTextCursor.MoveOperation.EndOfBlock
-        else:
-            match event.key():
-                case Qt.Key.Key_Left:
-                    move_operation = QTextCursor.MoveOperation.Left
-                case Qt.Key.Key_Right:
-                    move_operation = QTextCursor.MoveOperation.Right
-                case Qt.Key.Key_Up:
-                    move_operation = QTextCursor.MoveOperation.Up
-                case Qt.Key.Key_Down:
-                    move_operation = QTextCursor.MoveOperation.Down
-                case Qt.Key.Key_Home:
-                    move_operation = QTextCursor.MoveOperation.StartOfLine
-                case Qt.Key.Key_End:
-                    move_operation = QTextCursor.MoveOperation.EndOfLine
-
-        if move_mode is not None and move_operation is not None:
-            self.text_cursor.movePosition(move_operation, move_mode)
-            self.cursorPositionChanged.emit(self.text_cursor.position())
-            self.ui.viewport().repaint()
-
-    def keyboardInput(self, event: QKeyEvent) -> None:
-        if event.modifiers() == Qt.KeyboardModifier.ControlModifier and event.text():
-            match event.key():
-                case Qt.Key.Key_Backspace:
-                    self.text_cursor.beginEditBlock()
-                    self.text_cursor.movePosition(QTextCursor.MoveOperation.StartOfWord, QTextCursor.MoveMode.KeepAnchor)  # type: ignore
-                    self.text_cursor.deletePreviousChar()
-                    self.text_cursor.endEditBlock()
-                case Qt.Key.Key_Delete if not self.text_cursor.hasSelection():
-                    self.text_cursor.beginEditBlock()
-                    self.text_cursor.movePosition(QTextCursor.MoveOperation.EndOfWord, QTextCursor.MoveMode.KeepAnchor)
-                    self.text_cursor.deleteChar()
-                    self.text_cursor.endEditBlock()
-                case _:
-                    return
-            self.cursorPositionChanged.emit(self.text_cursor.position())
-            self.ui.viewport().repaint()
-
-        if event.modifiers() in [Qt.KeyboardModifier.NoModifier, Qt.KeyboardModifier.ShiftModifier] and event.text():
-            match event.key():
-                case Qt.Key.Key_Enter:
-                    self.text_cursor.beginEditBlock()
-                    self.text_cursor.insertBlock()
-                    self.text_cursor.setPosition(self.text_cursor.block().position())
-                    self.text_cursor.endEditBlock()
-                case Qt.Key.Key_Backspace:
-                    self.text_cursor.beginEditBlock()
-                    self.text_cursor.deletePreviousChar()
-                    self.text_cursor.endEditBlock()
-                case Qt.Key.Key_Delete:
-                    self.text_cursor.beginEditBlock()
-                    self.text_cursor.deleteChar()
-                    self.text_cursor.endEditBlock()
-                case Qt.Key.Key_Escape:
-                    return  # ignore
-                case _:
-                    self.text_cursor.beginEditBlock()
-                    self.text_cursor.insertText(event.text())
-                    self.text_cursor.endEditBlock()
-            self.cursorPositionChanged.emit(self.text_cursor.position())
-            self.ui.viewport().repaint()
+        self.move_component.keyPress(event.key())
+        self.input_component.input(event)
 
     @Slot()
     def repaintViewport(self):
