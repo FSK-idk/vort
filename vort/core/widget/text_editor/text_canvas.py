@@ -71,6 +71,11 @@ class TextCanvas(QWidget):
             return self.__text_document_layout.hitTest(point)
         return -1
 
+    def blockTest(self, position: int) -> PointF:
+        if self.__text_document_layout is not None:
+            return self.__text_document_layout.blockTest(position)
+        return PointF(-1, -1)
+
     def onSizeChanged(self, size: PointF) -> None:
         if self.__text_document_layout is not None:
             self.setFixedWidth(int(self.__text_document_layout.page_layout.width()))

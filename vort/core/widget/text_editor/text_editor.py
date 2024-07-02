@@ -68,10 +68,6 @@ class TextEditor(QObject):
     characterCountChanged = Signal(int)
     zoomFactorSelected = Signal(float)
 
-    # internal
-
-    cursorPositionChanged = Signal()
-
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
 
@@ -118,11 +114,11 @@ class TextEditor(QObject):
 
         self.move_component: MoveComponent = MoveComponent(self.text_cursor, self.text_canvas)
         self.move_component.applied.connect(self.repaintViewport)
-        self.move_component.applied.connect(self.cursorPositionChanged.emit)
+        self.move_component.applied.connect(self.onCursorPositionChanged)
 
         self.input_component: InputComponent = InputComponent(self.text_cursor)
         self.input_component.applied.connect(self.repaintViewport)
-        self.input_component.applied.connect(self.cursorPositionChanged.emit)
+        self.input_component.applied.connect(self.onCursorPositionChanged)
 
         # signal
 
@@ -137,6 +133,7 @@ class TextEditor(QObject):
 
     # TODO: DEBUG
     def test(self) -> None:
+        self.text_canvas.blockTest(self.text_cursor.position())
         print("test")
         pass
 
@@ -149,6 +146,10 @@ class TextEditor(QObject):
 
     @Slot()
     def onCursorPositionChanged(self) -> None:
+        position: int = self.text_cursor.position()
+        block_point: PointF = self.text_canvas.blockTest(position)
+        self.ui.ensureVisible(block_point.xPosition(), block_point.yPosition(), 1, 1)
+
         char_format: QTextCharFormat = self.text_cursor.charFormat()
         block_format: QTextBlockFormat = self.text_cursor.blockFormat()
 

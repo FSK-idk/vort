@@ -217,3 +217,26 @@ class TextDocumentLayout(QAbstractTextDocumentLayout):
             current_cursor_position += block.length()
 
         return -1
+
+    def blockTest(self, position: int) -> PointF:
+        current_cursor_position = 0
+
+        document = self.document()
+        for i in range(document.blockCount()):
+            block: QTextBlock = document.findBlockByNumber(i)
+            block_layout: QTextLayout = block.layout()
+
+            if block.contains(position):
+                for j in range(block_layout.lineCount()):
+                    line: QTextLine = block_layout.lineAt(j)
+
+                    if current_cursor_position + line.textLength() >= position:
+                        a, b = line.cursorToX(position, QTextLine.Edge.Leading)  # type: ignore
+                        print("l", a, line.y(), b)
+                        return PointF(a, line.y())
+
+                    current_cursor_position += line.textLength()
+
+            current_cursor_position += block.length()
+
+        return PointF(-1, -1)
