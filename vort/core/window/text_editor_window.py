@@ -128,6 +128,10 @@ class TextEditorWindow(QObject):
 
         self.ui.text_editor.characterCountChanged.connect(self.onCharacterCountChanged)
 
+        self.ui.zoom_slider.zoomFactorChanged.connect(self.selectZoomFactor)
+        self.ui.zoom_slider.zoomFactorChanged.connect(self.ui.text_editor.ui.setFocus)
+        self.ui.text_editor.zoomFactorSelected.connect(self.onZoomFactorSelected)
+
         self.setDefault()
 
         self.ui.show()
@@ -168,6 +172,8 @@ class TextEditorWindow(QObject):
         # status
 
         self.ui.character_count.setCharacterCount(0)
+        self.selectZoomFactor(1)
+        self.onZoomFactorSelected(1)
 
     def newDocument(self) -> None:
         print("newDocument")
@@ -355,6 +361,16 @@ class TextEditorWindow(QObject):
         self.ui.character_count.blockSignals(True)
         self.ui.character_count.setCharacterCount(character_count)
         self.ui.character_count.blockSignals(False)
+
+    @Slot(float)
+    def selectZoomFactor(self, zoom_factor: float) -> None:
+        self.ui.text_editor.setZoomFactor(zoom_factor)
+
+    @Slot(float)
+    def onZoomFactorSelected(self, zoom_factor: float) -> None:
+        self.ui.zoom_slider.blockSignals(True)
+        self.ui.zoom_slider.setZoomFactor(zoom_factor)
+        self.ui.zoom_slider.blockSignals(False)
 
     # TODO: DEBUG
     def test(self) -> None:

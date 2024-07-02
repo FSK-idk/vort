@@ -1,3 +1,4 @@
+from PySide6.QtCore import QPointF, Signal
 from PySide6.QtGui import (
     QAbstractTextDocumentLayout,
     QTextDocument,
@@ -10,7 +11,6 @@ from PySide6.QtGui import (
     QColor,
     QTextBlockFormat,
 )
-from PySide6.QtCore import QPointF, Signal
 
 from util import PointF, RectF
 

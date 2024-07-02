@@ -1,6 +1,7 @@
 from PySide6.QtCore import Qt, Signal, QMimeData, QObject, Slot, QRectF
-from PySide6.QtWidgets import QWidget, QGraphicsScene, QApplication, QFrame, QGraphicsItem
+from PySide6.QtWidgets import QWidget, QGraphicsScene
 from PySide6.QtGui import (
+    QGuiApplication,
     QKeyEvent,
     QMouseEvent,
     QTextDocument,
@@ -29,7 +30,8 @@ from core.widget.text_editor.component.copy_paste_component import CopyPasteComp
 from core.widget.text_editor.component.select_component import SelectComponent
 from core.widget.text_editor.component.history_component import HistoryComponent
 
-from core.widget.text_editor.canvas import Canvas
+from core.widget.text_editor.text_canvas import TextCanvas
+
 
 # text editor only supports one cursor at a time
 
@@ -62,6 +64,7 @@ class TextEditor(QObject):
     # status
 
     characterCountChanged = Signal(int)
+    zoomFactorSelected = Signal(float)
 
     # internal
 
@@ -70,20 +73,20 @@ class TextEditor(QObject):
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
 
-        self.document: QTextDocument = QTextDocument()
-        self.text_cursor: QTextCursor = QTextCursor(self.document)
+        self.text_document: QTextDocument = QTextDocument()
+        self.text_cursor: QTextCursor = QTextCursor(self.text_document)
 
         self.scene: QGraphicsScene = QGraphicsScene(parent)
         self.ui: TextEditorUI = TextEditorUI(parent)
         self.ui.setScene(self.scene)
         self.ui.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignHCenter)
 
-        self.canvas: Canvas = Canvas()
-        self.scene.addWidget(self.canvas)
-        self.canvas.setTextContext(self.document, self.text_cursor)
+        self.text_canvas: TextCanvas = TextCanvas()
+        self.scene.addWidget(self.text_canvas)
+        self.text_canvas.setTextContext(self.text_document, self.text_cursor)
 
-        self.ui.horizontalScrollBar().setPageStep(int(self.canvas.pageWidth()))
-        self.ui.verticalScrollBar().setPageStep(int(self.canvas.pageHeight()))
+        self.ui.horizontalScrollBar().setPageStep(int(self.text_canvas.pageWidth()))
+        self.ui.verticalScrollBar().setPageStep(int(self.text_canvas.pageHeight()))
 
         # component
 
@@ -114,8 +117,10 @@ class TextEditor(QObject):
         self.ui.mousePressed.connect(self.onMousePressed)
         self.ui.mouseMoved.connect(self.onMouseMoved)
 
-        self.canvas.sizeChanged.connect(self.onCanvasSizeChanged)
-        self.canvas.characterCountChanged.connect(self.characterCountChanged.emit)
+        self.text_canvas.sizeChanged.connect(self.onCanvasSizeChanged)
+        self.text_canvas.characterCountChanged.connect(self.characterCountChanged.emit)
+
+        self.ui.zoomFactorChanged.connect(self.zoomFactorSelected.emit)
 
         self.cursorPositionChanged.connect(self.onCursorPositionChanged)
 
@@ -123,6 +128,9 @@ class TextEditor(QObject):
     def test(self) -> None:
         print("test")
         pass
+
+    def setZoomFactor(self, zoom_factor: float) -> None:
+        self.ui.setZoomFactor(zoom_factor)
 
     def onCanvasSizeChanged(self, size: PointF) -> None:
         self.scene.setSceneRect(QRectF(0, 0, size.xPosition(), size.yPosition()))
@@ -166,7 +174,7 @@ class TextEditor(QObject):
     def onMousePressed(self, event: QMouseEvent) -> None:
         if event.button() == Qt.MouseButton.LeftButton:
             point_position = PointF.fromQPointF(self.ui.mapToScene(event.position().toPoint()))
-            position = self.canvas.hitTest(point_position)
+            position = self.text_canvas.hitTest(point_position)
 
             if position != -1:
                 self.text_cursor.setPosition(position, QTextCursor.MoveMode.MoveAnchor)
@@ -178,7 +186,7 @@ class TextEditor(QObject):
     def onMouseMoved(self, event: QMouseEvent) -> None:
         if event.buttons() == Qt.MouseButton.LeftButton:
             point_position = PointF.fromQPointF(self.ui.mapToScene(event.position().toPoint()))
-            position = self.canvas.hitTest(point_position)
+            position = self.text_canvas.hitTest(point_position)
 
             if position != -1:
                 self.text_cursor.setPosition(position, QTextCursor.MoveMode.KeepAnchor)
@@ -186,19 +194,19 @@ class TextEditor(QObject):
                 self.ui.viewport().repaint()
 
     def onKeyPressed(self, event: QKeyEvent) -> None:
-        self.handleNavigationInput(event)
-        self.handleTextInput(event)
+        self.keyboardMove(event)
+        self.keyboardInput(event)
 
-    def handleNavigationInput(self, event: QKeyEvent) -> None:
+    def keyboardMove(self, event: QKeyEvent) -> None:
         move_mode = None
         move_operation = None
 
-        if Qt.KeyboardModifier.ShiftModifier in event.modifiers():
+        if Qt.KeyboardModifier.ShiftModifier in QGuiApplication.keyboardModifiers():
             move_mode = QTextCursor.MoveMode.KeepAnchor
         else:
             move_mode = QTextCursor.MoveMode.MoveAnchor
 
-        if Qt.KeyboardModifier.ControlModifier in event.modifiers():
+        if Qt.KeyboardModifier.ControlModifier in QGuiApplication.keyboardModifiers():
             match event.key():
                 case Qt.Key.Key_Left:
                     move_operation = QTextCursor.MoveOperation.WordLeft
@@ -227,12 +235,12 @@ class TextEditor(QObject):
                 case Qt.Key.Key_End:
                     move_operation = QTextCursor.MoveOperation.EndOfLine
 
-        if move_mode and move_operation:
+        if move_mode is not None and move_operation is not None:
             self.text_cursor.movePosition(move_operation, move_mode)
             self.cursorPositionChanged.emit(self.text_cursor.position())
             self.ui.viewport().repaint()
 
-    def handleTextInput(self, event: QKeyEvent) -> None:
+    def keyboardInput(self, event: QKeyEvent) -> None:
         if event.modifiers() == Qt.KeyboardModifier.ControlModifier and event.text():
             match event.key():
                 case Qt.Key.Key_Backspace:
@@ -276,5 +284,4 @@ class TextEditor(QObject):
 
     @Slot()
     def repaintViewport(self):
-        pass
         self.ui.viewport().repaint()

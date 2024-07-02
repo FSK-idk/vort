@@ -2,7 +2,7 @@ from PySide6.QtWidgets import QWidget, QLabel
 
 
 class CharacterCountLabel(QLabel):
-    def __init_(self, parent: QWidget | None = None) -> None:
+    def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
 
         self.setText("0 characters")

@@ -16,6 +16,7 @@ from core.widget.tool_bar.font_size_combo_box import FontSizeComboBox
 from core.widget.tool_bar.font_combo_box import FontComboBox
 
 from core.widget.status_bar.character_count_label import CharacterCountLabel
+from core.widget.status_bar.zoom_slider import ZoomSlider
 
 from core.widget.text_editor.text_editor import TextEditor
 
@@ -298,7 +299,10 @@ class TextEditorWindowUI(QMainWindow):
     def setupStatusBar(self) -> None:
         self.status_bar: QStatusBar = QStatusBar()
 
-        self.character_count = CharacterCountLabel()
+        self.character_count: CharacterCountLabel = CharacterCountLabel()
         self.status_bar.addPermanentWidget(self.character_count)
+
+        self.zoom_slider: ZoomSlider = ZoomSlider(self)
+        self.status_bar.addPermanentWidget(self.zoom_slider)
 
         self.setStatusBar(self.status_bar)

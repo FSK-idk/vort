@@ -1,4 +1,4 @@
-from PySide6.QtCore import Signal
+from PySide6.QtCore import Signal, Qt
 from PySide6.QtWidgets import QWidget
 from PySide6.QtGui import (
     QTextDocument,
@@ -12,6 +12,7 @@ from PySide6.QtGui import (
     QPaintEvent,
     QPainter,
     QTextCharFormat,
+    QPalette,
 )
 
 from util import RectF, PointF
@@ -19,7 +20,7 @@ from util import RectF, PointF
 from core.widget.text_editor.text_document_layout import TextDocumentLayout, Selection, PaintContext
 
 
-class Canvas(QWidget):
+class TextCanvas(QWidget):
     sizeChanged = Signal(PointF)
     characterCountChanged = Signal(int)
 
@@ -28,7 +29,11 @@ class Canvas(QWidget):
 
         self.__text_document_layout: TextDocumentLayout | None = None
         self.__text_cursor: QTextCursor | None = None
-        self.hide()
+
+        palette = self.palette()
+        palette.setColor(QPalette.ColorGroup.Active, QPalette.ColorRole.Window, Qt.GlobalColor.transparent)
+        palette.setColor(QPalette.ColorGroup.Inactive, QPalette.ColorRole.Window, Qt.GlobalColor.transparent)
+        self.setPalette(palette)
 
     def pageWidth(self) -> float:
         if self.__text_document_layout is not None:
@@ -52,7 +57,6 @@ class Canvas(QWidget):
         self.__text_document_layout.characterCountChanged.connect(self.characterCountChanged.emit)
         self.__text_document_layout.sizeChanged.connect(self.onSizeChanged)
         text_document.setDocumentLayout(self.__text_document_layout)
-        self.show()
 
     def clearContext(self) -> None:
         if self.__text_document_layout is not None:
@@ -61,7 +65,6 @@ class Canvas(QWidget):
 
         self.__text_document_layout = None
         self.__text_cursor = None
-        self.hide()
 
     def hitTest(self, point: PointF) -> int:
         if self.__text_document_layout is not None:
@@ -98,3 +101,4 @@ class Canvas(QWidget):
         context.page_color = QColor("white")
 
         self.__text_document_layout.paint(context)
+        return

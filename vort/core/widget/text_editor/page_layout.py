@@ -1,5 +1,5 @@
-from PySide6.QtWidgets import QApplication
 from PySide6.QtCore import QObject, Signal
+from PySide6.QtGui import QGuiApplication
 
 from util import PointF
 
@@ -25,7 +25,7 @@ class PageLayout(QObject):
         super().__init__()
 
         # TODO: add to config
-        dpi = QApplication.screens()[0].physicalDotsPerInch()
+        dpi = QGuiApplication.screens()[0].physicalDotsPerInch()
 
         self.__page_width: float = 210 * dpi / 25.4
         self.__page_height: float = 297.0 * dpi / 25.4
