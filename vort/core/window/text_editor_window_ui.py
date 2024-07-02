@@ -9,7 +9,7 @@ from PySide6.QtWidgets import (
     QStatusBar,
     QLabel,
 )
-from PySide6.QtGui import QAction, QPixmap, QFont, QColor
+from PySide6.QtGui import QAction, QPixmap, QFont, QColor, QMouseEvent
 
 from core.widget.tool_bar.color_picker.color_picker import ColorPicker
 from core.widget.tool_bar.font_size_combo_box import FontSizeComboBox
@@ -32,7 +32,7 @@ class TextEditorWindowUI(QMainWindow):
 
         # widget
 
-        self.text_editor: TextEditor = TextEditor()
+        self.text_editor: TextEditor = TextEditor(self)
         self.setCentralWidget(self.text_editor.ui)
 
         # setup

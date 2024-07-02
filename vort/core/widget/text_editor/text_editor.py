@@ -1,8 +1,5 @@
-from PySide6.QtCore import Qt, Signal, QMimeData, QObject, Slot
-from PySide6.QtWidgets import (
-    QWidget,
-    QApplication,
-)
+from PySide6.QtCore import Qt, Signal, QMimeData, QObject, Slot, QRectF
+from PySide6.QtWidgets import QWidget, QGraphicsScene, QApplication, QFrame, QGraphicsItem
 from PySide6.QtGui import (
     QKeyEvent,
     QMouseEvent,
@@ -15,6 +12,7 @@ from PySide6.QtGui import (
     QPaintEvent,
     QTextBlockFormat,
     QClipboard,
+    QPalette,
     QTextDocumentFragment,
     QColor,
 )
@@ -31,6 +29,7 @@ from core.widget.text_editor.component.copy_paste_component import CopyPasteComp
 from core.widget.text_editor.component.select_component import SelectComponent
 from core.widget.text_editor.component.history_component import HistoryComponent
 
+from core.widget.text_editor.canvas import Canvas
 
 # text editor only supports one cursor at a time
 
@@ -71,13 +70,20 @@ class TextEditor(QObject):
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
 
-        self.ui: TextEditorUI = TextEditorUI(parent)
-
         self.document: QTextDocument = QTextDocument()
-        self.ui.setDocument(self.document)
-
         self.text_cursor: QTextCursor = QTextCursor(self.document)
-        self.text_cursor.setBlockFormat(QTextBlockFormat())
+
+        self.scene: QGraphicsScene = QGraphicsScene(parent)
+        self.ui: TextEditorUI = TextEditorUI(parent)
+        self.ui.setScene(self.scene)
+        self.ui.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignHCenter)
+
+        self.canvas: Canvas = Canvas()
+        self.scene.addWidget(self.canvas)
+        self.canvas.setTextContext(self.document, self.text_cursor)
+
+        self.ui.horizontalScrollBar().setPageStep(int(self.canvas.pageWidth()))
+        self.ui.verticalScrollBar().setPageStep(int(self.canvas.pageHeight()))
 
         # component
 
@@ -104,20 +110,22 @@ class TextEditor(QObject):
 
         # signal
 
-        self.cursorPositionChanged.connect(self.onCursorPositionChanged)
+        self.ui.keyPressed.connect(self.onKeyPressed)
         self.ui.mousePressed.connect(self.onMousePressed)
         self.ui.mouseMoved.connect(self.onMouseMoved)
-        self.ui.keyPressed.connect(self.onKeyPressed)
-        self.ui.resized.connect(self.onResized)
-        self.ui.paintedDocument.connect(self.onPaintedDocument)
 
-        self.ui.pageCountChanged.connect(self.pageCountChanged.emit)
-        self.ui.characterCountChanged.connect(self.characterCountChanged.emit)
+        self.canvas.sizeChanged.connect(self.onCanvasSizeChanged)
+        self.canvas.characterCountChanged.connect(self.characterCountChanged.emit)
+
+        self.cursorPositionChanged.connect(self.onCursorPositionChanged)
 
     # TODO: DEBUG
     def test(self) -> None:
         print("test")
         pass
+
+    def onCanvasSizeChanged(self, size: PointF) -> None:
+        self.scene.setSceneRect(QRectF(0, 0, size.xPosition(), size.yPosition()))
 
     def onCursorPositionChanged(self, position: int) -> None:
         char_format: QTextCharFormat = self.text_cursor.charFormat()
@@ -157,14 +165,8 @@ class TextEditor(QObject):
 
     def onMousePressed(self, event: QMouseEvent) -> None:
         if event.button() == Qt.MouseButton.LeftButton:
-            point_position = PointF.fromQPointF(event.position())
-
-            screen_x = self.ui.horizontalScrollBar().value()
-            screen_y = self.ui.verticalScrollBar().value()
-
-            point_position.move(PointF(screen_x, screen_y))
-
-            position = self.ui.hitTest(point_position)
+            point_position = PointF.fromQPointF(self.ui.mapToScene(event.position().toPoint()))
+            position = self.canvas.hitTest(point_position)
 
             if position != -1:
                 self.text_cursor.setPosition(position, QTextCursor.MoveMode.MoveAnchor)
@@ -175,14 +177,8 @@ class TextEditor(QObject):
 
     def onMouseMoved(self, event: QMouseEvent) -> None:
         if event.buttons() == Qt.MouseButton.LeftButton:
-            point_position = PointF.fromQPointF(event.position())
-
-            screen_x = self.ui.horizontalScrollBar().value()
-            screen_y = self.ui.verticalScrollBar().value()
-
-            point_position.move(PointF(screen_x, screen_y))
-
-            position = self.ui.hitTest(point_position)
+            point_position = PointF.fromQPointF(self.ui.mapToScene(event.position().toPoint()))
+            position = self.canvas.hitTest(point_position)
 
             if position != -1:
                 self.text_cursor.setPosition(position, QTextCursor.MoveMode.KeepAnchor)
@@ -278,13 +274,7 @@ class TextEditor(QObject):
             self.cursorPositionChanged.emit(self.text_cursor.position())
             self.ui.viewport().repaint()
 
-    def onResized(self, event: QResizeEvent) -> None:
-        self.ui.resize(PointF(event.size().width(), event.size().height()))
-
-    def onPaintedDocument(self, event: QPaintEvent) -> None:
-        rect = RectF.fromQRect(event.rect())
-        self.ui.paint_document(rect, self.text_cursor)
-
     @Slot()
     def repaintViewport(self):
+        pass
         self.ui.viewport().repaint()
