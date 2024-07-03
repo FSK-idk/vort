@@ -1,6 +1,8 @@
 from PySide6.QtCore import QObject, Signal
 from PySide6.QtGui import QTextCursor
 
+# TODO: make slots, private cursor
+
 
 class Component(QObject):
     applied = Signal()

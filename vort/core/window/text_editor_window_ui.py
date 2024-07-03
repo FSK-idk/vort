@@ -9,7 +9,7 @@ from PySide6.QtWidgets import (
     QStatusBar,
     QLabel,
 )
-from PySide6.QtGui import QAction, QPixmap, QFont, QColor, QMouseEvent
+from PySide6.QtGui import QAction, QPixmap, QFont, QColor, QMouseEvent, QActionGroup
 
 from core.widget.tool_bar.color_picker.color_picker import ColorPicker
 from core.widget.tool_bar.font_size_combo_box import FontSizeComboBox
@@ -140,13 +140,13 @@ class TextEditorWindowUI(QMainWindow):
 
         # indent
 
-        self.indent_paragraph_right_action: QAction = QAction("Right")
-        self.indent_paragraph_right_action.setStatusTip("Indent paragraph right")
-        self.indent_paragraph_right_action.setShortcut("Ctrl+]")
+        self.indent_right_action: QAction = QAction("Right")
+        self.indent_right_action.setStatusTip("Indent right")
+        self.indent_right_action.setShortcut("Ctrl+]")
 
-        self.indent_paragraph_left_action: QAction = QAction("Left")
-        self.indent_paragraph_left_action.setStatusTip("Indent paragraph left")
-        self.indent_paragraph_left_action.setShortcut("Ctrl+[")
+        self.indent_left_action: QAction = QAction("Left")
+        self.indent_left_action.setStatusTip("Indent left")
+        self.indent_left_action.setShortcut("Ctrl+[")
 
         self.turn_first_line_indent_action: QAction = QAction("First line indent")
         self.turn_first_line_indent_action.setCheckable(True)
@@ -154,17 +154,39 @@ class TextEditorWindowUI(QMainWindow):
 
         # space
 
-        self.select_line_spacing_action: QAction = QAction("Line spacing")  # maybe new menu
-        self.select_line_spacing_action.setStatusTip("Select the spacing between lines")
+        self.set_line_spacing_1_action: QAction = QAction("1 line spacing")
+        self.set_line_spacing_1_action.setCheckable(True)
+        self.set_line_spacing_1_action.setStatusTip("Set the spacing between lines to 1")
 
-        self.select_paragraph_spacing_action: QAction = QAction("Paragraph spacing")  # maybe new menu
-        self.select_paragraph_spacing_action.setStatusTip("Select the spacing between paragraphs")
+        self.set_line_spacing_1_15_action: QAction = QAction("1.15 line spacing")
+        self.set_line_spacing_1_15_action.setCheckable(True)
+        self.set_line_spacing_1_15_action.setStatusTip("Set the spacing between lines to 1.15")
+
+        self.set_line_spacing_1_5_action: QAction = QAction("1.5 line spacing")
+        self.set_line_spacing_1_5_action.setCheckable(True)
+        self.set_line_spacing_1_5_action.setStatusTip("Set the spacing between lines to 1.5")
+
+        self.set_line_spacing_2_action: QAction = QAction("2 line spacing")
+        self.set_line_spacing_2_action.setCheckable(True)
+        self.set_line_spacing_2_action.setStatusTip("Set the spacing between lines to 2")
+
+        self.line_space_group: QActionGroup = QActionGroup(self)
+        self.line_space_group.addAction(self.set_line_spacing_1_action)
+        self.line_space_group.addAction(self.set_line_spacing_1_15_action)
+        self.line_space_group.addAction(self.set_line_spacing_1_5_action)
+        self.line_space_group.addAction(self.set_line_spacing_2_action)
+        self.line_space_group.setExclusive(True)
 
         # page
 
         self.turn_pagination_action: QAction = QAction("Pages")
         self.turn_pagination_action.setCheckable(True)
         self.turn_pagination_action.setStatusTip("Show pages")
+
+        # edit
+
+        self.open_edit_paragraph_action: QAction = QAction("Edit pragraph")
+        self.open_edit_paragraph_action.setStatusTip("Open edit paragraph dialog")
 
         # style
 
@@ -240,19 +262,26 @@ class TextEditorWindowUI(QMainWindow):
         self.insert_menu.addAction(self.insert_hyperlink_action)
         self.menu_bar.addMenu(self.insert_menu)
 
+        self.line_space_menu: QMenu = QMenu("Line spacing")
+        self.line_space_menu.addAction(self.set_line_spacing_1_action)
+        self.line_space_menu.addAction(self.set_line_spacing_1_15_action)
+        self.line_space_menu.addAction(self.set_line_spacing_1_5_action)
+        self.line_space_menu.addAction(self.set_line_spacing_2_action)
+
         self.format_menu: QMenu = QMenu("Format")
         self.format_menu.addAction(self.turn_bold_action)
         self.format_menu.addAction(self.turn_italic_action)
         self.format_menu.addAction(self.turn_underlined_action)
         self.format_menu.addSeparator()
         self.format_menu.addAction(self.turn_first_line_indent_action)
-        self.format_menu.addAction(self.indent_paragraph_right_action)
-        self.format_menu.addAction(self.indent_paragraph_left_action)
+        self.format_menu.addAction(self.indent_right_action)
+        self.format_menu.addAction(self.indent_left_action)
         self.format_menu.addSeparator()
-        self.format_menu.addAction(self.select_line_spacing_action)
-        self.format_menu.addAction(self.select_paragraph_spacing_action)
+        self.format_menu.addMenu(self.line_space_menu)
         self.format_menu.addSeparator()
         self.format_menu.addAction(self.turn_pagination_action)
+        self.format_menu.addSeparator()
+        self.format_menu.addAction(self.open_edit_paragraph_action)
         self.menu_bar.addMenu(self.format_menu)
 
         self.style_menu: QMenu = QMenu("Style")
@@ -292,8 +321,8 @@ class TextEditorWindowUI(QMainWindow):
         self.addToolBar(self.color_tool)
 
         self.indent_tool: QToolBar = QToolBar("Indent")
-        self.indent_tool.addAction(self.indent_paragraph_right_action)
-        self.indent_tool.addAction(self.indent_paragraph_left_action)
+        self.indent_tool.addAction(self.indent_right_action)
+        self.indent_tool.addAction(self.indent_left_action)
         self.addToolBar(self.indent_tool)
 
     def setupStatusBar(self) -> None:

@@ -28,7 +28,7 @@ from core.widget.text_editor.component.select_component import SelectComponent
 from core.widget.text_editor.component.font_component import FontComponent
 from core.widget.text_editor.component.format_component import FormatComponent
 from core.widget.text_editor.component.color_component import ColorComponent
-from core.widget.text_editor.component.indent_component import IndentComponent
+from core.widget.text_editor.component.spacing_component import SpacingComponent
 from core.widget.text_editor.component.move_component import MoveComponent
 from core.widget.text_editor.component.input_component import InputComponent
 
@@ -39,31 +39,19 @@ from core.widget.text_editor.text_canvas import TextCanvas
 
 
 class TextEditor(QObject):
-    # font
-
-    fontFamilySelected = Signal(str)
-    fontSizeSelected = Signal(int)
-
-    # format
+    fontFamilyChanged = Signal(str)
+    fontSizeChnaged = Signal(int)
 
     boldTurned = Signal(bool)
     italicTurned = Signal(bool)
     underlinedTurned = Signal(bool)
 
-    # color
-
-    foregroundColorSelected = Signal(QColor)
-    backgroundColorSelected = Signal(QColor)
-
-    # indent
+    foregroundColorChanged = Signal(QColor)
+    backgroundColorChanged = Signal(QColor)
 
     firstLineIndentTurned = Signal(bool)
 
-    # page
-
     pageCountChanged = Signal(int)
-
-    # status
 
     characterCountChanged = Signal(int)
     zoomFactorSelected = Signal(float)
@@ -109,8 +97,8 @@ class TextEditor(QObject):
         self.color_component: ColorComponent = ColorComponent(self.text_cursor)
         self.color_component.applied.connect(self.repaintViewport)
 
-        self.indent_component: IndentComponent = IndentComponent(self.text_cursor)
-        self.indent_component.applied.connect(self.repaintViewport)
+        self.spacing_component: SpacingComponent = SpacingComponent(self.text_cursor)
+        self.spacing_component.applied.connect(self.repaintViewport)
 
         self.move_component: MoveComponent = MoveComponent(self.text_cursor, self.text_canvas)
         self.move_component.applied.connect(self.repaintViewport)
@@ -133,8 +121,11 @@ class TextEditor(QObject):
 
     # TODO: DEBUG
     def test(self) -> None:
-        self.text_canvas.blockTest(self.text_cursor.position())
-        print("test")
+        block_format = self.text_cursor.blockFormat()
+        char_format = self.text_cursor.blockCharFormat()
+        font = char_format.font()
+        # print(char_format.fontsiz)
+
         pass
 
     def setZoomFactor(self, zoom_factor: float) -> None:
@@ -156,10 +147,10 @@ class TextEditor(QObject):
         # font
 
         font_family: str = char_format.font().family()
-        self.fontFamilySelected.emit(font_family)
+        self.fontFamilyChanged.emit(font_family)
 
         font_size: int = char_format.font().pointSize()
-        self.fontSizeSelected.emit(font_size)
+        self.fontSizeChnaged.emit(font_size)
 
         # format
 
@@ -175,10 +166,10 @@ class TextEditor(QObject):
         # color
 
         foreground_color = char_format.foreground().color()
-        self.foregroundColorSelected.emit(foreground_color)
+        self.foregroundColorChanged.emit(foreground_color)
 
         background_color = char_format.background().color()
-        self.backgroundColorSelected.emit(background_color)
+        self.backgroundColorChanged.emit(background_color)
 
         # indent
 

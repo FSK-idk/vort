@@ -1,4 +1,4 @@
-from PySide6.QtGui import QTextCharFormat
+from PySide6.QtGui import QTextCharFormat, QGuiApplication, QFont
 
 from core.widget.text_editor.component.component import Component
 
@@ -14,6 +14,7 @@ class FontComponent(Component):
     def setFontSize(self, font_size: int) -> None:
         format: QTextCharFormat = QTextCharFormat()
         format.setFontPointSize(font_size)
+        print(format.fontPointSize())
         self.text_cursor.mergeCharFormat(format)
         self.text_cursor.mergeBlockCharFormat(format)
         self.applied.emit()

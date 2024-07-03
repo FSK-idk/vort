@@ -1,7 +1,11 @@
 from PySide6.QtCore import Qt, QObject, Slot
-from PySide6.QtGui import QFont, QColor
+from PySide6.QtGui import QFont, QColor, QGuiApplication
 
 from core.window.text_editor_window_ui import TextEditorWindowUI
+from core.window.dialog.edit_paragraph_dialog_ui import (
+    EditParagraphDialogUI,
+    EditParagraphDialogContext,
+)
 
 
 # some code may be unnecessary, but I want everything to be consistent
@@ -61,53 +65,58 @@ class TextEditorWindow(QObject):
 
         # font
 
-        self.ui.font_family_combo_box.fontFamilyChanged.connect(self.selectFontFamily)
+        self.ui.font_family_combo_box.fontFamilyChanged.connect(self.onUserFontFamilyChanged)
         self.ui.font_family_combo_box.closed.connect(self.ui.text_editor.ui.setFocus)
-        self.ui.text_editor.fontFamilySelected.connect(self.onFontFamilySelected)
+        self.ui.text_editor.fontFamilyChanged.connect(self.onTextEditorFontFamilyChanged)
 
-        self.ui.font_size_combo_box.fontSizeChanged.connect(self.selectFontSize)
+        self.ui.font_size_combo_box.fontSizeChanged.connect(self.onUserFontSizeChanged)
         self.ui.font_size_combo_box.closed.connect(self.ui.text_editor.ui.setFocus)
-        self.ui.text_editor.fontSizeSelected.connect(self.onFontSizeSelected)
+        self.ui.text_editor.fontSizeChnaged.connect(self.onTextEditorFontSizeChanged)
 
         # format
 
-        self.ui.turn_bold_action.triggered.connect(self.turnBold)
-        self.ui.text_editor.boldTurned.connect(self.onBoldTurned)
+        self.ui.turn_bold_action.triggered.connect(self.onUserBoldTurned)
+        self.ui.text_editor.boldTurned.connect(self.onTextEditorBoldTurned)
 
-        self.ui.turn_italic_action.triggered.connect(self.turnItalic)
-        self.ui.text_editor.italicTurned.connect(self.onItalicTurned)
+        self.ui.turn_italic_action.triggered.connect(self.onUserItalicTurned)
+        self.ui.text_editor.italicTurned.connect(self.onTextEditorItalicTurned)
 
-        self.ui.turn_underlined_action.triggered.connect(self.turnUnderlined)
-        self.ui.text_editor.underlinedTurned.connect(self.onUnderlinedTurned)
+        self.ui.turn_underlined_action.triggered.connect(self.onUserUnderlinedTurned)
+        self.ui.text_editor.underlinedTurned.connect(self.onTextEditorUnderlinedTurned)
 
         # color
 
-        self.ui.foreground_color_picker.colorChanged.connect(self.selectForegroundColor)
+        self.ui.foreground_color_picker.colorChanged.connect(self.onUserForegroundColorChanged)
         self.ui.foreground_color_picker.closed.connect(self.ui.text_editor.ui.setFocus)
-        self.ui.text_editor.foregroundColorSelected.connect(self.onForegroundColorSelected)
+        self.ui.text_editor.foregroundColorChanged.connect(self.onTextEditorForegroundColorChanged)
 
-        self.ui.background_color_picker.colorChanged.connect(self.selectBackgroundColor)
+        self.ui.background_color_picker.colorChanged.connect(self.onUserBackgroundColorChanged)
         self.ui.background_color_picker.closed.connect(self.ui.text_editor.ui.setFocus)
-        self.ui.text_editor.backgroundColorSelected.connect(self.onBackgroundColorSelected)
+        self.ui.text_editor.backgroundColorChanged.connect(self.onTextEditorBackgroundColorChanged)
 
         # indent
 
-        self.ui.turn_first_line_indent_action.triggered.connect(self.turnFirstLineIndent)
-        self.ui.text_editor.firstLineIndentTurned.connect(self.onFirstLineIndentTurned)
+        self.ui.turn_first_line_indent_action.triggered.connect(self.onUserFirstLineIndentTurned)
+        self.ui.text_editor.firstLineIndentTurned.connect(self.onTextEditorFirstLineIndentTurned)
 
-        self.ui.indent_paragraph_right_action.triggered.connect(self.indentParagraphRight)
+        self.ui.indent_right_action.triggered.connect(self.indentRight)
 
-        self.ui.indent_paragraph_left_action.triggered.connect(self.indentParagraphLeft)
+        self.ui.indent_left_action.triggered.connect(self.indentLeft)
 
         # space
 
-        self.ui.select_line_spacing_action.triggered.connect(self.selectLineSpacing)
-
-        self.ui.select_paragraph_spacing_action.triggered.connect(self.selectParagraphSpacing)
+        self.ui.set_line_spacing_1_action.triggered.connect(self.setLineSpacing_1)
+        self.ui.set_line_spacing_1_15_action.triggered.connect(self.setLineSpacing_1_15)
+        self.ui.set_line_spacing_1_5_action.triggered.connect(self.setLineSpacing_1_5)
+        self.ui.set_line_spacing_2_action.triggered.connect(self.setLineSpacing_2)
 
         # page
 
         self.ui.turn_pagination_action.triggered.connect(self.turnPagination)
+
+        # edit
+
+        self.ui.open_edit_paragraph_action.triggered.connect(self.openEditParagraph)
 
         # style
 
@@ -126,11 +135,11 @@ class TextEditorWindow(QObject):
 
         # status
 
-        self.ui.text_editor.characterCountChanged.connect(self.onCharacterCountChanged)
+        self.ui.text_editor.characterCountChanged.connect(self.onTextEditorCharacterCountChanged)
 
-        self.ui.zoom_slider.zoomFactorChanged.connect(self.selectZoomFactor)
+        self.ui.zoom_slider.zoomFactorChanged.connect(self.onUserZoomFactorChanged)
         self.ui.zoom_slider.zoomFactorChanged.connect(self.ui.text_editor.ui.setFocus)
-        self.ui.text_editor.zoomFactorSelected.connect(self.onZoomFactorSelected)
+        self.ui.text_editor.zoomFactorSelected.connect(self.onTextEditorZoomFactorChanged)
 
         self.setDefault()
 
@@ -139,41 +148,46 @@ class TextEditorWindow(QObject):
     def setDefault(self) -> None:
         # font
 
-        self.selectFontFamily(QFont().family())
-        self.onFontFamilySelected(QFont().family())
+        self.onUserFontFamilyChanged(QFont().family())
+        self.onTextEditorFontFamilyChanged(QFont().family())
 
-        self.selectFontSize(16)
-        self.onFontSizeSelected(16)
+        self.onUserFontSizeChanged(16)
+        self.onTextEditorFontSizeChanged(16)
 
         # format
 
-        self.turnBold(False)
-        self.onBoldTurned(False)
+        self.onUserBoldTurned(False)
+        self.onTextEditorBoldTurned(False)
 
-        self.turnItalic(False)
-        self.onItalicTurned(False)
+        self.onUserItalicTurned(False)
+        self.onTextEditorItalicTurned(False)
 
-        self.turnUnderlined(False)
-        self.onUnderlinedTurned(False)
+        self.onUserUnderlinedTurned(False)
+        self.onTextEditorUnderlinedTurned(False)
 
         # color
 
-        self.selectForegroundColor(QColor(Qt.GlobalColor.black))
-        self.onForegroundColorSelected(QColor(Qt.GlobalColor.black))
+        self.onUserForegroundColorChanged(QColor(Qt.GlobalColor.black))
+        self.onTextEditorForegroundColorChanged(QColor(Qt.GlobalColor.black))
 
-        self.selectBackgroundColor(QColor(Qt.GlobalColor.white))
-        self.onBackgroundColorSelected(QColor(Qt.GlobalColor.white))
+        self.onUserBackgroundColorChanged(QColor(Qt.GlobalColor.white))
+        self.onTextEditorBackgroundColorChanged(QColor(Qt.GlobalColor.white))
 
         # indent
 
-        self.turnFirstLineIndent(False)
-        self.onFirstLineIndentTurned(False)
+        self.onUserFirstLineIndentTurned(False)
+        self.onTextEditorFirstLineIndentTurned(False)
+
+        # space
+
+        self.onUserLineSpacingChanged(1.0)
 
         # status
 
         self.ui.character_count.setCharacterCount(0)
-        self.selectZoomFactor(1)
-        self.onZoomFactorSelected(1)
+
+        self.onUserZoomFactorChanged(1)
+        self.onTextEditorZoomFactorChanged(1)
 
     def newDocument(self) -> None:
         print("newDocument")
@@ -240,21 +254,25 @@ class TextEditorWindow(QObject):
     # font
 
     @Slot(str)
-    def selectFontFamily(self, font_family: str) -> None:
+    def onUserFontFamilyChanged(self, font_family: str) -> None:
+        self.ui.text_editor.blockSignals(True)
         self.ui.text_editor.font_component.setFontFamily(font_family)
+        self.ui.text_editor.blockSignals(False)
 
     @Slot(str)
-    def onFontFamilySelected(self, font_family: str) -> None:
+    def onTextEditorFontFamilyChanged(self, font_family: str) -> None:
         self.ui.font_family_combo_box.blockSignals(True)
         self.ui.font_family_combo_box.setFontFamily(font_family)
         self.ui.font_family_combo_box.blockSignals(False)
 
     @Slot(int)
-    def selectFontSize(self, font_size: int) -> None:
+    def onUserFontSizeChanged(self, font_size: int) -> None:
+        self.ui.text_editor.blockSignals(True)
         self.ui.text_editor.font_component.setFontSize(font_size)
+        self.ui.text_editor.blockSignals(False)
 
     @Slot(int)
-    def onFontSizeSelected(self, font_size: int) -> None:
+    def onTextEditorFontSizeChanged(self, font_size: int) -> None:
         self.ui.font_size_combo_box.blockSignals(True)
         self.ui.font_size_combo_box.setFontSize(font_size)
         self.ui.font_size_combo_box.blockSignals(False)
@@ -262,31 +280,37 @@ class TextEditorWindow(QObject):
     # format
 
     @Slot(bool)
-    def turnBold(self, is_bold) -> None:
+    def onUserBoldTurned(self, is_bold) -> None:
+        self.ui.text_editor.blockSignals(True)
         self.ui.text_editor.format_component.turnBold(is_bold)
+        self.ui.text_editor.blockSignals(False)
 
     @Slot(bool)
-    def onBoldTurned(self, is_bold) -> None:
+    def onTextEditorBoldTurned(self, is_bold) -> None:
         self.ui.turn_bold_action.blockSignals(True)
         self.ui.turn_bold_action.setChecked(is_bold)
         self.ui.turn_bold_action.blockSignals(False)
 
     @Slot(bool)
-    def turnItalic(self, is_italic) -> None:
+    def onUserItalicTurned(self, is_italic) -> None:
+        self.ui.text_editor.blockSignals(True)
         self.ui.text_editor.format_component.turnItalic(is_italic)
+        self.ui.text_editor.blockSignals(False)
 
     @Slot(bool)
-    def onItalicTurned(self, is_italic) -> None:
+    def onTextEditorItalicTurned(self, is_italic) -> None:
         self.ui.turn_italic_action.blockSignals(True)
         self.ui.turn_italic_action.setChecked(is_italic)
         self.ui.turn_italic_action.blockSignals(False)
 
     @Slot(bool)
-    def turnUnderlined(self, is_underlined) -> None:
+    def onUserUnderlinedTurned(self, is_underlined) -> None:
+        self.ui.text_editor.blockSignals(True)
         self.ui.text_editor.format_component.turnUnderlined(is_underlined)
+        self.ui.text_editor.blockSignals(False)
 
     @Slot(bool)
-    def onUnderlinedTurned(self, is_underlined) -> None:
+    def onTextEditorUnderlinedTurned(self, is_underlined) -> None:
         self.ui.turn_underlined_action.blockSignals(True)
         self.ui.turn_underlined_action.setChecked(is_underlined)
         self.ui.turn_underlined_action.blockSignals(False)
@@ -294,21 +318,25 @@ class TextEditorWindow(QObject):
     # color
 
     @Slot(QColor)
-    def selectForegroundColor(self, color: QColor) -> None:
+    def onUserForegroundColorChanged(self, color: QColor) -> None:
+        self.ui.text_editor.blockSignals(True)
         self.ui.text_editor.color_component.setForegroundColor(color)
+        self.ui.text_editor.blockSignals(False)
 
     @Slot(QColor)
-    def onForegroundColorSelected(self, color: QColor) -> None:
+    def onTextEditorForegroundColorChanged(self, color: QColor) -> None:
         self.ui.foreground_color_picker.blockSignals(True)
         self.ui.foreground_color_picker.setColor(color)
         self.ui.foreground_color_picker.blockSignals(False)
 
     @Slot(QColor)
-    def selectBackgroundColor(self, color: QColor) -> None:
+    def onUserBackgroundColorChanged(self, color: QColor) -> None:
+        self.ui.text_editor.blockSignals(True)
         self.ui.text_editor.color_component.setBackgroundColor(color)
+        self.ui.text_editor.blockSignals(False)
 
     @Slot(QColor)
-    def onBackgroundColorSelected(self, color: QColor) -> None:
+    def onTextEditorBackgroundColorChanged(self, color: QColor) -> None:
         self.ui.background_color_picker.blockSignals(True)
         self.ui.background_color_picker.setColor(color)
         self.ui.background_color_picker.blockSignals(False)
@@ -316,33 +344,138 @@ class TextEditorWindow(QObject):
     # indent
 
     @Slot(bool)
-    def turnFirstLineIndent(self, is_indent) -> None:
-        self.ui.text_editor.indent_component.turnFirstLineIndent(is_indent)
+    def onUserFirstLineIndentTurned(self, is_indent) -> None:
+        self.ui.text_editor.blockSignals(True)
+        self.ui.text_editor.spacing_component.turnFirstLineIndent(is_indent)
+        self.ui.text_editor.blockSignals(False)
 
     @Slot(bool)
-    def onFirstLineIndentTurned(self, is_indent) -> None:
+    def onTextEditorFirstLineIndentTurned(self, is_indent) -> None:
         self.ui.turn_first_line_indent_action.blockSignals(True)
         self.ui.turn_first_line_indent_action.setChecked(is_indent)
         self.ui.turn_first_line_indent_action.blockSignals(False)
 
-    @Slot()
-    def indentParagraphRight(self) -> None:
-        self.ui.text_editor.indent_component.indentParagraphRight()
+    @Slot(float)
+    def onUserFirstLineIndentChnaged(self, indent: float) -> None:
+        self.ui.text_editor.blockSignals(True)
+        self.ui.text_editor.spacing_component.setFirstLineIndent(indent)
+        self.ui.text_editor.blockSignals(False)
+
+    @Slot(int)
+    def onUserIndentChanged(self, indent: int) -> None:
+        self.ui.text_editor.spacing_component.setIndent(indent)
 
     @Slot()
-    def indentParagraphLeft(self) -> None:
-        self.ui.text_editor.indent_component.indentParagraphLeft()
+    def indentRight(self) -> None:
+        self.ui.text_editor.spacing_component.indentRight()
 
-    # select
+    @Slot()
+    def indentLeft(self) -> None:
+        self.ui.text_editor.spacing_component.indentLeft()
 
-    def selectLineSpacing(self) -> None:
-        print("selectLineSpacing")
+    # space
 
-    def selectParagraphSpacing(self) -> None:
-        print("selectParagraphSpacing")
+    @Slot(float)
+    def onUserLineSpacingChanged(self, spacing: float) -> None:
+        self.ui.text_editor.blockSignals(True)
+        self.ui.text_editor.spacing_component.setLineSpacing(spacing)
+        self.ui.text_editor.blockSignals(False)
+
+    @Slot(float)
+    def onTextEditorLineSpacingChanged(self, spacing: float) -> None:
+        self.ui.set_line_spacing_1_action.blockSignals(True)
+        self.ui.set_line_spacing_1_15_action.blockSignals(True)
+        self.ui.set_line_spacing_1_5_action.blockSignals(True)
+        self.ui.set_line_spacing_2_action.blockSignals(True)
+
+        self.ui.set_line_spacing_1_action.setChecked(spacing == 1.0)
+        self.ui.set_line_spacing_1_15_action.setChecked(spacing == 1.15)
+        self.ui.set_line_spacing_1_5_action.setChecked(spacing == 1.5)
+        self.ui.set_line_spacing_2_action.setChecked(spacing == 2.0)
+
+        self.ui.set_line_spacing_1_action.blockSignals(False)
+        self.ui.set_line_spacing_1_15_action.blockSignals(False)
+        self.ui.set_line_spacing_1_5_action.blockSignals(False)
+        self.ui.set_line_spacing_2_action.blockSignals(False)
+
+    @Slot()
+    def setLineSpacing_1(self) -> None:
+        self.onUserLineSpacingChanged(1.0)
+
+    @Slot()
+    def setLineSpacing_1_15(self) -> None:
+        self.onUserLineSpacingChanged(1.15)
+
+    @Slot()
+    def setLineSpacing_1_5(self) -> None:
+        self.onUserLineSpacingChanged(1.5)
+
+    @Slot()
+    def setLineSpacing_2(self) -> None:
+        self.onUserLineSpacingChanged(2.0)
+
+    # margin
+
+    @Slot(float)
+    def onUserParagraphTopMarginChanged(self, margin: float) -> None:
+        self.ui.text_editor.spacing_component.setTopMargin(margin)
+
+    @Slot(float)
+    def onUserParagraphBottomMarginChanged(self, margin: float) -> None:
+        self.ui.text_editor.spacing_component.setBottomMargin(margin)
+
+    @Slot(float)
+    def onUserParagraphLeftMarginChanged(self, margin: float) -> None:
+        self.ui.text_editor.spacing_component.setLeftMargin(margin)
+
+    @Slot(float)
+    def onUserParagraphRightMarginChanged(self, margin: float) -> None:
+        self.ui.text_editor.spacing_component.setRightMargin(margin)
+
+    # page
 
     def turnPagination(self) -> None:
         print("turnPagination")
+
+    # edit
+
+    def openEditParagraph(self) -> None:
+        dpi = QGuiApplication.screens()[0].logicalDotsPerInch()
+
+        context: EditParagraphDialogContext = EditParagraphDialogContext()
+        context.alignment = Qt.AlignmentFlag.AlignLeft  # TODO:
+        context.heading_level = 0  # TODO:
+        context.is_first_line_indent_turned = self.ui.text_editor.spacing_component.isFirstLineIndentTurned()
+        context.first_line_indent = self.ui.text_editor.spacing_component.firstLineIndent() * 2.54 / dpi
+        context.indent = self.ui.text_editor.spacing_component.indent()
+        context.line_spacing = self.ui.text_editor.spacing_component.lineSpacing()
+        context.top_margin = self.ui.text_editor.spacing_component.topMargin() * 2.54 / dpi
+        context.bottom_margin = self.ui.text_editor.spacing_component.bottomMargin() * 2.54 / dpi
+        context.left_margin = self.ui.text_editor.spacing_component.leftMargin() * 2.54 / dpi
+        context.right_margin = self.ui.text_editor.spacing_component.rightMargin() * 2.54 / dpi
+
+        dialog = EditParagraphDialogUI(context)
+        if dialog.exec():
+            self.onUserFirstLineIndentTurned(context.is_first_line_indent_turned)
+            self.onTextEditorFirstLineIndentTurned(context.is_first_line_indent_turned)
+
+            if context.is_first_line_indent_turned:
+                self.onUserFirstLineIndentChnaged(context.first_line_indent * dpi / 2.54)
+
+            self.onUserIndentChanged(context.indent)
+
+            self.onUserLineSpacingChanged(context.line_spacing)
+            self.onTextEditorLineSpacingChanged(context.line_spacing)
+
+            self.onUserParagraphTopMarginChanged(context.top_margin * dpi / 2.54)
+
+            self.onUserParagraphBottomMarginChanged(context.bottom_margin * dpi / 2.54)
+
+            self.onUserParagraphLeftMarginChanged(context.left_margin * dpi / 2.54)
+
+            self.onUserParagraphRightMarginChanged(context.right_margin * dpi / 2.54)
+
+    # style
 
     def openStyle(self) -> None:
         print("openStyle")
@@ -356,18 +489,22 @@ class TextEditorWindow(QObject):
     def showAbout(self) -> None:
         print("showAbout")
 
+    # status
+
     @Slot(int)
-    def onCharacterCountChanged(self, character_count: int) -> None:
+    def onTextEditorCharacterCountChanged(self, character_count: int) -> None:
         self.ui.character_count.blockSignals(True)
         self.ui.character_count.setCharacterCount(character_count)
         self.ui.character_count.blockSignals(False)
 
     @Slot(float)
-    def selectZoomFactor(self, zoom_factor: float) -> None:
+    def onUserZoomFactorChanged(self, zoom_factor: float) -> None:
+        self.ui.text_editor.blockSignals(True)
         self.ui.text_editor.setZoomFactor(zoom_factor)
+        self.ui.text_editor.blockSignals(False)
 
     @Slot(float)
-    def onZoomFactorSelected(self, zoom_factor: float) -> None:
+    def onTextEditorZoomFactorChanged(self, zoom_factor: float) -> None:
         self.ui.zoom_slider.blockSignals(True)
         self.ui.zoom_slider.setZoomFactor(zoom_factor)
         self.ui.zoom_slider.blockSignals(False)

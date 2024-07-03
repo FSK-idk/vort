@@ -25,13 +25,13 @@ class PageLayout(QObject):
         super().__init__()
 
         # TODO: add to config
-        dpi = QGuiApplication.screens()[0].physicalDotsPerInch()
+        dpi = QGuiApplication.screens()[0].logicalDotsPerInch()
 
-        self.__page_width: float = 210 * dpi / 25.4
-        self.__page_height: float = 297.0 * dpi / 25.4
-        self.__page_margin: float = 10 * dpi / 25.4
-        self.__page_padding: float = 10 * dpi / 25.4
-        self.__spacing: float = 10 * dpi / 25.4
+        self.__page_width: float = 21 * dpi / 2.54
+        self.__page_height: float = 29.7 * dpi / 2.54
+        self.__page_margin: float = 1 * dpi / 2.54
+        self.__page_padding: float = 1 * dpi / 2.54
+        self.__spacing: float = 1 * dpi / 2.54
         self.__page_count: int = 1  # at least one
 
     def pageWidth(self) -> float:
