@@ -1,4 +1,4 @@
-from PySide6.QtCore import QPointF, Signal
+from PySide6.QtCore import QPointF, Signal, QRect, QRectF
 from PySide6.QtGui import (
     QAbstractTextDocumentLayout,
     QTextDocument,
@@ -11,6 +11,11 @@ from PySide6.QtGui import (
     QColor,
     QTextBlockFormat,
     QGuiApplication,
+    QTextInlineObject,
+    QTextFormat,
+    QTextFragment,
+    QTextImageFormat,
+    QImage,
 )
 
 from util import PointF, RectF
@@ -68,19 +73,32 @@ class TextDocumentLayout(QAbstractTextDocumentLayout):
 
         -alignment
         -heading_level
-        +is_first_line_indent_turned
-        +first_line_indent
-        +indent
-        +line_spacing
-        -top_margin
-        -bottom_margin
-        -left_margin
-        -right_margin
-        QGuiApplication.screens()[0].p
+        -images
+        -hyperlinks
 
-    # fmt: off
+        # image_format = block.charFormat().toImageFormat()
+        # print(image_format.width(), image_format.height(), image_format.name())
+
+        # print("start:",end="")
+        # k: QTextBlock.iterator = block.begin()
+        # while k != block.end():
+        #     frag: QTextFragment = k.fragment()
+        #     if frag.charFormat().toImageFormat().isImageFormat():
+        #         form: QTextImageFormat = frag.charFormat().toImageFormat()
+        #         img: QImage = QImage(self.document().resource(QTextDocument.ResourceType.ImageResource, form.name()))
+        #         if not img.isNull():
+        #             print("got")
+
+        #         print(form.width(),"=image",end="")
+
+        #     print(frag.length(),end=",")
+
+        #     k += 1
+        # print("end")
 
     def documentChanged(self, from_: int, charsRemoved: int, charsAdded: int) -> None:
+        # it isn't as complicated as you may think
+
         character_count: int = 0
         page_count: int = 1
 
@@ -98,9 +116,6 @@ class TextDocumentLayout(QAbstractTextDocumentLayout):
             block: QTextBlock = document.findBlockByNumber(i)
             block_layout: QTextLayout = block.layout()
             block_format: QTextBlockFormat = block.blockFormat()
-            block_text_indent: float = block_format.textIndent()
-            block_line_spacing: float = block_format.lineHeight()
-            block_top_margin: float = block_format.topMargin()
 
             block_x = block_format.indent() * self.__default_indent_step + block_format.leftMargin()
             block_y = 0
@@ -111,70 +126,111 @@ class TextDocumentLayout(QAbstractTextDocumentLayout):
                 + block_format.rightMargin()
             )
 
+            # --line parsing
+            # if first line
+            #   calc
+            #   if new page:
+            #       do more
+            # else:
+            #   calc
+            #   if new page:
+            #       do more
+            # --bottom margin parsing
+            # calc
+            # if new page:
+            #   do more
+
             block_layout.beginLayout()
             line: QTextLine = block_layout.createLine()
             is_first_line = True
-            is_first_line_checked = False
             while line.isValid():
-                line_width_reduce = 0
-                line_x = 0
                 if is_first_line:
-                    line_width_reduce += block_text_indent
-                    line_x += block_text_indent
-                    block_y += block_top_margin
+                    line.setLineWidth(
+                        self.page_layout.pageWidth()
+                        - root_width_reduce
+                        - block_width_reduce
+                        - block_format.textIndent()
+                    )
+
+                    if remaining_text_height - line.height() - block_format.topMargin() <= 0:
+                        if self.page_layout.pageCount() == page_count:
+                            self.page_layout.addPage()
+                        page_count += 1
+
+                        root_y += (
+                            remaining_text_height
+                            + (self.page_layout.pageMargin() + self.page_layout.pagePadding()) * 2
+                            + self.page_layout.spacing()
+                        )
+
+                        remaining_text_height = (
+                            self.page_layout.pageHeight()
+                            - (self.page_layout.pageMargin() + self.page_layout.pagePadding()) * 2
+                        )
+
+                        line.setLineWidth(
+                            self.page_layout.pageWidth()
+                            - root_width_reduce
+                            - block_width_reduce
+                            - block_format.textIndent()
+                        )
+
+                    block_y += block_format.topMargin()
+                    line_x = block_format.textIndent()
+                    line.setPosition(QPointF(root_x + block_x + line_x, root_y + block_y))
+                    block_y += line.height() * block_format.lineHeight()
+
+                    remaining_text_height -= line.height() * block_format.lineHeight() + block_format.topMargin()
 
                     is_first_line = False
 
-                line.setLineWidth(
-                    self.page_layout.pageWidth() - root_width_reduce - block_width_reduce - line_width_reduce
-                )
-                line.setPosition(QPointF(root_x + block_x + line_x, root_y + block_y))
+                else:
+                    line.setLineWidth(self.page_layout.pageWidth() - root_width_reduce - block_width_reduce)
 
-                if (remaining_text_height - line.height() <= 0) or (not is_first_line_checked and (remaining_text_height - line.height() - block_top_margin <= 0)): 
-                    if self.page_layout.pageCount() == page_count:
-                        self.page_layout.addPage()
-                    page_count += 1
+                    if remaining_text_height - line.height() <= 0:
+                        if self.page_layout.pageCount() == page_count:
+                            self.page_layout.addPage()
+                        page_count += 1
 
-                    if not is_first_line_checked:
-                        root_y += remaining_text_height + (self.page_layout.pageMargin() + self.page_layout.pagePadding()) * 2  + self.page_layout.spacing()
-                    else:
-                        block_y += remaining_text_height + (self.page_layout.pageMargin() + self.page_layout.pagePadding()) * 2  + self.page_layout.spacing()
+                        block_y += (
+                            remaining_text_height
+                            + (self.page_layout.pageMargin() + self.page_layout.pagePadding()) * 2
+                            + self.page_layout.spacing()
+                        )
 
-                    remaining_text_height = (
-                        self.page_layout.pageHeight() - (self.page_layout.pageMargin() + self.page_layout.pagePadding()) * 2
-                    )
+                        remaining_text_height = (
+                            self.page_layout.pageHeight()
+                            - (self.page_layout.pageMargin() + self.page_layout.pagePadding()) * 2
+                        )
 
-                    if not is_first_line_checked:
-                        remaining_text_height -= block_top_margin
+                        line.setLineWidth(self.page_layout.pageWidth() - root_width_reduce - block_width_reduce)
 
+                    line.setPosition(QPointF(root_x + block_x, root_y + block_y))
+                    block_y += line.height() * block_format.lineHeight()
 
-                    line.setLineWidth(
-                        self.page_layout.pageWidth() - root_width_reduce - block_width_reduce - line_width_reduce
-                    )
-                    line.setPosition(QPointF(root_x + block_x + line_x, root_y + block_y))
-
-                if not is_first_line_checked and not (remaining_text_height - line.height() - block_top_margin <= 0):
-                    remaining_text_height -= block_format.topMargin()
-
-                is_first_line_checked = True 
+                    remaining_text_height -= line.height() * block_format.lineHeight()
 
                 character_count += line.textLength()
-                remaining_text_height -= line.height() * block_line_spacing 
-                block_y += line.height() * block_line_spacing
 
                 line = block_layout.createLine()
 
             root_y += block_y
-            
+
             if remaining_text_height - block_format.bottomMargin() <= 0:
                 if self.page_layout.pageCount() == page_count:
                     self.page_layout.addPage()
                 page_count += 1
 
-                root_y += remaining_text_height + (self.page_layout.pageMargin() + self.page_layout.pagePadding()) * 2  + self.page_layout.spacing()
+                root_y += (
+                    remaining_text_height
+                    + (self.page_layout.pageMargin() + self.page_layout.pagePadding()) * 2
+                    + self.page_layout.spacing()
+                )
+
                 remaining_text_height = (
                     self.page_layout.pageHeight() - (self.page_layout.pageMargin() + self.page_layout.pagePadding()) * 2
                 )
+
             else:
                 root_y += block_format.bottomMargin()
                 remaining_text_height -= block_format.bottomMargin()

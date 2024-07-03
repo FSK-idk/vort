@@ -209,6 +209,9 @@ class TextEditorWindowUI(QMainWindow):
         self.test_action: QAction = QAction("Test")
         self.test_action.setStatusTip("Test")
 
+        self.test2_action: QAction = QAction("Test2")
+        self.test2_action.setStatusTip("Test2")
+
     def setupWidget(self) -> None:
 
         # font
@@ -295,6 +298,7 @@ class TextEditorWindowUI(QMainWindow):
 
         # TODO: DEBUG
         self.menu_bar.addAction(self.test_action)
+        self.menu_bar.addAction(self.test2_action)
 
         self.setMenuBar(self.menu_bar)
 

@@ -16,6 +16,10 @@ from PySide6.QtGui import (
     QPalette,
     QTextDocumentFragment,
     QColor,
+    QTextImageFormat,
+    QImage,
+    QTextBlock,
+    QTextFragment,
 )
 
 from util import PointF, RectF
@@ -23,7 +27,6 @@ from util import PointF, RectF
 from core.widget.text_editor.text_editor_ui import TextEditorUI
 
 from core.widget.text_editor.component.history_component import HistoryComponent
-from core.widget.text_editor.component.copy_paste_component import CopyPasteComponent
 from core.widget.text_editor.component.select_component import SelectComponent
 from core.widget.text_editor.component.font_component import FontComponent
 from core.widget.text_editor.component.format_component import FormatComponent
@@ -36,6 +39,9 @@ from core.widget.text_editor.text_canvas import TextCanvas
 
 
 # text editor only supports one cursor at a time
+
+# TODO: DEBUG
+count_img = 0
 
 
 class TextEditor(QObject):
@@ -82,9 +88,6 @@ class TextEditor(QObject):
         self.history_component: HistoryComponent = HistoryComponent(self.text_cursor)
         self.history_component.applied.connect(self.repaintViewport)
 
-        self.copy_paste_component: CopyPasteComponent = CopyPasteComponent(self.text_cursor)
-        self.copy_paste_component.applied.connect(self.repaintViewport)
-
         self.select_component: SelectComponent = SelectComponent(self.text_cursor)
         self.select_component.applied.connect(self.repaintViewport)
 
@@ -121,12 +124,99 @@ class TextEditor(QObject):
 
     # TODO: DEBUG
     def test(self) -> None:
-        block_format = self.text_cursor.blockFormat()
-        char_format = self.text_cursor.blockCharFormat()
-        font = char_format.font()
-        # print(char_format.fontsiz)
 
+        global count_img
+        count_img += 1
+
+        image = QImage("vort/etc/image.png")
+
+        if not image.isNull():
+            self.text_cursor.document().addResource(
+                QTextDocument.ResourceType.ImageResource, f"etc/image{count_img}", image
+            )
+
+            imageFormat: QTextImageFormat = QTextImageFormat()
+            imageFormat.setWidth(image.width())
+            imageFormat.setHeight(image.height())
+            imageFormat.setName(f"etc/image{count_img}")
+            imageFormat.setForeground(QColor("black"))
+            imageFormat.setBackground(QColor("white"))
+
+            prev_format = self.text_cursor.charFormat()
+            self.text_cursor.setCharFormat(imageFormat.toCharFormat())
+            self.text_cursor.insertImage(imageFormat)
+            self.text_cursor.setCharFormat(prev_format)
+        else:
+            print("no image")
+
+        self.repaintViewport()
         pass
+
+    # fmt:off
+    def test2(self) -> None:
+        # position, is_pref_empty, is_pref_alpha, is_pref_img, is_suff_alpha
+        images: list[tuple[int, bool, bool, bool, bool]] = []
+
+        for i in range(self.text_document.blockCount()):
+            block: QTextBlock = self.text_document.findBlockByNumber(i)
+
+            it: QTextBlock.iterator = block.begin()
+            while it != block.end():
+                frag: QTextFragment = it.fragment()
+
+                if frag.charFormat().isImageFormat():
+                    form: QTextImageFormat = frag.charFormat().toImageFormat()
+
+                    if frag.length() > 0:
+                        # is first
+                        offset = 0
+
+                        if it != block.begin():
+                            it -= 1
+                            if not it.fragment().charFormat().isImageFormat():
+                                if block.position() == frag.position():
+                                    images.append((frag.position() + offset, True, False, False, False))
+                                else:
+                                    images.append((frag.position() + offset, False, True, False, False))
+                                offset += 1
+                            it += 1
+                        else:
+                            if block.position() == frag.position():
+                                images.append((frag.position() + offset, True, False, False, False))
+                            else:
+                                images.append((frag.position() + offset, False, True, False, False))
+                            offset += 1
+
+                        # is not first
+                        while offset < frag.length():
+                            images.append((frag.position() + offset, False, False, True, False))
+                            offset += 1
+
+                        it += 1
+                        if it != block.end():
+                            if not it.fragment().charFormat().isImageFormat():
+                                position, is_pref_empty, is_pref_alpha, is_pref_img, is_suff_alpha = images[-1]
+                                images[-1] = (position, is_pref_empty, is_pref_alpha, is_pref_img, True)
+                        it -= 1
+
+                it += 1
+
+        offset_position = 0
+        helper = QTextCursor(self.text_document)
+
+        for position, is_pref_empty, is_pref_alpha, is_pref_img, is_suff_alpha in images:
+            helper.beginEditBlock()
+            if is_pref_alpha or is_pref_img:
+                helper.setPosition(position + offset_position)
+                helper.insertBlock()
+                offset_position += 1
+            if is_suff_alpha:
+                helper.setPosition(position + offset_position + 1)
+                helper.insertBlock()
+                offset_position += 1
+            helper.endEditBlock()
+
+        self.repaintViewport()
 
     def setZoomFactor(self, zoom_factor: float) -> None:
         self.ui.setZoomFactor(zoom_factor)

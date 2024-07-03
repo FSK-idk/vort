@@ -132,6 +132,7 @@ class TextEditorWindow(QObject):
 
         # TODO: DEBUG
         self.ui.test_action.triggered.connect(self.test)
+        self.ui.test2_action.triggered.connect(self.test2)
 
         # status
 
@@ -215,19 +216,19 @@ class TextEditorWindow(QObject):
 
     @Slot()
     def cut(self) -> None:
-        self.ui.text_editor.copy_paste_component.cut()
+        self.ui.text_editor.input_component.cut()
 
     @Slot()
     def copy(self) -> None:
-        self.ui.text_editor.copy_paste_component.copy()
+        self.ui.text_editor.input_component.copy()
 
     @Slot()
     def paste(self) -> None:
-        self.ui.text_editor.copy_paste_component.paste()
+        self.ui.text_editor.input_component.paste()
 
     @Slot()
     def pastePlain(self) -> None:
-        self.ui.text_editor.copy_paste_component.pastePlain()
+        self.ui.text_editor.input_component.pastePlain()
 
     # select
 
@@ -512,4 +513,8 @@ class TextEditorWindow(QObject):
     # TODO: DEBUG
     def test(self) -> None:
         self.ui.text_editor.test()
+        pass
+
+    def test2(self) -> None:
+        self.ui.text_editor.test2()
         pass
