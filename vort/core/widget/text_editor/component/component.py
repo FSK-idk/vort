@@ -9,4 +9,4 @@ class Component(QObject):
 
     def __init__(self, text_cursor: QTextCursor) -> None:
         super().__init__()
-        self.text_cursor: QTextCursor = text_cursor
+        self._text_cursor: QTextCursor = text_cursor

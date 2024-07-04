@@ -124,99 +124,20 @@ class TextEditor(QObject):
 
     # TODO: DEBUG
     def test(self) -> None:
-
-        global count_img
-        count_img += 1
-
-        image = QImage("vort/etc/image.png")
-
-        if not image.isNull():
-            self.text_cursor.document().addResource(
-                QTextDocument.ResourceType.ImageResource, f"etc/image{count_img}", image
-            )
-
-            imageFormat: QTextImageFormat = QTextImageFormat()
-            imageFormat.setWidth(image.width())
-            imageFormat.setHeight(image.height())
-            imageFormat.setName(f"etc/image{count_img}")
-            imageFormat.setForeground(QColor("black"))
-            imageFormat.setBackground(QColor("white"))
-
-            prev_format = self.text_cursor.charFormat()
-            self.text_cursor.setCharFormat(imageFormat.toCharFormat())
-            self.text_cursor.insertImage(imageFormat)
-            self.text_cursor.setCharFormat(prev_format)
-        else:
-            print("no image")
+        print(
+            self.text_cursor.position(),
+            self.text_cursor.blockFormat().isImageFormat(),
+            self.text_cursor.charFormat().isImageFormat(),
+        )
 
         self.repaintViewport()
         pass
 
-    # fmt:off
     def test2(self) -> None:
-        # position, is_pref_empty, is_pref_alpha, is_pref_img, is_suff_alpha
-        images: list[tuple[int, bool, bool, bool, bool]] = []
-
-        for i in range(self.text_document.blockCount()):
-            block: QTextBlock = self.text_document.findBlockByNumber(i)
-
-            it: QTextBlock.iterator = block.begin()
-            while it != block.end():
-                frag: QTextFragment = it.fragment()
-
-                if frag.charFormat().isImageFormat():
-                    form: QTextImageFormat = frag.charFormat().toImageFormat()
-
-                    if frag.length() > 0:
-                        # is first
-                        offset = 0
-
-                        if it != block.begin():
-                            it -= 1
-                            if not it.fragment().charFormat().isImageFormat():
-                                if block.position() == frag.position():
-                                    images.append((frag.position() + offset, True, False, False, False))
-                                else:
-                                    images.append((frag.position() + offset, False, True, False, False))
-                                offset += 1
-                            it += 1
-                        else:
-                            if block.position() == frag.position():
-                                images.append((frag.position() + offset, True, False, False, False))
-                            else:
-                                images.append((frag.position() + offset, False, True, False, False))
-                            offset += 1
-
-                        # is not first
-                        while offset < frag.length():
-                            images.append((frag.position() + offset, False, False, True, False))
-                            offset += 1
-
-                        it += 1
-                        if it != block.end():
-                            if not it.fragment().charFormat().isImageFormat():
-                                position, is_pref_empty, is_pref_alpha, is_pref_img, is_suff_alpha = images[-1]
-                                images[-1] = (position, is_pref_empty, is_pref_alpha, is_pref_img, True)
-                        it -= 1
-
-                it += 1
-
-        offset_position = 0
-        helper = QTextCursor(self.text_document)
-
-        for position, is_pref_empty, is_pref_alpha, is_pref_img, is_suff_alpha in images:
-            helper.beginEditBlock()
-            if is_pref_alpha or is_pref_img:
-                helper.setPosition(position + offset_position)
-                helper.insertBlock()
-                offset_position += 1
-            if is_suff_alpha:
-                helper.setPosition(position + offset_position + 1)
-                helper.insertBlock()
-                offset_position += 1
-            helper.endEditBlock()
+        self.text_cursor.insertBlock()
 
         self.repaintViewport()
+        return
 
     def setZoomFactor(self, zoom_factor: float) -> None:
         self.ui.setZoomFactor(zoom_factor)

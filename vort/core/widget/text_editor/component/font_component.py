@@ -7,14 +7,13 @@ class FontComponent(Component):
     def setFontFamily(self, font_family: str) -> None:
         format: QTextCharFormat = QTextCharFormat()
         format.setFontFamily(font_family)
-        self.text_cursor.mergeCharFormat(format)
-        self.text_cursor.mergeBlockCharFormat(format)
+        self._text_cursor.mergeCharFormat(format)
+        self._text_cursor.mergeBlockCharFormat(format)
         self.applied.emit()
 
     def setFontSize(self, font_size: int) -> None:
         format: QTextCharFormat = QTextCharFormat()
         format.setFontPointSize(font_size)
-        print(format.fontPointSize())
-        self.text_cursor.mergeCharFormat(format)
-        self.text_cursor.mergeBlockCharFormat(format)
+        self._text_cursor.mergeCharFormat(format)
+        self._text_cursor.mergeBlockCharFormat(format)
         self.applied.emit()

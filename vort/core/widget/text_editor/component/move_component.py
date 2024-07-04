@@ -1,4 +1,4 @@
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QTextCursor, QGuiApplication
 
 from util.point_f import PointF
@@ -15,13 +15,13 @@ class MoveComponent(Component):
     def pointPress(self, point: PointF) -> None:
         position = self.__text_canvas.hitTest(point)
         if position != -1:
-            self.text_cursor.setPosition(position, QTextCursor.MoveMode.MoveAnchor)
+            self._text_cursor.setPosition(position, QTextCursor.MoveMode.MoveAnchor)
             self.applied.emit()
 
     def pointMove(self, point: PointF) -> None:
         position = self.__text_canvas.hitTest(point)
         if position != -1:
-            self.text_cursor.setPosition(position, QTextCursor.MoveMode.KeepAnchor)
+            self._text_cursor.setPosition(position, QTextCursor.MoveMode.KeepAnchor)
             self.applied.emit()
 
     def keyPress(self, key: int | Qt.Key) -> None:
@@ -63,5 +63,5 @@ class MoveComponent(Component):
                     move_operation = QTextCursor.MoveOperation.EndOfLine
 
         if move_mode is not None and move_operation is not None:
-            self.text_cursor.movePosition(move_operation, move_mode)
+            self._text_cursor.movePosition(move_operation, move_mode)
             self.applied.emit()

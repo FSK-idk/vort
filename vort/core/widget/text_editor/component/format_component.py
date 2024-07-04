@@ -8,20 +8,20 @@ class FormatComponent(Component):
         font_weight = QFont.Weight.Bold if is_bold else QFont.Weight.Normal
         format: QTextCharFormat = QTextCharFormat()
         format.setFontWeight(font_weight)
-        self.text_cursor.mergeCharFormat(format)
-        self.text_cursor.mergeBlockCharFormat(format)
+        self._text_cursor.mergeCharFormat(format)
+        self._text_cursor.mergeBlockCharFormat(format)
         self.applied.emit()
 
     def turnItalic(self, is_italic: bool) -> None:
         format: QTextCharFormat = QTextCharFormat()
         format.setFontItalic(is_italic)
-        self.text_cursor.mergeCharFormat(format)
-        self.text_cursor.mergeBlockCharFormat(format)
+        self._text_cursor.mergeCharFormat(format)
+        self._text_cursor.mergeBlockCharFormat(format)
         self.applied.emit()
 
     def turnUnderlined(self, is_underlined: bool) -> None:
         format: QTextCharFormat = QTextCharFormat()
         format.setFontUnderline(is_underlined)
-        self.text_cursor.mergeCharFormat(format)
-        self.text_cursor.mergeBlockCharFormat(format)
+        self._text_cursor.mergeCharFormat(format)
+        self._text_cursor.mergeBlockCharFormat(format)
         self.applied.emit()
