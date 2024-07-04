@@ -18,6 +18,7 @@ from core.widget.text_editor.component.component import Component
 from core.widget.text_editor.text_canvas import TextCanvas
 
 
+# TODO: use hash
 img_count = 0
 
 
@@ -41,7 +42,6 @@ class InputComponent(Component):
             QGuiApplication.clipboard().setMimeData(mime_data)
             self.applied.emit()
 
-    # fmt:off
     def paste(self) -> None:
         global img_count
 
@@ -76,12 +76,10 @@ class InputComponent(Component):
         else:
             self._text_cursor.insertFragment(QTextDocumentFragment.fromPlainText(mime_data.text()))
 
-
         if is_image_after:
             self._text_cursor.insertBlock()
             self._text_cursor.movePosition(QTextCursor.MoveOperation.PreviousBlock, QTextCursor.MoveMode.MoveAnchor)
             self._text_cursor.movePosition(QTextCursor.MoveOperation.EndOfBlock, QTextCursor.MoveMode.MoveAnchor)
-
 
         self.fixup()
         self._text_cursor.endEditBlock()
@@ -99,12 +97,18 @@ class InputComponent(Component):
                     self._text_cursor.beginEditBlock()
 
                     if self._text_cursor.atBlockStart() and self._text_cursor.blockNumber() > 0:
-                        self._text_cursor.movePosition(QTextCursor.MoveOperation.PreviousBlock, QTextCursor.MoveMode.MoveAnchor)
+                        self._text_cursor.movePosition(
+                            QTextCursor.MoveOperation.PreviousBlock, QTextCursor.MoveMode.MoveAnchor
+                        )
                         if self._text_cursor.charFormat().isImageFormat():
                             self._text_cursor.deleteChar()
-                        self._text_cursor.movePosition(QTextCursor.MoveOperation.NextBlock, QTextCursor.MoveMode.MoveAnchor)
+                        self._text_cursor.movePosition(
+                            QTextCursor.MoveOperation.NextBlock, QTextCursor.MoveMode.MoveAnchor
+                        )
 
-                    self._text_cursor.movePosition(QTextCursor.MoveOperation.StartOfWord, QTextCursor.MoveMode.KeepAnchor)
+                    self._text_cursor.movePosition(
+                        QTextCursor.MoveOperation.StartOfWord, QTextCursor.MoveMode.KeepAnchor
+                    )
                     self._text_cursor.deletePreviousChar()
 
                     self._text_cursor.endEditBlock()
@@ -112,16 +116,25 @@ class InputComponent(Component):
                 case Qt.Key.Key_Delete if not self._text_cursor.hasSelection():
                     self._text_cursor.beginEditBlock()
 
-                    if self._text_cursor.atBlockEnd() and self._text_cursor.blockNumber() < self._text_cursor.document().blockCount() - 1:
-                        self._text_cursor.movePosition(QTextCursor.MoveOperation.NextBlock, QTextCursor.MoveMode.MoveAnchor)
+                    if (
+                        self._text_cursor.atBlockEnd()
+                        and self._text_cursor.blockNumber() < self._text_cursor.document().blockCount() - 1
+                    ):
+                        self._text_cursor.movePosition(
+                            QTextCursor.MoveOperation.NextBlock, QTextCursor.MoveMode.MoveAnchor
+                        )
                         if self._text_cursor.charFormat().isImageFormat():
                             self._text_cursor.deleteChar()
-                        self._text_cursor.movePosition(QTextCursor.MoveOperation.PreviousBlock, QTextCursor.MoveMode.MoveAnchor)
-                        self._text_cursor.movePosition(QTextCursor.MoveOperation.EndOfBlock, QTextCursor.MoveMode.MoveAnchor)
+                        self._text_cursor.movePosition(
+                            QTextCursor.MoveOperation.PreviousBlock, QTextCursor.MoveMode.MoveAnchor
+                        )
+                        self._text_cursor.movePosition(
+                            QTextCursor.MoveOperation.EndOfBlock, QTextCursor.MoveMode.MoveAnchor
+                        )
 
                     self._text_cursor.movePosition(QTextCursor.MoveOperation.EndOfWord, QTextCursor.MoveMode.KeepAnchor)
                     self._text_cursor.deleteChar()
-                    
+
                     self._text_cursor.endEditBlock()
 
                 case _:
@@ -135,49 +148,123 @@ class InputComponent(Component):
                 case Qt.Key.Key_Backspace:
                     self._text_cursor.beginEditBlock()
 
-                    if self._text_cursor.atBlockStart() and self._text_cursor.blockNumber() > 0 and self._text_cursor.charFormat().isImageFormat():
-                        self._text_cursor.movePosition(QTextCursor.MoveOperation.PreviousBlock, QTextCursor.MoveMode.MoveAnchor)
-                        self._text_cursor.movePosition(QTextCursor.MoveOperation.EndOfBlock, QTextCursor.MoveMode.MoveAnchor)
+                    # line with image, left side -> delete char from prev line
+                    if (
+                        self._text_cursor.atBlockStart()
+                        and self._text_cursor.blockNumber() > 0
+                        and self._text_cursor.charFormat().isImageFormat()
+                    ):
+                        self._text_cursor.movePosition(
+                            QTextCursor.MoveOperation.PreviousBlock, QTextCursor.MoveMode.MoveAnchor
+                        )
+                        self._text_cursor.movePosition(
+                            QTextCursor.MoveOperation.EndOfBlock, QTextCursor.MoveMode.MoveAnchor
+                        )
                         self._text_cursor.deletePreviousChar()
-                        self._text_cursor.movePosition(QTextCursor.MoveOperation.NextBlock, QTextCursor.MoveMode.MoveAnchor)
-                    
-                    else:
-                        if self._text_cursor.atBlockEnd() and self._text_cursor.blockNumber() < self._text_cursor.document().blockCount() - 1 and self._text_cursor.charFormat().isImageFormat():
-                            self._text_cursor.movePosition(QTextCursor.MoveOperation.NextBlock, QTextCursor.MoveMode.MoveAnchor)
-                            self._text_cursor.deleteChar()
-                            self._text_cursor.movePosition(QTextCursor.MoveOperation.PreviousBlock, QTextCursor.MoveMode.MoveAnchor)
-                            self._text_cursor.movePosition(QTextCursor.MoveOperation.EndOfBlock, QTextCursor.MoveMode.MoveAnchor)
+                        self._text_cursor.movePosition(
+                            QTextCursor.MoveOperation.NextBlock, QTextCursor.MoveMode.MoveAnchor
+                        )
 
-                        else:
-                            if self._text_cursor.atBlockStart() and self._text_cursor.blockNumber() > 0:
-                                self._text_cursor.movePosition(QTextCursor.MoveOperation.PreviousBlock, QTextCursor.MoveMode.MoveAnchor)
-                                if self._text_cursor.charFormat().isImageFormat():
-                                    self._text_cursor.deleteChar()
-                                self._text_cursor.movePosition(QTextCursor.MoveOperation.NextBlock, QTextCursor.MoveMode.MoveAnchor)
+                    # line with image, right side -> delete image
+                    elif self._text_cursor.atBlockEnd() and self._text_cursor.charFormat().isImageFormat():
+                        self._text_cursor.movePosition(
+                            QTextCursor.MoveOperation.StartOfBlock, QTextCursor.MoveMode.KeepAnchor
+                        )
+                        self._text_cursor.deletePreviousChar()
 
+                    # left side
+                    elif self._text_cursor.atBlockStart() and self._text_cursor.blockNumber() > 0:
+                        self._text_cursor.movePosition(
+                            QTextCursor.MoveOperation.PreviousBlock, QTextCursor.MoveMode.MoveAnchor
+                        )
+
+                        # line under image -> delete image, move line up
+                        if self._text_cursor.charFormat().isImageFormat():
+                            self._text_cursor.movePosition(
+                                QTextCursor.MoveOperation.NextBlock, QTextCursor.MoveMode.KeepAnchor
+                            )
                             self._text_cursor.deletePreviousChar()
-                    
+
+                        # delete as usual
+                        else:
+                            self._text_cursor.movePosition(
+                                QTextCursor.MoveOperation.NextBlock, QTextCursor.MoveMode.MoveAnchor
+                            )
+                            self._text_cursor.deletePreviousChar()
+
+                    # otherwise
+                    else:
+                        self._text_cursor.deletePreviousChar()
+
                     self._text_cursor.endEditBlock()
 
                 case Qt.Key.Key_Delete:
                     self._text_cursor.beginEditBlock()
 
-                    if self._text_cursor.atBlockEnd() and self._text_cursor.blockNumber() < self._text_cursor.document().blockCount() - 1 and self._text_cursor.charFormat().isImageFormat():
-                        self._text_cursor.movePosition(QTextCursor.MoveOperation.NextBlock, QTextCursor.MoveMode.MoveAnchor)
+                    # line with image, left side -> delete image
+                    if self._text_cursor.atBlockStart() and self._text_cursor.charFormat().isImageFormat():
+                        print("pr")
+                        self._text_cursor.movePosition(
+                            QTextCursor.MoveOperation.EndOfBlock, QTextCursor.MoveMode.KeepAnchor
+                        )
                         self._text_cursor.deleteChar()
-                        self._text_cursor.movePosition(QTextCursor.MoveOperation.PreviousBlock, QTextCursor.MoveMode.MoveAnchor)
-                        self._text_cursor.movePosition(QTextCursor.MoveOperation.EndOfBlock, QTextCursor.MoveMode.MoveAnchor)
+                        self._text_cursor.movePosition(
+                            QTextCursor.MoveOperation.StartOfBlock, QTextCursor.MoveMode.MoveAnchor
+                        )
 
+                    # line with image, right side -> delete char from next line
+                    elif (
+                        self._text_cursor.atBlockEnd()
+                        and self._text_cursor.blockNumber() < self._text_cursor.document().blockCount() - 1
+                        and self._text_cursor.charFormat().isImageFormat()
+                    ):
+                        self._text_cursor.movePosition(
+                            QTextCursor.MoveOperation.NextBlock, QTextCursor.MoveMode.MoveAnchor
+                        )
+                        self._text_cursor.deleteChar()
+                        self._text_cursor.movePosition(
+                            QTextCursor.MoveOperation.PreviousBlock, QTextCursor.MoveMode.MoveAnchor
+                        )
+                        self._text_cursor.movePosition(
+                            QTextCursor.MoveOperation.EndOfBlock, QTextCursor.MoveMode.MoveAnchor
+                        )
+
+                    # right side
+                    elif (
+                        self._text_cursor.atBlockEnd()
+                        and self._text_cursor.blockNumber() < self._text_cursor.document().blockCount() - 1
+                    ):
+                        self._text_cursor.movePosition(
+                            QTextCursor.MoveOperation.NextBlock, QTextCursor.MoveMode.MoveAnchor
+                        )
+
+                        # line above image -> delete image, move line after up
+                        if self._text_cursor.charFormat().isImageFormat():
+                            self._text_cursor.movePosition(
+                                QTextCursor.MoveOperation.NextBlock, QTextCursor.MoveMode.KeepAnchor
+                            )
+                            self._text_cursor.deleteChar()
+                            self._text_cursor.movePosition(
+                                QTextCursor.MoveOperation.PreviousBlock, QTextCursor.MoveMode.MoveAnchor
+                            )
+                            self._text_cursor.movePosition(
+                                QTextCursor.MoveOperation.EndOfBlock, QTextCursor.MoveMode.MoveAnchor
+                            )
+
+                        # delete as usual
+                        else:
+                            self._text_cursor.movePosition(
+                                QTextCursor.MoveOperation.PreviousBlock, QTextCursor.MoveMode.MoveAnchor
+                            )
+                            self._text_cursor.movePosition(
+                                QTextCursor.MoveOperation.EndOfBlock, QTextCursor.MoveMode.MoveAnchor
+                            )
+                            self._text_cursor.deletePreviousChar()
+
+                    # otherwise
                     else:
-                        if self._text_cursor.atBlockEnd() and self._text_cursor.blockNumber() < self._text_cursor.document().blockCount() - 1:
-                            self._text_cursor.movePosition(QTextCursor.MoveOperation.NextBlock, QTextCursor.MoveMode.MoveAnchor)
-                            if self._text_cursor.charFormat().isImageFormat():
-                                self._text_cursor.deleteChar()
-                            self._text_cursor.movePosition(QTextCursor.MoveOperation.PreviousBlock, QTextCursor.MoveMode.MoveAnchor)
-                            self._text_cursor.movePosition(QTextCursor.MoveOperation.EndOfBlock, QTextCursor.MoveMode.MoveAnchor)
-
                         self._text_cursor.deleteChar()
-                    
+
                     self._text_cursor.endEditBlock()
 
                 case Qt.Key.Key_Enter:
@@ -239,42 +326,42 @@ class InputComponent(Component):
 
                 it += 1
 
-        offset_position = 0
-        helper = self._text_cursor
+        offset = 0
 
         for position, is_pref_empty, is_pref_alpha, is_pref_img, is_suff_alpha in images:
-            helper.beginEditBlock()
+            self._text_cursor.beginEditBlock()
             if is_pref_alpha or is_pref_img:
-                helper.setPosition(position + offset_position)
+                self._text_cursor.setPosition(position + offset)
 
-                block_char_format = helper.blockCharFormat()
+                block_char_format = self._text_cursor.blockCharFormat()
 
-                helper.insertBlock()
+                self._text_cursor.insertBlock()
 
-                helper.setBlockCharFormat(block_char_format)
+                self._text_cursor.setBlockCharFormat(block_char_format)
 
-                if is_pref_alpha and helper.position() - 1 >= 0:
-                    helper.movePosition(QTextCursor.MoveOperation.PreviousBlock)
-                    helper.movePosition(QTextCursor.MoveOperation.EndOfBlock, QTextCursor.MoveMode.KeepAnchor)
-                    helper.setCharFormat(block_char_format)
-                    helper.clearSelection()
+                if is_pref_alpha and self._text_cursor.position() - 1 >= 0:
+                    self._text_cursor.movePosition(QTextCursor.MoveOperation.PreviousBlock)
+                    self._text_cursor.movePosition(
+                        QTextCursor.MoveOperation.EndOfBlock, QTextCursor.MoveMode.KeepAnchor
+                    )
+                    self._text_cursor.setCharFormat(block_char_format)
+                    self._text_cursor.clearSelection()
 
-
-                offset_position += 1
+                offset += 1
 
             if is_suff_alpha:
-                helper.setPosition(position + offset_position + 1)
+                self._text_cursor.setPosition(position + offset + 1)
 
-                block_char_format = helper.blockCharFormat()
+                block_char_format = self._text_cursor.blockCharFormat()
 
-                helper.insertBlock()
+                self._text_cursor.insertBlock()
 
-                helper.movePosition(QTextCursor.MoveOperation.EndOfBlock, QTextCursor.MoveMode.KeepAnchor)
-                helper.setCharFormat(block_char_format)
-                helper.movePosition(QTextCursor.MoveOperation.StartOfBlock, QTextCursor.MoveMode.KeepAnchor)
-                helper.clearSelection()
-                helper.setBlockCharFormat(block_char_format)
-                
-                offset_position += 1
+                self._text_cursor.movePosition(QTextCursor.MoveOperation.EndOfBlock, QTextCursor.MoveMode.KeepAnchor)
+                self._text_cursor.setCharFormat(block_char_format)
+                self._text_cursor.movePosition(QTextCursor.MoveOperation.StartOfBlock, QTextCursor.MoveMode.KeepAnchor)
+                self._text_cursor.clearSelection()
+                self._text_cursor.setBlockCharFormat(block_char_format)
 
-            helper.endEditBlock()
+                offset += 1
+
+            self._text_cursor.endEditBlock()

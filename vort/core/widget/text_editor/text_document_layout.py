@@ -24,9 +24,10 @@ from core.widget.text_editor.page_layout import PageLayout
 
 
 class ImageLayout:
-    def __init__(self, image_point: QPointF, image_name: str) -> None:
-        self.image_point: QPointF = image_point
+    def __init__(self, image_rect: QRectF, image_name: str, image_position: int) -> None:
+        self.image_rect: QRectF = image_rect
         self.image_name: str = image_name
+        self.image_position: int = image_position
 
 
 class Selection:
@@ -143,15 +144,15 @@ class TextDocumentLayout(QAbstractTextDocumentLayout):
             # fixup in input component guarantees that if image exists then image has its own block
             # we don't support inline images
 
-            # height, name
-            image : tuple[float, str] | None = None
+            # width, height, name, position
+            image : tuple[float, float, str, int] | None = None
 
             it: QTextBlock.iterator = block.begin()
             if it != block.end():
                 fragment: QTextFragment = it.fragment()
                 if fragment.charFormat().isImageFormat():
                     image_format: QTextImageFormat = fragment.charFormat().toImageFormat()
-                    image = (image_format.height(), image_format.name())
+                    image = (image_format.width(), image_format.height(), image_format.name(), fragment.position())
                     it += 1
                     if it != block.end():
                         # fixup hasn't complited yet
@@ -159,7 +160,7 @@ class TextDocumentLayout(QAbstractTextDocumentLayout):
                         return
 
             if image is not None:
-                image_height, image_name = image
+                image_width, image_height, image_name, image_position = image
 
                 if (remaining_text_height != text_height) and (remaining_text_height - image_height - block_format.topMargin() - block_format.bottomMargin() <= 0) :
                     if self.page_layout.pageCount() == page_count:
@@ -177,7 +178,7 @@ class TextDocumentLayout(QAbstractTextDocumentLayout):
                 block_y = block_format.topMargin()
                 x_image: float = root_x + block_x
                 y_image: float = root_y + block_y
-                self.__images.append(ImageLayout(QPointF(x_image, y_image), image_name))
+                self.__images.append(ImageLayout(QRectF(x_image, y_image, image_width, image_height), image_name, image_position))
 
                 root_y += image_height + block_format.topMargin() + block_format.bottomMargin()
                 remaining_text_height -= image_height + block_format.topMargin() + block_format.bottomMargin()
@@ -349,7 +350,7 @@ class TextDocumentLayout(QAbstractTextDocumentLayout):
     def paintImage(self, context: PaintContext):
         painter: QPainter = context.painter
         for image_layout in self.__images:
-            painter.drawImage(image_layout.image_point, self.document().resource(QTextDocument.ResourceType.ImageResource, image_layout.image_name))
+            painter.drawImage(image_layout.image_rect, self.document().resource(QTextDocument.ResourceType.ImageResource, image_layout.image_name))
 
     def hitTest(self, point: PointF) -> int:
         current_cursor_position = 0
@@ -375,6 +376,10 @@ class TextDocumentLayout(QAbstractTextDocumentLayout):
                         return current_cursor_position
 
             current_cursor_position += block.length()
+
+        for image_layout in self.__images:
+            if image_layout.image_rect.contains(point.toQPointF()):
+                return image_layout.image_position
 
         return -1
 
