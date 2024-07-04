@@ -84,9 +84,11 @@ class TextEditor(QObject):
 
         self.history_component: HistoryComponent = HistoryComponent(self.text_cursor)
         self.history_component.applied.connect(self.repaintViewport)
+        self.history_component.applied.connect(self.onCursorPositionChanged)
 
         self.history_component: HistoryComponent = HistoryComponent(self.text_cursor)
         self.history_component.applied.connect(self.repaintViewport)
+        self.history_component.applied.connect(self.onCursorPositionChanged)
 
         self.select_component: SelectComponent = SelectComponent(self.text_cursor)
         self.select_component.applied.connect(self.repaintViewport)

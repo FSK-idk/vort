@@ -45,8 +45,6 @@ class TextEditorWindow(QObject):
 
         self.ui.paste_action.triggered.connect(self.paste)
 
-        self.ui.paste_plain_action.triggered.connect(self.pastePlain)
-
         # select
 
         self.ui.select_all_action.triggered.connect(self.selectAll)
@@ -58,6 +56,10 @@ class TextEditorWindow(QObject):
         self.ui.find_and_replace_action.triggered.connect(self.findAndReplace)
 
         # insert
+
+        self.ui.insert_text_action.triggered.connect(self.insertText)
+
+        self.ui.insert_plain_text_action.triggered.connect(self.insertPlainText)
 
         self.ui.insert_image_action.triggered.connect(self.insertImage)
 
@@ -226,10 +228,6 @@ class TextEditorWindow(QObject):
     def paste(self) -> None:
         self.ui.text_editor.input_component.paste()
 
-    @Slot()
-    def pastePlain(self) -> None:
-        self.ui.text_editor.input_component.pastePlain()
-
     # select
 
     @Slot()
@@ -246,8 +244,17 @@ class TextEditorWindow(QObject):
 
     # insert
 
+    @Slot()
+    def insertText(self) -> None:
+        self.ui.text_editor.input_component.insertText()
+
+    @Slot()
+    def insertPlainText(self) -> None:
+        self.ui.text_editor.input_component.insertPlainText()
+
+    @Slot()
     def insertImage(self) -> None:
-        print("insertImage")
+        self.ui.text_editor.input_component.insertImage()
 
     def insertHyperlink(self) -> None:
         print("insertHyperlink")

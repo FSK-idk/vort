@@ -93,10 +93,6 @@ class TextEditorWindowUI(QMainWindow):
         self.paste_action.setStatusTip("Paste text from the clipboard")
         self.paste_action.setShortcut("Ctrl+V")
 
-        self.paste_plain_action: QAction = QAction("Paste Plain")
-        self.paste_plain_action.setStatusTip("Paste plain text from the clipboard")
-        self.paste_plain_action.setShortcut("Ctrl+Shift+V")
-
         # select
 
         self.select_all_action: QAction = QAction("Select All")
@@ -114,6 +110,13 @@ class TextEditorWindowUI(QMainWindow):
         self.find_and_replace_action.setShortcut("Ctrl+H")
 
         # insert
+
+        self.insert_text_action: QAction = QAction("Text")
+        self.insert_text_action.setStatusTip("Insert text")
+
+        self.insert_plain_text_action: QAction = QAction("Plain text")
+        self.insert_plain_text_action.setStatusTip("Insert plain text")
+        self.insert_plain_text_action.setShortcut("Ctrl+Shift+V")
 
         self.insert_image_action: QAction = QAction("Image")
         self.insert_image_action.setStatusTip("Insert an image")
@@ -252,7 +255,6 @@ class TextEditorWindowUI(QMainWindow):
         self.edit_menu.addAction(self.cut_action)
         self.edit_menu.addAction(self.copy_action)
         self.edit_menu.addAction(self.paste_action)
-        self.edit_menu.addAction(self.paste_plain_action)
         self.edit_menu.addSeparator()
         self.edit_menu.addAction(self.select_all_action)
         self.edit_menu.addSeparator()
@@ -261,6 +263,8 @@ class TextEditorWindowUI(QMainWindow):
         self.menu_bar.addMenu(self.edit_menu)
 
         self.insert_menu: QMenu = QMenu("Insert")
+        self.insert_menu.addAction(self.insert_text_action)
+        self.insert_menu.addAction(self.insert_plain_text_action)
         self.insert_menu.addAction(self.insert_image_action)
         self.insert_menu.addAction(self.insert_hyperlink_action)
         self.menu_bar.addMenu(self.insert_menu)

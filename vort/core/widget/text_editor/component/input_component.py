@@ -43,7 +43,17 @@ class InputComponent(Component):
             self.applied.emit()
 
     def paste(self) -> None:
-        global img_count
+        if self.insertImage():
+            return
+        if self.insertText():
+            return
+        if self.insertPlainText():
+            return
+
+    def insertText(self) -> bool:
+        mime_data = QGuiApplication.clipboard().mimeData()
+        if not mime_data.hasHtml():
+            return False
 
         self._text_cursor.beginEditBlock()
 
@@ -53,28 +63,7 @@ class InputComponent(Component):
         if is_image_before:
             self._text_cursor.insertBlock()
 
-        mime_data = QGuiApplication.clipboard().mimeData()
-        if mime_data.hasImage():
-            url: QUrl = QUrl(f"pasted_image_{img_count}")
-            image: QImage = QImage(mime_data.imageData())
-            img_count += 1
-
-            if not image.isNull():
-                self._text_cursor.document().addResource(QTextDocument.ResourceType.ImageResource, url, image)
-
-                image_format: QTextImageFormat = QTextImageFormat()
-                image_format.setWidth(image.width())
-                image_format.setHeight(image.height())
-                image_format.setName(url.toString())
-                image_format.setForeground(QColor("black"))
-                image_format.setBackground(QColor("white"))
-
-                self._text_cursor.insertImage(image_format)
-
-        elif mime_data.hasText():
-            self._text_cursor.insertFragment(QTextDocumentFragment.fromHtml(mime_data.html()))
-        else:
-            self._text_cursor.insertFragment(QTextDocumentFragment.fromPlainText(mime_data.text()))
+        self._text_cursor.insertFragment(QTextDocumentFragment.fromHtml(mime_data.html()))
 
         if is_image_after:
             self._text_cursor.insertBlock()
@@ -85,10 +74,74 @@ class InputComponent(Component):
         self._text_cursor.endEditBlock()
         self.applied.emit()
 
-    def pastePlain(self) -> None:
+        return True
+
+    def insertPlainText(self) -> bool:
         mime_data = QGuiApplication.clipboard().mimeData()
+        if not mime_data.hasText():
+            return False
+
+        self._text_cursor.beginEditBlock()
+
+        is_image_before = self._text_cursor.charFormat().isImageFormat() and self._text_cursor.atBlockEnd()
+        is_image_after = self._text_cursor.charFormat().isImageFormat() and self._text_cursor.atBlockStart()
+
+        if is_image_before:
+            self._text_cursor.insertBlock()
+
         self._text_cursor.insertFragment(QTextDocumentFragment.fromPlainText(mime_data.text()))
+
+        if is_image_after:
+            self._text_cursor.insertBlock()
+            self._text_cursor.movePosition(QTextCursor.MoveOperation.PreviousBlock, QTextCursor.MoveMode.MoveAnchor)
+            self._text_cursor.movePosition(QTextCursor.MoveOperation.EndOfBlock, QTextCursor.MoveMode.MoveAnchor)
+
+        self.fixup()
+        self._text_cursor.endEditBlock()
         self.applied.emit()
+
+        return True
+
+    def insertImage(self) -> bool:
+        mime_data = QGuiApplication.clipboard().mimeData()
+        if not mime_data.hasImage():
+            return False
+
+        self._text_cursor.beginEditBlock()
+
+        is_image_before = self._text_cursor.charFormat().isImageFormat() and self._text_cursor.atBlockEnd()
+        is_image_after = self._text_cursor.charFormat().isImageFormat() and self._text_cursor.atBlockStart()
+
+        if is_image_before:
+            self._text_cursor.insertBlock()
+
+        global img_count
+
+        name: str = f"pasted_image_{img_count}"
+        image: QImage = QImage(mime_data.imageData())
+
+        self._text_cursor.document().addResource(QTextDocument.ResourceType.ImageResource, name, image)
+        img_count += 1
+
+        image_format: QTextImageFormat = QTextImageFormat()
+        image_format.setWidth(image.width())
+        image_format.setHeight(image.height())
+        image_format.setName(name)
+        image_format.setForeground(QColor("black"))
+        image_format.setBackground(QColor("white"))
+
+        self._text_cursor.insertImage(image_format)
+
+        if is_image_after:
+            self._text_cursor.insertBlock()
+            self._text_cursor.movePosition(QTextCursor.MoveOperation.PreviousBlock, QTextCursor.MoveMode.MoveAnchor)
+            self._text_cursor.movePosition(QTextCursor.MoveOperation.EndOfBlock, QTextCursor.MoveMode.MoveAnchor)
+
+        self.fixup()
+        self._text_cursor.endEditBlock()
+        self.applied.emit()
+
+        return True
 
     def input(self, event: QKeyEvent) -> None:
         if event.modifiers() == Qt.KeyboardModifier.ControlModifier and event.text():
