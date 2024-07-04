@@ -1,5 +1,5 @@
-from PySide6.QtCore import Qt, Signal, QMimeData, QObject, Slot, QRectF
-from PySide6.QtWidgets import QWidget, QGraphicsScene
+from PySide6.QtCore import QTimerEvent, Qt, Signal, QMimeData, QObject, Slot, QRectF, QTimer
+from PySide6.QtWidgets import QWidget, QGraphicsScene, QToolTip
 from PySide6.QtGui import (
     QGuiApplication,
     QKeyEvent,
@@ -20,6 +20,7 @@ from PySide6.QtGui import (
     QImage,
     QTextBlock,
     QTextFragment,
+    QDesktopServices,
 )
 
 from util import PointF, RectF
@@ -36,6 +37,7 @@ from core.widget.text_editor.component.move_component import MoveComponent
 from core.widget.text_editor.component.input_component import InputComponent
 
 from core.widget.text_editor.text_canvas import TextCanvas
+from core.widget.text_editor.text_document_layout import HitResult, Hit
 
 
 # text editor only supports one cursor at a time
@@ -80,6 +82,13 @@ class TextEditor(QObject):
         self.ui.horizontalScrollBar().setPageStep(int(self.text_canvas.pageWidth()))
         self.ui.verticalScrollBar().setPageStep(int(self.text_canvas.pageHeight()))
 
+        self.last_hit_result: HitResult = HitResult()
+        self.cursor_timer: QTimer = QTimer(self)
+        self.cursor_timer.setInterval(100)
+        self.cursor_timer.timeout.connect(self.updateCursorShape)
+        self.cursor_timer.start()
+        self.is_only_control_pressed = False
+
         # component
 
         self.history_component: HistoryComponent = HistoryComponent(self.text_cursor)
@@ -116,7 +125,9 @@ class TextEditor(QObject):
         # signal
 
         self.ui.keyPressed.connect(self.onKeyPressed)
+        self.ui.keyReleased.connect(self.onKeyReleased)
         self.ui.mousePressed.connect(self.onMousePressed)
+        self.ui.mouseReleased.connect(self.onMouseReleased)
         self.ui.mouseMoved.connect(self.onMouseMoved)
 
         self.text_canvas.sizeChanged.connect(self.onCanvasSizeChanged)
@@ -126,17 +137,11 @@ class TextEditor(QObject):
 
     # TODO: DEBUG
     def test(self) -> None:
-        print(
-            self.text_cursor.position(),
-            self.text_cursor.blockFormat().isImageFormat(),
-            self.text_cursor.charFormat().isImageFormat(),
-        )
 
         self.repaintViewport()
         pass
 
     def test2(self) -> None:
-        self.text_cursor.insertBlock()
 
         self.repaintViewport()
         return
@@ -191,20 +196,63 @@ class TextEditor(QObject):
 
     @Slot(QMouseEvent)
     def onMousePressed(self, event: QMouseEvent) -> None:
+        point = PointF.fromQPointF(self.ui.mapToScene(event.position().toPoint()))
+        hit_result = self.text_canvas.hitTest(point)
+        self.last_hit_result = hit_result
+
         if event.button() == Qt.MouseButton.LeftButton:
-            point = PointF.fromQPointF(self.ui.mapToScene(event.position().toPoint()))
-            self.move_component.pointPress(point)
+            self.move_component.pointPress(hit_result)
+
+    @Slot(QMouseEvent)
+    def onMouseReleased(self, event: QMouseEvent) -> None:
+        point = PointF.fromQPointF(self.ui.mapToScene(event.position().toPoint()))
+        hit_result = self.text_canvas.hitTest(point)
+        self.last_hit_result = hit_result
+
+        if hit_result.hit == Hit.Hyperlink and self.is_only_control_pressed:
+            QDesktopServices.openUrl(hit_result.data)
 
     @Slot(QMouseEvent)
     def onMouseMoved(self, event: QMouseEvent) -> None:
+        point = PointF.fromQPointF(self.ui.mapToScene(event.position().toPoint()))
+        hit_result = self.text_canvas.hitTest(point)
+        self.last_hit_result = hit_result
+
+        self.is_tool_tip_shown = False
+        if hit_result.hit == Hit.Hyperlink and not self.is_tool_tip_shown:
+            QToolTip.showText(event.globalPos(), hit_result.data)
+
+        if hit_result.hit != Hit.Hyperlink:
+            QToolTip.hideText()
+            self.is_tool_tip_shown = False
+
         if event.buttons() == Qt.MouseButton.LeftButton:
-            point = PointF.fromQPointF(self.ui.mapToScene(event.position().toPoint()))
-            self.move_component.pointMove(point)
+            self.move_component.pointMove(hit_result)
 
     @Slot(QKeyEvent)
     def onKeyPressed(self, event: QKeyEvent) -> None:
+        self.is_only_control_pressed = Qt.KeyboardModifier.ControlModifier == event.modifiers()
+
         self.move_component.keyPress(event.key())
         self.input_component.input(event)
+
+    @Slot(QKeyEvent)
+    def onKeyReleased(self, event: QKeyEvent) -> None:
+        self.is_only_control_pressed = Qt.KeyboardModifier.ControlModifier == event.modifiers()
+
+    @Slot()
+    def updateCursorShape(self) -> None:
+        if self.last_hit_result.hit == Hit.Text:
+            QGuiApplication.setOverrideCursor(Qt.CursorShape.IBeamCursor)
+        elif self.last_hit_result.hit == Hit.Image:
+            QGuiApplication.setOverrideCursor(Qt.CursorShape.CrossCursor)
+        elif self.last_hit_result.hit == Hit.Hyperlink:
+            if self.is_only_control_pressed:
+                QGuiApplication.setOverrideCursor(Qt.CursorShape.PointingHandCursor)
+            else:
+                QGuiApplication.setOverrideCursor(Qt.CursorShape.IBeamCursor)
+        else:
+            QGuiApplication.setOverrideCursor(Qt.CursorShape.ArrowCursor)
 
     @Slot()
     def repaintViewport(self):

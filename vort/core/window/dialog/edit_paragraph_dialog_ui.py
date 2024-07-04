@@ -385,14 +385,14 @@ class EditParagraphDialogUI(QDialog):
         top_layout = QHBoxLayout()
         top_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         top_layout.setContentsMargins(0, 0, 0, 0)
-        top_layout.setSpacing(10)
+        top_layout.setSpacing(20)
         top_layout.addLayout(left_layout, 1)
         top_layout.addLayout(right_layout, 1)
 
         self.main_layout = QVBoxLayout()
         self.main_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.main_layout.setContentsMargins(10, 10, 10, 10)
-        self.main_layout.setSpacing(10)
+        self.main_layout.setSpacing(20)
         self.main_layout.addLayout(top_layout)
         self.main_layout.addLayout(button_layout)
 

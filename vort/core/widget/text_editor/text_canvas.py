@@ -17,7 +17,7 @@ from PySide6.QtGui import (
 
 from util import RectF, PointF
 
-from core.widget.text_editor.text_document_layout import TextDocumentLayout, Selection, PaintContext
+from core.widget.text_editor.text_document_layout import TextDocumentLayout, Selection, PaintContext, HitResult
 
 
 class TextCanvas(QWidget):
@@ -66,10 +66,10 @@ class TextCanvas(QWidget):
         self.__text_document_layout = None
         self.__text_cursor = None
 
-    def hitTest(self, point: PointF) -> int:
+    def hitTest(self, point: PointF) -> HitResult:
         if self.__text_document_layout is not None:
             return self.__text_document_layout.hitTest(point)
-        return -1
+        return HitResult()
 
     def blockTest(self, position: int) -> PointF:
         if self.__text_document_layout is not None:
@@ -93,15 +93,17 @@ class TextCanvas(QWidget):
         format.setBackground(QColor("blue"))
         format.setForeground(QColor("white"))
 
-        selections: list[Selection] = []
+        cursor_selection: Selection | None = None
         if self.__text_cursor.hasSelection():
-            selections.append(Selection(self.__text_cursor, format))
+            selection_start: int = self.__text_cursor.selectionStart()
+            selection_end: int = self.__text_cursor.selectionEnd()
+            cursor_selection = Selection(selection_start, selection_end, format)
 
         context = PaintContext()
         context.painter = painter
         context.viewport_rect = RectF.fromQRect(event.rect())
         context.cursor_position = self.__text_cursor.position()
-        context.selections = selections
+        context.cursor_selection = cursor_selection
         # TODO: to config
         context.page_color = QColor("white")
 

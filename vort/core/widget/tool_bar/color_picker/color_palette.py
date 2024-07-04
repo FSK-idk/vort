@@ -10,7 +10,7 @@ class ColorPalette(QWidget):
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
-
+        # TODO: add transparent
         # fmt: off
         self.colors: list[list[QColor]] = [
             [QColor("#000000"), QColor("#242424"), QColor("#494949"), QColor("#6D6D6D"), QColor("#929292"), QColor("#B6B6B6"), QColor("#DBDBDB"), QColor("#FFFFFF")],

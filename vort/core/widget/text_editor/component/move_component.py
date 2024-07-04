@@ -1,10 +1,11 @@
 from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QTextCursor, QGuiApplication
+from PySide6.QtGui import QTextCursor, QGuiApplication, QMouseEvent
 
 from util.point_f import PointF
 
 from core.widget.text_editor.component.component import Component
 from core.widget.text_editor.text_canvas import TextCanvas
+from core.widget.text_editor.text_document_layout import HitResult, Hit
 
 
 class MoveComponent(Component):
@@ -12,16 +13,14 @@ class MoveComponent(Component):
         super().__init__(text_cursor)
         self.__text_canvas = text_canvas
 
-    def pointPress(self, point: PointF) -> None:
-        position = self.__text_canvas.hitTest(point)
-        if position != -1:
-            self._text_cursor.setPosition(position, QTextCursor.MoveMode.MoveAnchor)
+    def pointPress(self, result: HitResult) -> None:
+        if result.hit != Hit.NoHit:
+            self._text_cursor.setPosition(result.position, QTextCursor.MoveMode.MoveAnchor)
             self.applied.emit()
 
-    def pointMove(self, point: PointF) -> None:
-        position = self.__text_canvas.hitTest(point)
-        if position != -1:
-            self._text_cursor.setPosition(position, QTextCursor.MoveMode.KeepAnchor)
+    def pointMove(self, result: HitResult) -> None:
+        if result.hit != Hit.NoHit:
+            self._text_cursor.setPosition(result.position, QTextCursor.MoveMode.KeepAnchor)
             self.applied.emit()
 
     def keyPress(self, key: int | Qt.Key) -> None:

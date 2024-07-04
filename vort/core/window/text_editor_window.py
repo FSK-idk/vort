@@ -2,10 +2,8 @@ from PySide6.QtCore import Qt, QObject, Slot
 from PySide6.QtGui import QFont, QColor, QGuiApplication
 
 from core.window.text_editor_window_ui import TextEditorWindowUI
-from core.window.dialog.edit_paragraph_dialog_ui import (
-    EditParagraphDialogUI,
-    EditParagraphDialogContext,
-)
+from core.window.dialog.edit_paragraph_dialog_ui import EditParagraphDialogUI, EditParagraphDialogContext
+from core.window.dialog.edit_hyperlink_dialog_ui import EditHyperlinkDialogUI, EditHyperlinkDialogContext
 
 
 # some code may be unnecessary, but I want everything to be consistent
@@ -256,8 +254,14 @@ class TextEditorWindow(QObject):
     def insertImage(self) -> None:
         self.ui.text_editor.input_component.insertImage()
 
+    @Slot()
     def insertHyperlink(self) -> None:
-        print("insertHyperlink")
+        context: EditHyperlinkDialogContext = EditHyperlinkDialogContext()
+        context.text, context.hyperlink = self.ui.text_editor.select_component.selectedHyperlink()
+
+        dialog = EditHyperlinkDialogUI(context)
+        if dialog.exec():
+            self.ui.text_editor.input_component.insertHyperlink(context.text, context.hyperlink)
 
     # font
 

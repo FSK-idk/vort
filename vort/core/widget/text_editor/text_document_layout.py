@@ -1,3 +1,5 @@
+from enum import Enum
+
 from PySide6.QtCore import QPointF, Signal, QRect, QRectF, QUrl
 from PySide6.QtGui import (
     QAbstractTextDocumentLayout,
@@ -23,6 +25,21 @@ from util import PointF, RectF
 from core.widget.text_editor.page_layout import PageLayout
 
 
+class Hit(Enum):
+    NoHit = 0
+    Text = 1
+    Image = 2
+    Hyperlink = 3
+
+
+class HitResult:
+    def __init__(self) -> None:
+        self.hit: Hit = Hit.NoHit
+        self.position: int = -1
+        self.point: PointF = PointF(-1, -1)
+        self.data: str = ""
+
+
 class ImageLayout:
     def __init__(self, image_rect: QRectF, image_name: str, image_position: int) -> None:
         self.image_rect: QRectF = image_rect
@@ -33,10 +50,12 @@ class ImageLayout:
 class Selection:
     def __init__(
         self,
-        cursor: QTextCursor = QTextCursor(),
+        start: int = 0,
+        end: int = 0,
         format: QTextCharFormat = QTextCharFormat(),
     ) -> None:
-        self.cursor: QTextCursor = cursor
+        self.start: int = start
+        self.end: int = end
         self.format: QTextCharFormat = format
 
 
@@ -46,13 +65,13 @@ class PaintContext:
         painter: QPainter = QPainter(),
         viewport_rect: RectF = RectF(),
         cursor_position: int = -1,
-        selections: list[Selection] = [],
+        cursor_selection: Selection | None = None,
         page_color: QColor = QColor("white"),
     ) -> None:
         self.painter = painter
         self.viewport_rect: RectF = viewport_rect
         self.cursor_position: int = cursor_position
-        self.selections: list[Selection] = selections
+        self.cursor_selection: Selection | None = cursor_selection
         self.page_color: QColor = page_color
 
 
@@ -320,9 +339,11 @@ class TextDocumentLayout(QAbstractTextDocumentLayout):
         painter: QPainter = context.painter
         viewport_rect: RectF = context.viewport_rect
         cursor_position: int = context.cursor_position
-        selections: list[Selection] = context.selections
+        cursor_selection: Selection | None = context.cursor_selection
 
         carriage_position: QPointF = QPointF(0, 0)
+
+        print("----")
 
         for i in range(self.document().blockCount()):
             block: QTextBlock = self.document().findBlockByNumber(i)
@@ -330,11 +351,32 @@ class TextDocumentLayout(QAbstractTextDocumentLayout):
             block_position: int = block.position()
             block_length: int = block.length()
 
+            # check for hyperlinks
+            selections : list[Selection] = []
+
+            it: QTextBlock.iterator = block.begin()
+            while it != block.end():
+                fragment: QTextFragment = it.fragment()
+
+                if fragment.charFormat().anchorHref() != "":
+                    selection = Selection()
+                    selection.format = fragment.charFormat()
+                    selection.format.setFontUnderline(True)
+                    # TODO: in config
+                    selection.format.setForeground(QColor("blue"))
+                    selection.start = fragment.position()
+                    selection.end = fragment.position() + fragment.length()
+                    selections.append(selection)
+
+                it += 1
+            
+            print([(selection.start, selection.end) for selection in selections])
+
             format_ranges: list[QTextLayout.FormatRange] = []
 
             for selection in selections:
-                selection_start: int = selection.cursor.selectionStart() - block_position
-                selection_end: int = selection.cursor.selectionEnd() - block_position
+                selection_start: int = selection.start - block_position
+                selection_end: int = selection.end - block_position
                 if selection_start < block_length and selection_end > 0:
                     format_range: QTextLayout.FormatRange = QTextLayout.FormatRange()
                     format_range.start = selection_start  # type: ignore
@@ -342,9 +384,20 @@ class TextDocumentLayout(QAbstractTextDocumentLayout):
                     format_range.format = selection.format  # type: ignore
                     format_ranges.append(format_range)
 
+
+            if cursor_selection is not None:
+                selection_start: int = cursor_selection.start - block_position
+                selection_end: int = cursor_selection.end - block_position
+                if selection_start < block_length and selection_end > 0:
+                    format_range: QTextLayout.FormatRange = QTextLayout.FormatRange()
+                    format_range.start = selection_start  # type: ignore
+                    format_range.length = selection_end - selection_start  # type: ignore
+                    format_range.format = cursor_selection.format  # type: ignore
+                    format_ranges.append(format_range)
+
             block_layout.draw(painter, carriage_position, format_ranges, viewport_rect.toQRectF())
 
-            if cursor_position >= block_position and cursor_position < block_position + block_length and not selections:
+            if cursor_position >= block_position and cursor_position < block_position + block_length and cursor_selection is None:
                 block_layout.drawCursor(painter, carriage_position, cursor_position - block_position)
 
     def paintImage(self, context: PaintContext):
@@ -352,7 +405,10 @@ class TextDocumentLayout(QAbstractTextDocumentLayout):
         for image_layout in self.__images:
             painter.drawImage(image_layout.image_rect, self.document().resource(QTextDocument.ResourceType.ImageResource, image_layout.image_name))
 
-    def hitTest(self, point: PointF) -> int:
+    def hitTest(self, point: PointF) -> HitResult:
+        result: HitResult = HitResult()
+        result.point = point
+
         current_cursor_position = 0
 
         document = self.document()
@@ -373,15 +429,29 @@ class TextDocumentLayout(QAbstractTextDocumentLayout):
                         )
                         current_cursor_position += line_cursor_position
 
-                        return current_cursor_position
+                        helper: QTextCursor = QTextCursor(block)
+                        helper.setPosition(current_cursor_position - block.position())
+                        result.data = helper.charFormat().anchorHref()
+                        if result.data != "":
+                            result.hit = Hit.Hyperlink
+                        else:
+                            result.hit = Hit.Text
+
+                        result.position = current_cursor_position
+                        return result
 
             current_cursor_position += block.length()
 
         for image_layout in self.__images:
             if image_layout.image_rect.contains(point.toQPointF()):
-                return image_layout.image_position
 
-        return -1
+                result.hit = Hit.Image
+                result.position = image_layout.image_position
+                return result
+
+        result.hit = Hit.NoHit
+        result.position = -1
+        return result
 
     def blockTest(self, position: int) -> PointF:
         current_cursor_position = 0

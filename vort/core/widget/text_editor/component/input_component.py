@@ -143,6 +143,33 @@ class InputComponent(Component):
 
         return True
 
+    def insertHyperlink(self, text: str, hyperlink: str) -> bool:
+        if text == "" and not self._text_cursor.hasSelection():
+            return False
+
+        self._text_cursor.beginEditBlock()
+
+        is_image_before = self._text_cursor.charFormat().isImageFormat() and self._text_cursor.atBlockEnd()
+        is_image_after = self._text_cursor.charFormat().isImageFormat() and self._text_cursor.atBlockStart()
+
+        if is_image_before:
+            self._text_cursor.insertBlock()
+
+        format = self._text_cursor.charFormat()
+        format.setAnchorHref(hyperlink)
+        self._text_cursor.insertText(text, format)
+
+        if is_image_after:
+            self._text_cursor.insertBlock()
+            self._text_cursor.movePosition(QTextCursor.MoveOperation.PreviousBlock, QTextCursor.MoveMode.MoveAnchor)
+            self._text_cursor.movePosition(QTextCursor.MoveOperation.EndOfBlock, QTextCursor.MoveMode.MoveAnchor)
+
+        self.fixup()
+        self._text_cursor.endEditBlock()
+        self.applied.emit()
+
+        return True
+
     def input(self, event: QKeyEvent) -> None:
         if event.modifiers() == Qt.KeyboardModifier.ControlModifier and event.text():
             match event.key():

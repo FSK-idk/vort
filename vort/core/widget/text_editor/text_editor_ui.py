@@ -5,7 +5,9 @@ from PySide6.QtGui import QKeyEvent, QMouseEvent, QKeyEvent, QWheelEvent, QGuiAp
 
 class TextEditorUI(QGraphicsView):
     keyPressed = Signal(QKeyEvent)
+    keyReleased = Signal(QKeyEvent)
     mousePressed = Signal(QMouseEvent)
+    mouseReleased = Signal(QMouseEvent)
     mouseMoved = Signal(QMouseEvent)
 
     zoomFactorChanged = Signal(float)
@@ -81,6 +83,9 @@ class TextEditorUI(QGraphicsView):
         if isinstance(event, QKeyEvent) and event.type() == QEvent.Type.KeyPress:
             self.keyPressed.emit(event)
             return True
+        if isinstance(event, QKeyEvent) and event.type() == QEvent.Type.KeyRelease:
+            self.keyReleased.emit(event)
+            return True
 
         return super().event(event)
 
@@ -89,6 +94,8 @@ class TextEditorUI(QGraphicsView):
             match event.type():
                 case QEvent.Type.MouseButtonPress:
                     self.mousePressed.emit(event)
+                case QEvent.Type.MouseButtonRelease:
+                    self.mouseReleased.emit(event)
                 case QEvent.Type.MouseMove:
                     self.mouseMoved.emit(event)
 
