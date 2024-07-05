@@ -1,6 +1,6 @@
-from PySide6.QtCore import Slot, Signal
+from PySide6.QtCore import Slot, Signal, Qt
 from PySide6.QtWidgets import QFontComboBox, QWidget
-from PySide6.QtGui import QFont
+from PySide6.QtGui import QFont, QWheelEvent
 
 
 class FontComboBox(QFontComboBox):
@@ -9,6 +9,8 @@ class FontComboBox(QFontComboBox):
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
+
+        self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
 
         self.currentFontChanged.connect(self.onCurrentFontChanged)
         self.activated.connect(self.onActivated)
@@ -28,3 +30,6 @@ class FontComboBox(QFontComboBox):
     @Slot()
     def onLineEditReturnPressed(self) -> None:
         self.closed.emit()
+
+    def wheelEvent(self, event: QWheelEvent) -> None:
+        event.ignore()

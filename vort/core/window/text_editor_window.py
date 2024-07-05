@@ -6,7 +6,7 @@ from core.widget.text_editor.component.select_component import HyperlinkSelectio
 from core.window.text_editor_window_ui import TextEditorWindowUI
 from core.window.dialog.edit_paragraph_dialog_ui import EditParagraphDialogUI, EditParagraphDialogContext
 from core.window.dialog.edit_hyperlink_dialog_ui import EditHyperlinkDialogUI, EditHyperlinkDialogContext
-
+from core.window.settings.settings_dialog_ui import SettingsDialogUI, SettingsContext
 
 # some code may be unnecessary, but I want everything to be consistent
 
@@ -125,6 +125,16 @@ class TextEditorWindow(QObject):
         self.ui.open_style_action.triggered.connect(self.openStyle)
 
         self.ui.clear_style_action.triggered.connect(self.clearStyle)
+
+        # settings
+
+        self.ui.open_page_settings.triggered.connect(self.openPageSettings)
+
+        self.ui.open_paragraph_settings.triggered.connect(self.openParagraphSettings)
+
+        self.ui.open_header_settings.triggered.connect(self.openHeaderSettings)
+
+        self.ui.open_footer_settings.triggered.connect(self.openFooterSettings)
 
         # help
 
@@ -516,6 +526,38 @@ class TextEditorWindow(QObject):
 
     def showAbout(self) -> None:
         print("showAbout")
+
+    # settings
+
+    def openSettings(self, name: str) -> None:
+        settings_context = SettingsContext()
+        # populate data
+
+        dialog = SettingsDialogUI(settings_context, self.ui)
+        dialog.openTab(name)
+
+        if dialog.exec():
+            print("ok")
+
+    def onSettingsApplied(self, context: SettingsContext) -> None:
+        # apply
+        pass
+
+    @Slot()
+    def openPageSettings(self) -> None:
+        self.openSettings("page")
+
+    @Slot()
+    def openParagraphSettings(self) -> None:
+        self.openSettings("paragraph")
+
+    @Slot()
+    def openHeaderSettings(self) -> None:
+        self.openSettings("header")
+
+    @Slot()
+    def openFooterSettings(self) -> None:
+        self.openSettings("footer")
 
     # status
 

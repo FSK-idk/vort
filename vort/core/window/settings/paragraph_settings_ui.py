@@ -1,41 +1,46 @@
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
     QWidget,
     QLabel,
-    QDialog,
-    QPushButton,
     QCheckBox,
     QHBoxLayout,
-    QSizePolicy,
     QVBoxLayout,
-    QDoubleSpinBox,
-    QComboBox,
     QSpinBox,
+    QScrollArea,
 )
+from PySide6.QtGui import QColor, QPalette
+
+from core.window.settings.settings_widget import DoubleSpinBox, ComboBox
 
 
-class EditParagraphDialogContext:
+class ParagraphSettingsContext:
+
     def __init__(self) -> None:
-        self.alignment: Qt.AlignmentFlag = Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft
-        self.heading_level: int = 0
+        self.alignment: Qt.AlignmentFlag = Qt.AlignmentFlag.AlignLeft
+
         self.is_first_line_indent_turned: bool = False
         self.first_line_indent: float = 0.0  # cm
         self.indent: int = 0  # cm
+
         self.line_spacing: float = 1.0  # ratio
+
         self.top_margin: float = 0.0  # cm
         self.bottom_margin: float = 0.0  # cm
         self.left_margin: float = 0.0  # cm
         self.right_margin: float = 0.0  # cm
 
 
-class EditParagraphDialogUI(QDialog):
-    def __init__(self, context: EditParagraphDialogContext, parent: QWidget | None = None) -> None:
+class ParagraphSettingsUI(QScrollArea):
+    def __init__(self, context: ParagraphSettingsContext, parent: QWidget | None = None) -> None:
         super().__init__(parent)
 
-        self.context: EditParagraphDialogContext = context
+        self.context: ParagraphSettingsContext = context
+        self.setWidgetResizable(True)
 
-        self.setWindowTitle("Edit paragraph")
-        self.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
+        palette = self.palette()
+        palette.setColor(QPalette.ColorRole.Window, QColor("transparent"))
+        palette.setColor(QPalette.ColorRole.Base, palette.color(QPalette.ColorRole.Base))
+        self.setPalette(palette)
 
         # alignment
 
@@ -45,7 +50,8 @@ class EditParagraphDialogUI(QDialog):
         self.alignment_combo_box_label: QLabel = QLabel(self)
         self.alignment_combo_box_label.setText("Alignment")
 
-        self.alignment_combo_box: QComboBox = QComboBox(self)
+        # TODO: own widget
+        self.alignment_combo_box: ComboBox = ComboBox(self)
         self.alignment_combo_box.setEditable(True)
         self.alignment_combo_box.lineEdit().setEnabled(False)
         self.aligment_flags: list[Qt.AlignmentFlag] = [
@@ -85,7 +91,7 @@ class EditParagraphDialogUI(QDialog):
         self.first_line_indent_spin_box_label: QLabel = QLabel(self)
         self.first_line_indent_spin_box_label.setText("First line indent")
 
-        self.first_line_indent_spin_box: QDoubleSpinBox = QDoubleSpinBox(self)
+        self.first_line_indent_spin_box: DoubleSpinBox = DoubleSpinBox(self)
         self.first_line_indent_spin_box.setMinimum(0.0)
         self.first_line_indent_spin_box.setSingleStep(0.25)
         self.first_line_indent_spin_box.setDecimals(2)
@@ -103,6 +109,13 @@ class EditParagraphDialogUI(QDialog):
         self.first_line_indent_spin_box_error.setFont(font)
         self.first_line_indent_spin_box_error.hide()
 
+        first_line_indent_spin_box_layout = QHBoxLayout()
+        first_line_indent_spin_box_layout.setContentsMargins(0, 0, 0, 0)
+        first_line_indent_spin_box_layout.setSpacing(10)
+        first_line_indent_spin_box_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        first_line_indent_spin_box_layout.addWidget(self.first_line_indent_spin_box_label)
+        first_line_indent_spin_box_layout.addWidget(self.first_line_indent_spin_box)
+
         self.indent_spin_box_label: QLabel = QLabel(self)
         self.indent_spin_box_label.setText("Indent")
 
@@ -119,13 +132,6 @@ class EditParagraphDialogUI(QDialog):
         font.setPixelSize(10)
         self.indent_spin_box_error.setFont(font)
         self.indent_spin_box_error.hide()
-
-        first_line_indent_spin_box_layout = QHBoxLayout()
-        first_line_indent_spin_box_layout.setContentsMargins(0, 0, 0, 0)
-        first_line_indent_spin_box_layout.setSpacing(10)
-        first_line_indent_spin_box_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        first_line_indent_spin_box_layout.addWidget(self.first_line_indent_spin_box_label)
-        first_line_indent_spin_box_layout.addWidget(self.first_line_indent_spin_box)
 
         indent_spin_box_layout = QHBoxLayout()
         indent_spin_box_layout.setContentsMargins(0, 0, 0, 0)
@@ -157,7 +163,7 @@ class EditParagraphDialogUI(QDialog):
         self.line_spacing_spin_box_label: QLabel = QLabel(self)
         self.line_spacing_spin_box_label.setText("Line spacing")
 
-        self.line_spacing_spin_box: QDoubleSpinBox = QDoubleSpinBox(self)
+        self.line_spacing_spin_box: DoubleSpinBox = DoubleSpinBox(self)
         self.line_spacing_spin_box.setMinimum(0.0)
         self.line_spacing_spin_box.setMaximum(5.0)
         self.line_spacing_spin_box.setSingleStep(0.05)
@@ -197,7 +203,7 @@ class EditParagraphDialogUI(QDialog):
         self.top_margin_spin_box_label: QLabel = QLabel(self)
         self.top_margin_spin_box_label.setText("Top margin")
 
-        self.top_margin_spin_box: QDoubleSpinBox = QDoubleSpinBox(self)
+        self.top_margin_spin_box: DoubleSpinBox = DoubleSpinBox(self)
         self.top_margin_spin_box.setMinimum(0.0)
         self.top_margin_spin_box.setSingleStep(0.25)
         self.top_margin_spin_box.setDecimals(2)
@@ -213,10 +219,17 @@ class EditParagraphDialogUI(QDialog):
         self.top_margin_spin_box_error.setFont(font)
         self.top_margin_spin_box_error.hide()
 
+        top_margin_spin_box_layout = QHBoxLayout()
+        top_margin_spin_box_layout.setContentsMargins(0, 0, 0, 0)
+        top_margin_spin_box_layout.setSpacing(10)
+        top_margin_spin_box_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        top_margin_spin_box_layout.addWidget(self.top_margin_spin_box_label)
+        top_margin_spin_box_layout.addWidget(self.top_margin_spin_box)
+
         self.bottom_margin_spin_box_label: QLabel = QLabel(self)
         self.bottom_margin_spin_box_label.setText("Bottom margin")
 
-        self.bottom_margin_spin_box: QDoubleSpinBox = QDoubleSpinBox(self)
+        self.bottom_margin_spin_box: DoubleSpinBox = DoubleSpinBox(self)
         self.bottom_margin_spin_box.setMinimum(0.0)
         self.bottom_margin_spin_box.setSingleStep(0.25)
         self.bottom_margin_spin_box.setDecimals(2)
@@ -232,10 +245,17 @@ class EditParagraphDialogUI(QDialog):
         self.bottom_margin_spin_box_error.setFont(font)
         self.bottom_margin_spin_box_error.hide()
 
+        bottom_margin_spin_box_layout = QHBoxLayout()
+        bottom_margin_spin_box_layout.setContentsMargins(0, 0, 0, 0)
+        bottom_margin_spin_box_layout.setSpacing(10)
+        bottom_margin_spin_box_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        bottom_margin_spin_box_layout.addWidget(self.bottom_margin_spin_box_label)
+        bottom_margin_spin_box_layout.addWidget(self.bottom_margin_spin_box)
+
         self.left_margin_spin_box_label: QLabel = QLabel(self)
         self.left_margin_spin_box_label.setText("Left margin")
 
-        self.left_margin_spin_box: QDoubleSpinBox = QDoubleSpinBox(self)
+        self.left_margin_spin_box: DoubleSpinBox = DoubleSpinBox(self)
         self.left_margin_spin_box.setMinimum(0.0)
         self.left_margin_spin_box.setSingleStep(0.25)
         self.left_margin_spin_box.setDecimals(2)
@@ -251,10 +271,17 @@ class EditParagraphDialogUI(QDialog):
         self.left_margin_spin_box_error.setFont(font)
         self.left_margin_spin_box_error.hide()
 
+        left_margin_spin_box_layout = QHBoxLayout()
+        left_margin_spin_box_layout.setContentsMargins(0, 0, 0, 0)
+        left_margin_spin_box_layout.setSpacing(10)
+        left_margin_spin_box_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        left_margin_spin_box_layout.addWidget(self.left_margin_spin_box_label)
+        left_margin_spin_box_layout.addWidget(self.left_margin_spin_box)
+
         self.right_margin_spin_box_label: QLabel = QLabel(self)
         self.right_margin_spin_box_label.setText("Right margin")
 
-        self.right_margin_spin_box: QDoubleSpinBox = QDoubleSpinBox(self)
+        self.right_margin_spin_box: DoubleSpinBox = DoubleSpinBox(self)
         self.right_margin_spin_box.setMinimum(0.0)
         self.right_margin_spin_box.setSingleStep(0.25)
         self.right_margin_spin_box.setDecimals(2)
@@ -269,27 +296,6 @@ class EditParagraphDialogUI(QDialog):
         font.setPixelSize(10)
         self.right_margin_spin_box_error.setFont(font)
         self.right_margin_spin_box_error.hide()
-
-        top_margin_spin_box_layout = QHBoxLayout()
-        top_margin_spin_box_layout.setContentsMargins(0, 0, 0, 0)
-        top_margin_spin_box_layout.setSpacing(10)
-        top_margin_spin_box_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        top_margin_spin_box_layout.addWidget(self.top_margin_spin_box_label)
-        top_margin_spin_box_layout.addWidget(self.top_margin_spin_box)
-
-        bottom_margin_spin_box_layout = QHBoxLayout()
-        bottom_margin_spin_box_layout.setContentsMargins(0, 0, 0, 0)
-        bottom_margin_spin_box_layout.setSpacing(10)
-        bottom_margin_spin_box_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        bottom_margin_spin_box_layout.addWidget(self.bottom_margin_spin_box_label)
-        bottom_margin_spin_box_layout.addWidget(self.bottom_margin_spin_box)
-
-        left_margin_spin_box_layout = QHBoxLayout()
-        left_margin_spin_box_layout.setContentsMargins(0, 0, 0, 0)
-        left_margin_spin_box_layout.setSpacing(10)
-        left_margin_spin_box_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        left_margin_spin_box_layout.addWidget(self.left_margin_spin_box_label)
-        left_margin_spin_box_layout.addWidget(self.left_margin_spin_box)
 
         right_margin_spin_box_layout = QHBoxLayout()
         right_margin_spin_box_layout.setContentsMargins(0, 0, 0, 0)
@@ -317,22 +323,6 @@ class EditParagraphDialogUI(QDialog):
         margin_layout.addWidget(self.right_margin_spin_box_error)
         margin_layout.addSpacing(5)
 
-        # button
-
-        self.save_button = QPushButton(self)
-        self.save_button.setText("Save")
-        self.save_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-        self.save_button.clicked.connect(self.onSaveClicked)
-
-        self.cancel_button = QPushButton(self)
-        self.cancel_button.setText("Cancel")
-        self.cancel_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-        self.cancel_button.clicked.connect(self.onCancelClicked)
-
-        button_layout = QHBoxLayout()
-        button_layout.addWidget(self.save_button)
-        button_layout.addWidget(self.cancel_button)
-
         # layout
 
         left_layout = QVBoxLayout()
@@ -356,74 +346,12 @@ class EditParagraphDialogUI(QDialog):
         top_layout.addLayout(left_layout, 1)
         top_layout.addLayout(right_layout, 1)
 
-        self.main_layout = QVBoxLayout()
-        self.main_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
-        self.main_layout.setContentsMargins(10, 10, 10, 10)
-        self.main_layout.setSpacing(20)
-        self.main_layout.addLayout(top_layout)
-        self.main_layout.addLayout(button_layout)
+        main_layout = QVBoxLayout()
+        main_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        main_layout.setContentsMargins(10, 10, 10, 10)
+        main_layout.setSpacing(20)
+        main_layout.addLayout(top_layout)
 
-        self.setLayout(self.main_layout)
-
-    def onSaveClicked(self) -> None:
-        is_valid = True
-
-        if not self.first_line_indent_spin_box.hasAcceptableInput():
-            is_valid = False
-            self.first_line_indent_spin_box_error.show()
-        else:
-            self.first_line_indent_spin_box_error.hide()
-
-        if not self.indent_spin_box.hasAcceptableInput():
-            is_valid = False
-            self.indent_spin_box_error.show()
-        else:
-            self.indent_spin_box_error.hide()
-
-        if not self.line_spacing_spin_box.hasAcceptableInput():
-            is_valid = False
-            self.line_spacing_spin_box_error.show()
-        else:
-            self.line_spacing_spin_box_error.hide()
-
-        if not self.top_margin_spin_box.hasAcceptableInput():
-            is_valid = False
-            self.top_margin_spin_box_error.show()
-        else:
-            self.top_margin_spin_box_error.hide()
-
-        if not self.bottom_margin_spin_box.hasAcceptableInput():
-            is_valid = False
-            self.bottom_margin_spin_box_error.show()
-        else:
-            self.bottom_margin_spin_box_error.hide()
-
-        if not self.left_margin_spin_box.hasAcceptableInput():
-            is_valid = False
-            self.left_margin_spin_box_error.show()
-        else:
-            self.left_margin_spin_box_error.hide()
-
-        if not self.right_margin_spin_box.hasAcceptableInput():
-            is_valid = False
-            self.right_margin_spin_box_error.show()
-        else:
-            self.right_margin_spin_box_error.hide()
-
-        if not is_valid:
-            return
-
-        self.context.alignment = self.aligment_flags[self.alignment_combo_box.currentIndex()]
-        self.context.is_first_line_indent_turned = self.first_line_indent_check_box.isChecked()
-        self.context.first_line_indent = self.first_line_indent_spin_box.value()
-        self.context.indent = self.indent_spin_box.value()
-        self.context.line_spacing = self.line_spacing_spin_box.value()
-        self.context.top_margin = self.top_margin_spin_box.value()
-        self.context.bottom_margin = self.bottom_margin_spin_box.value()
-        self.context.left_margin = self.left_margin_spin_box.value()
-        self.context.right_margin = self.right_margin_spin_box.value()
-
-        self.accept()
-
-    def onCancelClicked(self) -> None:
-        self.reject()
+        self.scroll_widget = QWidget()
+        self.scroll_widget.setLayout(main_layout)
+        self.setWidget(self.scroll_widget)

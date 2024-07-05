@@ -199,6 +199,20 @@ class TextEditorWindowUI(QMainWindow):
         self.clear_style_action: QAction = QAction("Clear")
         self.clear_style_action.setStatusTip("Clear the style of the selected text")
 
+        # settings
+
+        self.open_page_settings: QAction = QAction("Page")
+        self.open_page_settings.setStatusTip("Open page settings")
+
+        self.open_paragraph_settings: QAction = QAction("Paragraph")
+        self.open_paragraph_settings.setStatusTip("Open paragraph settings")
+
+        self.open_header_settings: QAction = QAction("Header")
+        self.open_header_settings.setStatusTip("Open header settings")
+
+        self.open_footer_settings: QAction = QAction("Footer")
+        self.open_footer_settings.setStatusTip("Open footer settings")
+
         # help
 
         self.show_guide_action: QAction = QAction("Guide")
@@ -294,6 +308,13 @@ class TextEditorWindowUI(QMainWindow):
         self.style_menu: QMenu = QMenu("Style")
         self.style_menu.addAction(self.open_style_action)
         self.menu_bar.addMenu(self.style_menu)
+
+        self.settings_menu: QMenu = QMenu("Settings")
+        self.settings_menu.addAction(self.open_page_settings)
+        self.settings_menu.addAction(self.open_paragraph_settings)
+        self.settings_menu.addAction(self.open_header_settings)
+        self.settings_menu.addAction(self.open_footer_settings)
+        self.menu_bar.addMenu(self.settings_menu)
 
         self.help_menu: QMenu = QMenu("Help")
         self.help_menu.addAction(self.show_guide_action)

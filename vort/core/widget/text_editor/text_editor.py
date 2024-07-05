@@ -149,6 +149,7 @@ class TextEditor(QObject):
         self.ui.mouseReleased.connect(self.onMouseReleased)
         self.ui.mouseMoved.connect(self.onMouseMoved)
         self.ui.mouseLeft.connect(self.onMouseLeft)
+        self.ui.mouseDoubleClicked.connect(self.onMouseDoubleClicked)
 
         self.__text_canvas.sizeChanged.connect(self.onCanvasSizeChanged)
         self.__text_canvas.characterCountChanged.connect(self.characterCountChanged.emit)
@@ -224,6 +225,9 @@ class TextEditor(QObject):
         self.last_hit_result = hit_result
 
         if event.button() == Qt.MouseButton.LeftButton:
+            if self.last_hit_result.hit == Hit.NoHit:
+                self.__document_context.text_cursor.clearSelection()
+                self.repaintViewport()
             self.move_component.pointPress(hit_result)
 
     @Slot(QMouseEvent)
@@ -237,6 +241,15 @@ class TextEditor(QObject):
             and Qt.KeyboardModifier.ControlModifier == QGuiApplication.queryKeyboardModifiers()
         ):
             QDesktopServices.openUrl(hit_result.data)
+
+    @Slot(QMouseEvent)
+    def onMouseDoubleClicked(self, event: QMouseEvent) -> None:
+        point = PointF.fromQPointF(self.ui.mapToScene(event.position().toPoint()))
+        hit_result = self.__text_canvas.hitTest(point)
+        self.last_hit_result = hit_result
+
+        if event.buttons() == Qt.MouseButton.LeftButton:
+            self.select_component.selectWord(hit_result)
 
     @Slot(QMouseEvent)
     def onMouseMoved(self, event: QMouseEvent) -> None:

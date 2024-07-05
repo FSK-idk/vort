@@ -1,6 +1,6 @@
-from PySide6.QtCore import QRegularExpression, QRegularExpressionMatch, Signal, Slot
+from PySide6.QtCore import QRegularExpression, QRegularExpressionMatch, Signal, Slot, Qt
 from PySide6.QtWidgets import QComboBox, QWidget, QCompleter
-from PySide6.QtGui import QRegularExpressionValidator
+from PySide6.QtGui import QRegularExpressionValidator, QWheelEvent
 
 
 class FontSizeComboBox(QComboBox):
@@ -9,6 +9,8 @@ class FontSizeComboBox(QComboBox):
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
+
+        self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
 
         default_sizes = [6, 8, 10, 12, 14, 16, 18, 20, 24, 30, 36, 42, 48]
         self.regex_without_pt: QRegularExpression = QRegularExpression("[1-9][0-9]?$")
@@ -43,3 +45,6 @@ class FontSizeComboBox(QComboBox):
         rem: QRegularExpressionMatch = self.regex_without_pt.match(self.currentText())
         if rem.hasMatch():
             self.setEditText(self.currentText() + " pt")
+
+    def wheelEvent(self, event: QWheelEvent) -> None:
+        event.ignore()

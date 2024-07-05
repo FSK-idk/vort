@@ -1,6 +1,9 @@
 from PySide6.QtGui import QTextCursor, QTextBlock, QTextFragment
 
 from core.widget.text_editor.component.component import Component
+from core.widget.text_editor.layout.text_document_layout import HitResult, Hit
+
+from util.point_f import PointF
 
 
 class HyperlinkSelection:
@@ -169,3 +172,9 @@ class SelectComponent(Component):
     def selectAll(self) -> None:
         self._text_cursor.select(QTextCursor.SelectionType.Document)
         self.applied.emit()
+
+    def selectWord(self, result: HitResult) -> None:
+        if result.hit in [Hit.Text, Hit.Hyperlink]:
+            self._text_cursor.setPosition(result.position, QTextCursor.MoveMode.MoveAnchor)
+            self._text_cursor.select(QTextCursor.SelectionType.WordUnderCursor)
+            self.applied.emit()
