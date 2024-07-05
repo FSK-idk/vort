@@ -9,19 +9,28 @@ class FormatComponent(Component):
         format: QTextCharFormat = QTextCharFormat()
         format.setFontWeight(font_weight)
         self._text_cursor.mergeCharFormat(format)
-        self._text_cursor.mergeBlockCharFormat(format)
+        if self._text_cursor.atBlockStart() and self._text_cursor.atBlockEnd():
+            format = self._text_cursor.charFormat()
+            format.setAnchorHref("")
+            self._text_cursor.mergeBlockCharFormat(format)
         self.applied.emit()
 
     def turnItalic(self, is_italic: bool) -> None:
         format: QTextCharFormat = QTextCharFormat()
         format.setFontItalic(is_italic)
         self._text_cursor.mergeCharFormat(format)
-        self._text_cursor.mergeBlockCharFormat(format)
+        if self._text_cursor.atBlockStart() and self._text_cursor.atBlockEnd():
+            format = self._text_cursor.charFormat()
+            format.setAnchorHref("")
+            self._text_cursor.mergeBlockCharFormat(format)
         self.applied.emit()
 
     def turnUnderlined(self, is_underlined: bool) -> None:
         format: QTextCharFormat = QTextCharFormat()
         format.setFontUnderline(is_underlined)
         self._text_cursor.mergeCharFormat(format)
-        self._text_cursor.mergeBlockCharFormat(format)
+        if self._text_cursor.atBlockStart() and self._text_cursor.atBlockEnd():
+            format = self._text_cursor.charFormat()
+            format.setAnchorHref("")
+            self._text_cursor.mergeBlockCharFormat(format)
         self.applied.emit()

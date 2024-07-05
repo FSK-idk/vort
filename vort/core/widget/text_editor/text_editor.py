@@ -87,7 +87,6 @@ class TextEditor(QObject):
         self.cursor_timer.setInterval(100)
         self.cursor_timer.timeout.connect(self.updateCursorShape)
         self.cursor_timer.start()
-        self.is_only_control_pressed = False
 
         # component
 
@@ -125,7 +124,6 @@ class TextEditor(QObject):
         # signal
 
         self.ui.keyPressed.connect(self.onKeyPressed)
-        self.ui.keyReleased.connect(self.onKeyReleased)
         self.ui.mousePressed.connect(self.onMousePressed)
         self.ui.mouseReleased.connect(self.onMouseReleased)
         self.ui.mouseMoved.connect(self.onMouseMoved)
@@ -138,9 +136,7 @@ class TextEditor(QObject):
 
     # TODO: DEBUG
     def test(self) -> None:
-        format = self.text_cursor.blockCharFormat()
-        print(format.fontPointSize())
-        self.repaintViewport()
+        print(self.text_cursor.position(), self.text_cursor.charFormat().isImageFormat())
         pass
 
     def test2(self) -> None:
@@ -211,7 +207,10 @@ class TextEditor(QObject):
         hit_result = self.text_canvas.hitTest(point)
         self.last_hit_result = hit_result
 
-        if hit_result.hit == Hit.Hyperlink and self.is_only_control_pressed:
+        if (
+            hit_result.hit == Hit.Hyperlink
+            and Qt.KeyboardModifier.ControlModifier == QGuiApplication.queryKeyboardModifiers()
+        ):
             QDesktopServices.openUrl(hit_result.data)
 
     @Slot(QMouseEvent)
@@ -237,14 +236,8 @@ class TextEditor(QObject):
 
     @Slot(QKeyEvent)
     def onKeyPressed(self, event: QKeyEvent) -> None:
-        self.is_only_control_pressed = Qt.KeyboardModifier.ControlModifier == event.modifiers()
-
         self.move_component.keyPress(event.key())
         self.input_component.input(event)
-
-    @Slot(QKeyEvent)
-    def onKeyReleased(self, event: QKeyEvent) -> None:
-        self.is_only_control_pressed = Qt.KeyboardModifier.ControlModifier == event.modifiers()
 
     @Slot()
     def updateCursorShape(self) -> None:
@@ -253,7 +246,7 @@ class TextEditor(QObject):
         elif self.last_hit_result.hit == Hit.Image:
             QGuiApplication.setOverrideCursor(Qt.CursorShape.CrossCursor)
         elif self.last_hit_result.hit == Hit.Hyperlink:
-            if self.is_only_control_pressed:
+            if Qt.KeyboardModifier.ControlModifier == QGuiApplication.queryKeyboardModifiers():
                 QGuiApplication.setOverrideCursor(Qt.CursorShape.PointingHandCursor)
             else:
                 QGuiApplication.setOverrideCursor(Qt.CursorShape.IBeamCursor)

@@ -5,7 +5,6 @@ from PySide6.QtGui import QKeyEvent, QMouseEvent, QKeyEvent, QWheelEvent, QGuiAp
 
 class TextEditorUI(QGraphicsView):
     keyPressed = Signal(QKeyEvent)
-    keyReleased = Signal(QKeyEvent)
     mousePressed = Signal(QMouseEvent)
     mouseReleased = Signal(QMouseEvent)
     mouseMoved = Signal(QMouseEvent)
@@ -83,9 +82,6 @@ class TextEditorUI(QGraphicsView):
     def event(self, event: QEvent) -> bool:
         if isinstance(event, QKeyEvent) and event.type() == QEvent.Type.KeyPress:
             self.keyPressed.emit(event)
-            return True
-        if isinstance(event, QKeyEvent) and event.type() == QEvent.Type.KeyRelease:
-            self.keyReleased.emit(event)
             return True
 
         return super().event(event)
