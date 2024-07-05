@@ -1,4 +1,4 @@
-from PySide6.QtCore import QTimerEvent, Qt, Signal, QMimeData, QObject, Slot, QRectF, QTimer
+from PySide6.QtCore import Qt, Signal, QMimeData, QObject, Slot, QRectF, QTimer, QEvent
 from PySide6.QtWidgets import QWidget, QGraphicsScene, QToolTip
 from PySide6.QtGui import (
     QGuiApplication,
@@ -129,6 +129,7 @@ class TextEditor(QObject):
         self.ui.mousePressed.connect(self.onMousePressed)
         self.ui.mouseReleased.connect(self.onMouseReleased)
         self.ui.mouseMoved.connect(self.onMouseMoved)
+        self.ui.mouseLeft.connect(self.onMouseLeft)
 
         self.text_canvas.sizeChanged.connect(self.onCanvasSizeChanged)
         self.text_canvas.characterCountChanged.connect(self.characterCountChanged.emit)
@@ -137,7 +138,8 @@ class TextEditor(QObject):
 
     # TODO: DEBUG
     def test(self) -> None:
-
+        format = self.text_cursor.blockCharFormat()
+        print(format.fontPointSize())
         self.repaintViewport()
         pass
 
@@ -228,6 +230,10 @@ class TextEditor(QObject):
 
         if event.buttons() == Qt.MouseButton.LeftButton:
             self.move_component.pointMove(hit_result)
+
+    @Slot(QEvent)
+    def onMouseLeft(self, event: QEvent) -> None:
+        self.last_hit_result = HitResult()
 
     @Slot(QKeyEvent)
     def onKeyPressed(self, event: QKeyEvent) -> None:

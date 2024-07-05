@@ -25,12 +25,15 @@ img_count = 0
 class InputComponent(Component):
     def cut(self) -> None:
         if self._text_cursor.hasSelection():
+            self._text_cursor.beginEditBlock()
             mime_data: QMimeData = QMimeData()
             selection = self._text_cursor.selection()
             mime_data.setText(selection.toPlainText())
             mime_data.setHtml(selection.toHtml())
             QGuiApplication.clipboard().setMimeData(mime_data)
             self._text_cursor.removeSelectedText()
+            self.fixup()
+            self._text_cursor.endEditBlock()
             self.applied.emit()
 
     def copy(self) -> None:
@@ -40,6 +43,7 @@ class InputComponent(Component):
             mime_data.setText(selection.toPlainText())
             mime_data.setHtml(selection.toHtml())
             QGuiApplication.clipboard().setMimeData(mime_data)
+            self.fixup()
             self.applied.emit()
 
     def paste(self) -> None:
@@ -61,7 +65,13 @@ class InputComponent(Component):
         is_image_after = self._text_cursor.charFormat().isImageFormat() and self._text_cursor.atBlockStart()
 
         if is_image_before:
+            block_char_format = self._text_cursor.blockCharFormat()
             self._text_cursor.insertBlock()
+            self._text_cursor.movePosition(QTextCursor.MoveOperation.EndOfBlock, QTextCursor.MoveMode.KeepAnchor)
+            self._text_cursor.setCharFormat(block_char_format)
+            self._text_cursor.movePosition(QTextCursor.MoveOperation.StartOfBlock, QTextCursor.MoveMode.KeepAnchor)
+            self._text_cursor.clearSelection()
+            self._text_cursor.setBlockCharFormat(block_char_format)
 
         self._text_cursor.insertFragment(QTextDocumentFragment.fromHtml(mime_data.html()))
 
@@ -87,7 +97,13 @@ class InputComponent(Component):
         is_image_after = self._text_cursor.charFormat().isImageFormat() and self._text_cursor.atBlockStart()
 
         if is_image_before:
+            block_char_format = self._text_cursor.blockCharFormat()
             self._text_cursor.insertBlock()
+            self._text_cursor.movePosition(QTextCursor.MoveOperation.EndOfBlock, QTextCursor.MoveMode.KeepAnchor)
+            self._text_cursor.setCharFormat(block_char_format)
+            self._text_cursor.movePosition(QTextCursor.MoveOperation.StartOfBlock, QTextCursor.MoveMode.KeepAnchor)
+            self._text_cursor.clearSelection()
+            self._text_cursor.setBlockCharFormat(block_char_format)
 
         self._text_cursor.insertFragment(QTextDocumentFragment.fromPlainText(mime_data.text()))
 
@@ -109,12 +125,6 @@ class InputComponent(Component):
 
         self._text_cursor.beginEditBlock()
 
-        is_image_before = self._text_cursor.charFormat().isImageFormat() and self._text_cursor.atBlockEnd()
-        is_image_after = self._text_cursor.charFormat().isImageFormat() and self._text_cursor.atBlockStart()
-
-        if is_image_before:
-            self._text_cursor.insertBlock()
-
         global img_count
 
         name: str = f"pasted_image_{img_count}"
@@ -132,11 +142,6 @@ class InputComponent(Component):
 
         self._text_cursor.insertImage(image_format)
 
-        if is_image_after:
-            self._text_cursor.insertBlock()
-            self._text_cursor.movePosition(QTextCursor.MoveOperation.PreviousBlock, QTextCursor.MoveMode.MoveAnchor)
-            self._text_cursor.movePosition(QTextCursor.MoveOperation.EndOfBlock, QTextCursor.MoveMode.MoveAnchor)
-
         self.fixup()
         self._text_cursor.endEditBlock()
         self.applied.emit()
@@ -153,9 +158,18 @@ class InputComponent(Component):
         is_image_after = self._text_cursor.charFormat().isImageFormat() and self._text_cursor.atBlockStart()
 
         if is_image_before:
+            block_char_format = self._text_cursor.blockCharFormat()
             self._text_cursor.insertBlock()
+            self._text_cursor.movePosition(QTextCursor.MoveOperation.EndOfBlock, QTextCursor.MoveMode.KeepAnchor)
+            self._text_cursor.setCharFormat(block_char_format)
+            self._text_cursor.movePosition(QTextCursor.MoveOperation.StartOfBlock, QTextCursor.MoveMode.KeepAnchor)
+            self._text_cursor.clearSelection()
+            self._text_cursor.setBlockCharFormat(block_char_format)
 
         format = self._text_cursor.charFormat()
+        if format.isImageFormat():
+            format = self._text_cursor.blockCharFormat()
+
         format.setAnchorHref(hyperlink)
         self._text_cursor.insertText(text, format)
 
@@ -175,6 +189,10 @@ class InputComponent(Component):
             match event.key():
                 case Qt.Key.Key_Backspace:
                     self._text_cursor.beginEditBlock()
+
+                    # has selection -> delete selection
+                    if self._text_cursor.hasSelection():
+                        self._text_cursor.deletePreviousChar()
 
                     # line with image, left side -> delete image
                     if self._text_cursor.atBlockStart() and self._text_cursor.charFormat().isImageFormat():
@@ -219,8 +237,12 @@ class InputComponent(Component):
 
                     self._text_cursor.endEditBlock()
 
-                case Qt.Key.Key_Delete if not self._text_cursor.hasSelection():
+                case Qt.Key.Key_Delete:
                     self._text_cursor.beginEditBlock()
+
+                    # has selection -> delete selection
+                    if self._text_cursor.hasSelection():
+                        self._text_cursor.deleteChar()
 
                     # line with image, left side -> delete image
                     if self._text_cursor.atBlockStart() and self._text_cursor.charFormat().isImageFormat():
@@ -288,6 +310,10 @@ class InputComponent(Component):
                 case Qt.Key.Key_Backspace:
                     self._text_cursor.beginEditBlock()
 
+                    # has selection -> delete selection
+                    if self._text_cursor.hasSelection():
+                        self._text_cursor.deletePreviousChar()
+
                     # line with image, left side -> delete char from prev line
                     if (
                         self._text_cursor.atBlockStart()
@@ -341,9 +367,12 @@ class InputComponent(Component):
                 case Qt.Key.Key_Delete:
                     self._text_cursor.beginEditBlock()
 
+                    # has selection -> delete selection
+                    if self._text_cursor.hasSelection():
+                        self._text_cursor.deleteChar()
+
                     # line with image, left side -> delete image
                     if self._text_cursor.atBlockStart() and self._text_cursor.charFormat().isImageFormat():
-                        print("pr")
                         self._text_cursor.movePosition(
                             QTextCursor.MoveOperation.EndOfBlock, QTextCursor.MoveMode.KeepAnchor
                         )

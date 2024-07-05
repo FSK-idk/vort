@@ -1,6 +1,8 @@
 from PySide6.QtCore import Qt, QObject, Slot
 from PySide6.QtGui import QFont, QColor, QGuiApplication
 
+from core.widget.text_editor.component.select_component import HyperlinkSelection
+
 from core.window.text_editor_window_ui import TextEditorWindowUI
 from core.window.dialog.edit_paragraph_dialog_ui import EditParagraphDialogUI, EditParagraphDialogContext
 from core.window.dialog.edit_hyperlink_dialog_ui import EditHyperlinkDialogUI, EditHyperlinkDialogContext
@@ -257,7 +259,9 @@ class TextEditorWindow(QObject):
     @Slot()
     def insertHyperlink(self) -> None:
         context: EditHyperlinkDialogContext = EditHyperlinkDialogContext()
-        context.text, context.hyperlink = self.ui.text_editor.select_component.selectedHyperlink()
+        selection: HyperlinkSelection = self.ui.text_editor.select_component.selectedHyperlink()
+        context.text = selection.text
+        context.hyperlink = selection.hyperlink
 
         dialog = EditHyperlinkDialogUI(context)
         if dialog.exec():

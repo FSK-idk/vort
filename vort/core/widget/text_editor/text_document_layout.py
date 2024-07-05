@@ -199,10 +199,16 @@ class TextDocumentLayout(QAbstractTextDocumentLayout):
                 y_image: float = root_y + block_y
                 self.__images.append(ImageLayout(QRectF(x_image, y_image, image_width, image_height), image_name, image_position))
 
+                block_layout.beginLayout()
+                line: QTextLine = block_layout.createLine()
+                line.setLineWidth(image_width)
+                line.setPosition(QPointF(x_image, y_image))
+                block_layout.endLayout()
+
                 root_y += image_height + block_format.topMargin() + block_format.bottomMargin()
                 remaining_text_height -= image_height + block_format.topMargin() + block_format.bottomMargin()
 
-                # no lines need to be created
+                # no more lines in this block
                 continue
 
             block_layout.beginLayout()
@@ -343,15 +349,20 @@ class TextDocumentLayout(QAbstractTextDocumentLayout):
 
         carriage_position: QPointF = QPointF(0, 0)
 
-        print("----")
-
         for i in range(self.document().blockCount()):
             block: QTextBlock = self.document().findBlockByNumber(i)
             block_layout: QTextLayout = block.layout()
             block_position: int = block.position()
             block_length: int = block.length()
 
-            # check for hyperlinks
+            # don't show symbol obj 
+            it: QTextBlock.iterator = block.begin()
+            if it != block.end():
+                fragment: QTextFragment = it.fragment()
+                if fragment.charFormat().isImageFormat():
+                    continue
+
+            # show hyperlinks
             selections : list[Selection] = []
 
             it: QTextBlock.iterator = block.begin()
@@ -369,8 +380,6 @@ class TextDocumentLayout(QAbstractTextDocumentLayout):
                     selections.append(selection)
 
                 it += 1
-            
-            print([(selection.start, selection.end) for selection in selections])
 
             format_ranges: list[QTextLayout.FormatRange] = []
 
@@ -384,7 +393,7 @@ class TextDocumentLayout(QAbstractTextDocumentLayout):
                     format_range.format = selection.format  # type: ignore
                     format_ranges.append(format_range)
 
-
+            # show cursor selection
             if cursor_selection is not None:
                 selection_start: int = cursor_selection.start - block_position
                 selection_end: int = cursor_selection.end - block_position
@@ -453,6 +462,7 @@ class TextDocumentLayout(QAbstractTextDocumentLayout):
         result.position = -1
         return result
 
+    # TODO: return HitResult
     def blockTest(self, position: int) -> PointF:
         current_cursor_position = 0
 

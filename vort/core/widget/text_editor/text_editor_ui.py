@@ -9,6 +9,7 @@ class TextEditorUI(QGraphicsView):
     mousePressed = Signal(QMouseEvent)
     mouseReleased = Signal(QMouseEvent)
     mouseMoved = Signal(QMouseEvent)
+    mouseLeft = Signal(QEvent)
 
     zoomFactorChanged = Signal(float)
 
@@ -98,5 +99,8 @@ class TextEditorUI(QGraphicsView):
                     self.mouseReleased.emit(event)
                 case QEvent.Type.MouseMove:
                     self.mouseMoved.emit(event)
+        match event.type():
+            case QEvent.Type.Leave:
+                self.mouseLeft.emit(event)
 
         return super().viewportEvent(event)
