@@ -12,10 +12,7 @@ from PySide6.QtGui import (
     QTextDocumentFragment,
 )
 
-from util.point_f import PointF
-
 from core.widget.text_editor.component.component import Component
-from core.widget.text_editor.text_canvas import TextCanvas
 
 
 # TODO: use hash

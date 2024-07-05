@@ -1,6 +1,6 @@
 from enum import Enum
 
-from PySide6.QtCore import QPointF, Signal, QRect, QRectF, QUrl
+from PySide6.QtCore import QPointF, Signal, QRect, QRectF, Qt
 from PySide6.QtGui import (
     QAbstractTextDocumentLayout,
     QTextDocument,
@@ -18,11 +18,12 @@ from PySide6.QtGui import (
     QTextFragment,
     QTextImageFormat,
     QImage,
+    QFont,
 )
 
 from util import PointF, RectF
 
-from core.widget.text_editor.page_layout import PageLayout
+from core.widget.text_editor.layout.page_layout import PageLayout
 
 
 class Hit(Enum):
@@ -65,13 +66,13 @@ class PaintContext:
         painter: QPainter = QPainter(),
         viewport_rect: RectF = RectF(),
         cursor_position: int = -1,
-        cursor_selection: Selection | None = None,
+        cursor_selection: Selection = Selection(),
         page_color: QColor = QColor("white"),
     ) -> None:
         self.painter = painter
         self.viewport_rect: RectF = viewport_rect
         self.cursor_position: int = cursor_position
-        self.cursor_selection: Selection | None = cursor_selection
+        self.cursor_selection: Selection = cursor_selection
         self.page_color: QColor = page_color
 
 
@@ -79,30 +80,25 @@ class TextDocumentLayout(QAbstractTextDocumentLayout):
     sizeChanged = Signal(PointF)
     characterCountChanged = Signal(int)
 
-    def __init__(self, document: QTextDocument) -> None:
+    def __init__(self, document: QTextDocument, page_layout: PageLayout) -> None:
         super().__init__(document)
 
-        self.__character_count: int = 0
-        self.page_layout: PageLayout = PageLayout()
+        self.__page_layout: PageLayout = page_layout
 
+        self.__character_count: int = 0
         self.__images: list[ImageLayout] = []
 
         # TODO: to config
         dpi = QGuiApplication.screens()[0].logicalDotsPerInch()
         self.__default_indent_step: float = 1 * dpi / 2.54
 
-        self.page_layout.sizeChanged.connect(self.sizeChanged.emit)
-
-    def pageCount(self) -> int:
-        return self.page_layout.pageCount()
+        self.__page_layout.sizeChanged.connect(self.sizeChanged.emit)
 
     def characterCount(self) -> int:
         return self.__character_count
 
         -alignment
         -heading_level
-        +images
-        -hyperlinks
 
     # fmt: off
 
@@ -114,14 +110,12 @@ class TextDocumentLayout(QAbstractTextDocumentLayout):
         character_count: int = 0
         page_count: int = 1
 
-        root_x = self.page_layout.pageMargin() + self.page_layout.pagePadding()
-        root_y = self.page_layout.pageMargin() + self.page_layout.pagePadding()
-
-        root_width_reduce: float = (self.page_layout.pageMargin() + self.page_layout.pagePadding()) * 2
-        remaining_text_height: float = (
-            self.page_layout.pageHeight() - (self.page_layout.pageMargin() + self.page_layout.pagePadding()) * 2
-        )
-        text_height = self.page_layout.pageHeight() - (self.page_layout.pageMargin() + self.page_layout.pagePadding()) * 2
+        root_x = self.__page_layout.textXPosition()
+        root_y = self.__page_layout.textYPosition()
+        
+        root_width_reduce: float = (self.__page_layout.pageMargin() + self.__page_layout.pagePadding()) * 2
+        remaining_text_height: float = self.__page_layout.textHeight()
+        text_height = self.__page_layout.textHeight()
 
         document: QTextDocument = self.document()
 
@@ -182,14 +176,14 @@ class TextDocumentLayout(QAbstractTextDocumentLayout):
                 image_width, image_height, image_name, image_position = image
 
                 if (remaining_text_height != text_height) and (remaining_text_height - image_height - block_format.topMargin() - block_format.bottomMargin() <= 0) :
-                    if self.page_layout.pageCount() == page_count:
-                        self.page_layout.addPage()
+                    if self.__page_layout.pageCount() == page_count:
+                        self.__page_layout.addPage()
                     page_count += 1
 
                     root_y += (
-                        remaining_text_height
-                        + (self.page_layout.pageMargin() + self.page_layout.pagePadding()) * 2
-                        + self.page_layout.spacing()
+                        remaining_text_height + self.__page_layout.footerHeight()
+                        + (self.__page_layout.pageMargin() + self.__page_layout.pagePadding()) * 2
+                        + self.__page_layout.spacing()
                     )
 
                     remaining_text_height = text_height
@@ -218,27 +212,27 @@ class TextDocumentLayout(QAbstractTextDocumentLayout):
             while line.isValid():
                 if is_first_line:
                     line.setLineWidth(
-                        self.page_layout.pageWidth()
+                        self.__page_layout.pageWidth()
                         - root_width_reduce
                         - block_width_reduce
                         - block_format.textIndent()
                     )
 
                     if (remaining_text_height != text_height) and (remaining_text_height - line.height() - block_format.topMargin() <= 0):
-                        if self.page_layout.pageCount() == page_count:
-                            self.page_layout.addPage()
+                        if self.__page_layout.pageCount() == page_count:
+                            self.__page_layout.addPage()
                         page_count += 1
 
                         root_y += (
-                            remaining_text_height
-                            + (self.page_layout.pageMargin() + self.page_layout.pagePadding()) * 2
-                            + self.page_layout.spacing()
+                            remaining_text_height + self.__page_layout.footerHeight()
+                            + (self.__page_layout.pageMargin() + self.__page_layout.pagePadding()) * 2
+                            + self.__page_layout.spacing()
                         )
 
                         remaining_text_height = text_height
 
                         line.setLineWidth(
-                            self.page_layout.pageWidth()
+                            self.__page_layout.pageWidth()
                             - root_width_reduce
                             - block_width_reduce
                             - block_format.textIndent()
@@ -254,22 +248,22 @@ class TextDocumentLayout(QAbstractTextDocumentLayout):
                     is_first_line = False
 
                 else:
-                    line.setLineWidth(self.page_layout.pageWidth() - root_width_reduce - block_width_reduce)
+                    line.setLineWidth(self.__page_layout.pageWidth() - root_width_reduce - block_width_reduce)
 
                     if (remaining_text_height != text_height) and ( remaining_text_height - line.height() <= 0):
-                        if self.page_layout.pageCount() == page_count:
-                            self.page_layout.addPage()
+                        if self.__page_layout.pageCount() == page_count:
+                            self.__page_layout.addPage()
                         page_count += 1
 
                         block_y += (
-                            remaining_text_height
-                            + (self.page_layout.pageMargin() + self.page_layout.pagePadding()) * 2
-                            + self.page_layout.spacing()
+                            remaining_text_height+ self.__page_layout.footerHeight()
+                            + (self.__page_layout.pageMargin() + self.__page_layout.pagePadding()) * 2
+                            + self.__page_layout.spacing()
                         )
 
                         remaining_text_height = text_height
 
-                        line.setLineWidth(self.page_layout.pageWidth() - root_width_reduce - block_width_reduce)
+                        line.setLineWidth(self.__page_layout.pageWidth() - root_width_reduce - block_width_reduce)
 
                     line.setPosition(QPointF(root_x + block_x, root_y + block_y))
                     block_y += line.height() * block_format.lineHeight()
@@ -283,14 +277,14 @@ class TextDocumentLayout(QAbstractTextDocumentLayout):
             root_y += block_y
 
             if (remaining_text_height != text_height) and ( remaining_text_height - block_format.bottomMargin() <= 0):
-                if self.page_layout.pageCount() == page_count:
-                    self.page_layout.addPage()
+                if self.__page_layout.pageCount() == page_count:
+                    self.__page_layout.addPage()
                 page_count += 1
 
                 root_y += (
-                    remaining_text_height
-                    + (self.page_layout.pageMargin() + self.page_layout.pagePadding()) * 2
-                    + self.page_layout.spacing()
+                    remaining_text_height+ self.__page_layout.footerHeight()
+                    + (self.__page_layout.pageMargin() + self.__page_layout.pagePadding()) * 2
+                    + self.__page_layout.spacing()
                 )
 
                 remaining_text_height = text_height
@@ -301,8 +295,8 @@ class TextDocumentLayout(QAbstractTextDocumentLayout):
 
             block_layout.endLayout()
 
-        if self.page_layout.pageCount() > page_count:
-            self.page_layout.removePage(self.page_layout.pageCount() - page_count)
+        if self.__page_layout.pageCount() > page_count:
+            self.__page_layout.removePage(self.__page_layout.pageCount() - page_count)
 
         if self.__character_count != character_count:
             self.__character_count = character_count
@@ -328,24 +322,24 @@ class TextDocumentLayout(QAbstractTextDocumentLayout):
         current_x_position: float = 0
         current_y_position: float = 0
 
-        for i in range(self.page_layout.pageCount()):
+        for i in range(self.__page_layout.pageCount()):
             page_rect: RectF = RectF(
                 current_x_position,
                 current_y_position,
-                self.page_layout.pageWidth(),
-                self.page_layout.pageHeight(),
+                self.__page_layout.pageWidth(),
+                self.__page_layout.pageHeight(),
             )
             clip = page_rect.toQRectF().intersected(viewport_rect.toQRectF())
 
             painter.fillRect(clip, page_color)
 
-            current_y_position += self.page_layout.pageHeight() + self.page_layout.spacing()
+            current_y_position += self.__page_layout.pageHeight() + self.__page_layout.spacing()
 
     def paintText(self, context: PaintContext):
         painter: QPainter = context.painter
         viewport_rect: RectF = context.viewport_rect
         cursor_position: int = context.cursor_position
-        cursor_selection: Selection | None = context.cursor_selection
+        cursor_selection: Selection = context.cursor_selection
 
         carriage_position: QPointF = QPointF(0, 0)
 
@@ -394,25 +388,26 @@ class TextDocumentLayout(QAbstractTextDocumentLayout):
                     format_ranges.append(format_range)
 
             # show cursor selection
-            if cursor_selection is not None:
-                selection_start: int = cursor_selection.start - block_position
-                selection_end: int = cursor_selection.end - block_position
-                if selection_start < block_length and selection_end > 0:
-                    format_range: QTextLayout.FormatRange = QTextLayout.FormatRange()
-                    format_range.start = selection_start  # type: ignore
-                    format_range.length = selection_end - selection_start  # type: ignore
-                    format_range.format = cursor_selection.format  # type: ignore
-                    format_ranges.append(format_range)
+            selection_start: int = cursor_selection.start - block_position
+            selection_end: int = cursor_selection.end - block_position
+            if selection_start < block_length and selection_end > 0 and selection_start < selection_end:
+                format_range: QTextLayout.FormatRange = QTextLayout.FormatRange()
+                format_range.start = selection_start  # type: ignore
+                format_range.length = selection_end - selection_start  # type: ignore
+                format_range.format = cursor_selection.format  # type: ignore
+                format_ranges.append(format_range)
 
             block_layout.draw(painter, carriage_position, format_ranges, viewport_rect.toQRectF())
 
-            if cursor_position >= block_position and cursor_position < block_position + block_length and cursor_selection is None:
+            if cursor_position >= block_position and cursor_position < block_position + block_length and selection_start == selection_end:
                 block_layout.drawCursor(painter, carriage_position, cursor_position - block_position)
 
     def paintImage(self, context: PaintContext):
         painter: QPainter = context.painter
         for image_layout in self.__images:
             painter.drawImage(image_layout.image_rect, self.document().resource(QTextDocument.ResourceType.ImageResource, image_layout.image_name))
+
+
 
     def hitTest(self, point: PointF) -> HitResult:
         result: HitResult = HitResult()

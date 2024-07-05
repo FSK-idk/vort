@@ -114,7 +114,7 @@ class TextEditorWindow(QObject):
 
         # page
 
-        self.ui.turn_pagination_action.triggered.connect(self.turnPagination)
+        self.ui.turn_pagination_action.triggered.connect(self.onUserPaginationTurned)
 
         # edit
 
@@ -184,6 +184,11 @@ class TextEditorWindow(QObject):
         # space
 
         self.onUserLineSpacingChanged(1.0)
+
+        # pagination
+
+        self.onUserPaginationTurned(True)
+        self.onTextEditorPaginationTurned(True)
 
         # status
 
@@ -450,8 +455,15 @@ class TextEditorWindow(QObject):
 
     # page
 
-    def turnPagination(self) -> None:
-        print("turnPagination")
+    @Slot(bool)
+    def onUserPaginationTurned(self, is_shown) -> None:
+        self.ui.text_editor.setFooterShown(is_shown)
+
+    @Slot(bool)
+    def onTextEditorPaginationTurned(self, is_shown) -> None:
+        self.ui.turn_pagination_action.blockSignals(True)
+        self.ui.turn_pagination_action.setChecked(is_shown)
+        self.ui.turn_pagination_action.blockSignals(False)
 
     # edit
 

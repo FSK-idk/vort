@@ -36,14 +36,26 @@ from core.widget.text_editor.component.spacing_component import SpacingComponent
 from core.widget.text_editor.component.move_component import MoveComponent
 from core.widget.text_editor.component.input_component import InputComponent
 
-from core.widget.text_editor.text_canvas import TextCanvas
-from core.widget.text_editor.text_document_layout import HitResult, Hit
+from core.widget.text_editor.layout.text_canvas import TextCanvas
+from core.widget.text_editor.layout.text_document_layout import TextDocumentLayout, HitResult, Hit
+from core.widget.text_editor.layout.page_layout import PageLayout
 
 
 # text editor only supports one cursor at a time
 
-# TODO: DEBUG
-count_img = 0
+
+class DocumentContext:
+    def __init__(
+        self,
+        page_layout: PageLayout,
+        text_document: QTextDocument,
+        text_document_layout: TextDocumentLayout,
+        text_cursor: QTextCursor,
+    ) -> None:
+        self.page_layout: PageLayout = page_layout
+        self.text_documuent: QTextDocument = text_document
+        self.text_document_layout: TextDocumentLayout = text_document_layout
+        self.text_cursor: QTextCursor = text_cursor
 
 
 class TextEditor(QObject):
@@ -67,20 +79,29 @@ class TextEditor(QObject):
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
 
-        self.text_document: QTextDocument = QTextDocument()
-        self.text_cursor: QTextCursor = QTextCursor(self.text_document)
+        text_document: QTextDocument = QTextDocument()
+        page_layout: PageLayout = PageLayout()
+        text_document_layout: TextDocumentLayout = TextDocumentLayout(text_document, page_layout)
+        text_document.setDocumentLayout(text_document_layout)
+        text_cursor: QTextCursor = QTextCursor(text_document)
 
-        self.scene: QGraphicsScene = QGraphicsScene(parent)
+        self.__document_context = DocumentContext(page_layout, text_document, text_document_layout, text_cursor)
+
+        self.__scene: QGraphicsScene = QGraphicsScene(parent)
+
         self.ui: TextEditorUI = TextEditorUI(parent)
-        self.ui.setScene(self.scene)
+        self.ui.setScene(self.__scene)
         self.ui.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignHCenter)
 
-        self.text_canvas: TextCanvas = TextCanvas()
-        self.scene.addWidget(self.text_canvas)
-        self.text_canvas.setTextContext(self.text_document, self.text_cursor)
+        self.__text_canvas: TextCanvas = TextCanvas(
+            self.__document_context.page_layout,
+            self.__document_context.text_document_layout,
+            self.__document_context.text_cursor,
+        )
+        self.__scene.addWidget(self.__text_canvas)
 
-        self.ui.horizontalScrollBar().setPageStep(int(self.text_canvas.pageWidth()))
-        self.ui.verticalScrollBar().setPageStep(int(self.text_canvas.pageHeight()))
+        self.ui.horizontalScrollBar().setPageStep(int(self.__text_canvas.pageWidth()))
+        self.ui.verticalScrollBar().setPageStep(int(self.__text_canvas.pageHeight()))
 
         self.last_hit_result: HitResult = HitResult()
         self.cursor_timer: QTimer = QTimer(self)
@@ -90,34 +111,34 @@ class TextEditor(QObject):
 
         # component
 
-        self.history_component: HistoryComponent = HistoryComponent(self.text_cursor)
+        self.history_component: HistoryComponent = HistoryComponent(self.__document_context.text_cursor)
         self.history_component.applied.connect(self.repaintViewport)
         self.history_component.applied.connect(self.onCursorPositionChanged)
 
-        self.history_component: HistoryComponent = HistoryComponent(self.text_cursor)
+        self.history_component: HistoryComponent = HistoryComponent(self.__document_context.text_cursor)
         self.history_component.applied.connect(self.repaintViewport)
         self.history_component.applied.connect(self.onCursorPositionChanged)
 
-        self.select_component: SelectComponent = SelectComponent(self.text_cursor)
+        self.select_component: SelectComponent = SelectComponent(self.__document_context.text_cursor)
         self.select_component.applied.connect(self.repaintViewport)
 
-        self.font_component: FontComponent = FontComponent(self.text_cursor)
+        self.font_component: FontComponent = FontComponent(self.__document_context.text_cursor)
         self.font_component.applied.connect(self.repaintViewport)
 
-        self.format_component: FormatComponent = FormatComponent(self.text_cursor)
+        self.format_component: FormatComponent = FormatComponent(self.__document_context.text_cursor)
         self.format_component.applied.connect(self.repaintViewport)
 
-        self.color_component: ColorComponent = ColorComponent(self.text_cursor)
+        self.color_component: ColorComponent = ColorComponent(self.__document_context.text_cursor)
         self.color_component.applied.connect(self.repaintViewport)
 
-        self.spacing_component: SpacingComponent = SpacingComponent(self.text_cursor)
+        self.spacing_component: SpacingComponent = SpacingComponent(self.__document_context.text_cursor)
         self.spacing_component.applied.connect(self.repaintViewport)
 
-        self.move_component: MoveComponent = MoveComponent(self.text_cursor, self.text_canvas)
+        self.move_component: MoveComponent = MoveComponent(self.__document_context.text_cursor)
         self.move_component.applied.connect(self.repaintViewport)
         self.move_component.applied.connect(self.onCursorPositionChanged)
 
-        self.input_component: InputComponent = InputComponent(self.text_cursor)
+        self.input_component: InputComponent = InputComponent(self.__document_context.text_cursor)
         self.input_component.applied.connect(self.repaintViewport)
         self.input_component.applied.connect(self.onCursorPositionChanged)
 
@@ -129,14 +150,14 @@ class TextEditor(QObject):
         self.ui.mouseMoved.connect(self.onMouseMoved)
         self.ui.mouseLeft.connect(self.onMouseLeft)
 
-        self.text_canvas.sizeChanged.connect(self.onCanvasSizeChanged)
-        self.text_canvas.characterCountChanged.connect(self.characterCountChanged.emit)
+        self.__text_canvas.sizeChanged.connect(self.onCanvasSizeChanged)
+        self.__text_canvas.characterCountChanged.connect(self.characterCountChanged.emit)
 
         self.ui.zoomFactorChanged.connect(self.zoomFactorSelected.emit)
 
     # TODO: DEBUG
     def test(self) -> None:
-        print(self.text_cursor.position(), self.text_cursor.charFormat().isImageFormat())
+        self.repaintViewport()
         pass
 
     def test2(self) -> None:
@@ -144,21 +165,25 @@ class TextEditor(QObject):
         self.repaintViewport()
         return
 
+    def setFooterShown(self, is_shown: bool) -> None:
+        self.__text_canvas.setFooterShown(is_shown)
+        self.repaintViewport()
+
     def setZoomFactor(self, zoom_factor: float) -> None:
         self.ui.setZoomFactor(zoom_factor)
 
     @Slot(PointF)
     def onCanvasSizeChanged(self, size: PointF) -> None:
-        self.scene.setSceneRect(QRectF(0, 0, size.xPosition(), size.yPosition()))
+        self.__scene.setSceneRect(QRectF(0, 0, size.xPosition(), size.yPosition()))
 
     @Slot()
     def onCursorPositionChanged(self) -> None:
-        position: int = self.text_cursor.position()
-        block_point: PointF = self.text_canvas.blockTest(position)
+        position: int = self.__document_context.text_cursor.position()
+        block_point: PointF = self.__text_canvas.blockTest(position)
         self.ui.ensureVisible(block_point.xPosition(), block_point.yPosition(), 1, 1)
 
-        char_format: QTextCharFormat = self.text_cursor.charFormat()
-        block_format: QTextBlockFormat = self.text_cursor.blockFormat()
+        char_format: QTextCharFormat = self.__document_context.text_cursor.charFormat()
+        block_format: QTextBlockFormat = self.__document_context.text_cursor.blockFormat()
 
         # font
 
@@ -195,7 +220,7 @@ class TextEditor(QObject):
     @Slot(QMouseEvent)
     def onMousePressed(self, event: QMouseEvent) -> None:
         point = PointF.fromQPointF(self.ui.mapToScene(event.position().toPoint()))
-        hit_result = self.text_canvas.hitTest(point)
+        hit_result = self.__text_canvas.hitTest(point)
         self.last_hit_result = hit_result
 
         if event.button() == Qt.MouseButton.LeftButton:
@@ -204,7 +229,7 @@ class TextEditor(QObject):
     @Slot(QMouseEvent)
     def onMouseReleased(self, event: QMouseEvent) -> None:
         point = PointF.fromQPointF(self.ui.mapToScene(event.position().toPoint()))
-        hit_result = self.text_canvas.hitTest(point)
+        hit_result = self.__text_canvas.hitTest(point)
         self.last_hit_result = hit_result
 
         if (
@@ -216,7 +241,7 @@ class TextEditor(QObject):
     @Slot(QMouseEvent)
     def onMouseMoved(self, event: QMouseEvent) -> None:
         point = PointF.fromQPointF(self.ui.mapToScene(event.position().toPoint()))
-        hit_result = self.text_canvas.hitTest(point)
+        hit_result = self.__text_canvas.hitTest(point)
         self.last_hit_result = hit_result
 
         self.is_tool_tip_shown = False

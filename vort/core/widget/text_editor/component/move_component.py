@@ -1,18 +1,14 @@
 from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QTextCursor, QGuiApplication, QMouseEvent
+from PySide6.QtGui import QTextCursor, QGuiApplication
 
 from util.point_f import PointF
 
 from core.widget.text_editor.component.component import Component
-from core.widget.text_editor.text_canvas import TextCanvas
-from core.widget.text_editor.text_document_layout import HitResult, Hit
+from core.widget.text_editor.layout.text_canvas import TextCanvas
+from core.widget.text_editor.layout.text_document_layout import HitResult, Hit
 
 
 class MoveComponent(Component):
-    def __init__(self, text_cursor: QTextCursor, text_canvas: TextCanvas) -> None:
-        super().__init__(text_cursor)
-        self.__text_canvas = text_canvas
-
     def pointPress(self, result: HitResult) -> None:
         if result.hit != Hit.NoHit:
             self._text_cursor.setPosition(result.position, QTextCursor.MoveMode.MoveAnchor)

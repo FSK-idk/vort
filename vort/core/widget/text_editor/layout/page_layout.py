@@ -1,5 +1,6 @@
-from PySide6.QtCore import QObject, Signal
-from PySide6.QtGui import QGuiApplication
+from PySide6.QtCore import QObject, Signal, Qt, QPointF
+from PySide6.QtWidgets import QGraphicsItem, QGraphicsTextItem
+from PySide6.QtGui import QGuiApplication, QFont, QColor, QTextCursor, QTextCharFormat, QTextItem, QTextBlock
 
 from util import PointF
 
@@ -20,6 +21,7 @@ class Page:
 
 class PageLayout(QObject):
     sizeChanged = Signal(PointF)
+    pageCountChanged = Signal(int)
 
     def __init__(self) -> None:
         super().__init__()
@@ -33,6 +35,8 @@ class PageLayout(QObject):
         self.__page_padding: float = 1 * dpi / 2.54
         self.__spacing: float = 1 * dpi / 2.54
         self.__page_count: int = 1  # at least one
+
+        self.__footer_height: float = 1 * dpi / 2.54
 
     def pageWidth(self) -> float:
         return self.__page_width
@@ -71,9 +75,13 @@ class PageLayout(QObject):
         self.__page_count += count
         self.sizeChanged.emit(PointF(self.width(), self.height()))
 
+        self.pageCountChanged.emit(self.__page_count)
+
     def removePage(self, count: int = 1) -> None:
         self.__page_count -= count
         self.sizeChanged.emit(PointF(self.width(), self.height()))
+
+        self.pageCountChanged.emit(self.__page_count)
 
     def height(self) -> float:
         return self.__page_height * self.__page_count + self.__spacing * (self.__page_count - 1)
@@ -81,11 +89,23 @@ class PageLayout(QObject):
     def width(self) -> float:
         return self.__page_width
 
-    def textWidth(self) -> float:
-        return self.__page_width - 2 * (self.__page_margin + self.__page_padding)
+    def footerHeight(self) -> float:
+        return self.__footer_height
 
-    def textHeight(self) -> float:
-        return self.__page_height - 2 * (self.__page_margin + self.__page_padding)
+    def setFooterHeight(self, height: float):
+        self.__footer_height = height
 
     def pagePosition(self, index: int) -> PointF:
         return PointF(0, (self.__page_height + self.__spacing) * (index - 1))
+
+    def textXPosition(self) -> float:
+        return self.__page_margin + self.__page_padding
+
+    def textYPosition(self) -> float:
+        return self.__page_margin + self.__page_padding
+
+    def textWidth(self) -> float:
+        return self.__page_width - (self.__page_margin + self.__page_padding) * 2
+
+    def textHeight(self) -> float:
+        return self.__page_height - (self.__page_margin + self.__page_padding) * 2 - self.__footer_height
