@@ -84,13 +84,20 @@ class SettingsDialogUI(QDialog):
     def openTab(self, name: str) -> None:
         self.tab_widget.setCurrentIndex(self.tab_index[name])
 
-    def onApplyClicked(self) -> bool:
+    def onApplyClicked(self) -> None:
         # validate
+        invalid_tab: str = ""
+
+        if not self.page_settings.validate() and invalid_tab == "":
+            invalid_tab = "page"
 
         # set context
 
-        self.applied.emit(self.context)
-        return True
+        if invalid_tab == "":
+            self.applied.emit(self.context)
+        else:
+            print("invalid tab =", invalid_tab)
+            self.openTab(invalid_tab)
 
     def onOkClicked(self) -> None:
         if self.onApplyClicked():

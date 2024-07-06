@@ -1,93 +1,170 @@
-from PySide6.QtCore import QObject, Signal, Qt, QPointF
-from PySide6.QtWidgets import QGraphicsItem, QGraphicsTextItem
-from PySide6.QtGui import QGuiApplication, QFont, QColor, QTextCursor, QTextCharFormat, QTextItem, QTextBlock
-
-from util import PointF
-
-
-class Page:
-    def __init__(
-        self,
-        width: float = 0,
-        height: float = 0,
-        margin: float = 0,
-        padding: float = 0,
-    ) -> None:
-        self.width: float = width
-        self.height: float = height
-        self.margin: float = margin
-        self.padding: float = padding
+from PySide6.QtCore import QObject, Signal
+from PySide6.QtGui import QColor
 
 
 class PageLayout(QObject):
-    sizeChanged = Signal(PointF)
-    pageCountChanged = Signal(int)
+    # page layout in one column.
+    # you can do two, three, etc. columns or in some way of your own,
+    # if you override pageXPosition and pageYPosition methods
+
+    # page width, page height, spacing, page_count
+    layoutSizeChanged = Signal()
+    # page margins, page paddings, header height, footer height
+    pageLayoutSizeChanged = Signal()
+    # page color, border color
+    colorChanged = Signal()
 
     def __init__(self) -> None:
         super().__init__()
 
-        # TODO: add to config
-        dpi = QGuiApplication.screens()[0].logicalDotsPerInch()
+        self.__page_width: float = 0.0
+        self.__page_height: float = 0.0
+        self.__page_spacing: float = 0.0
 
-        self.__page_width: float = 21 * dpi / 2.54
-        self.__page_height: float = 29.7 * dpi / 2.54
-        self.__page_margin: float = 1 * dpi / 2.54
-        self.__page_padding: float = 1 * dpi / 2.54
-        self.__spacing: float = 1 * dpi / 2.54
         self.__page_count: int = 1  # at least one
 
-        self.__footer_height: float = 1 * dpi / 2.54
+        self.__page_color: QColor = QColor("white")
+
+        self.__page_top_margin: float = 0.0
+        self.__page_bottom_margin: float = 0.0
+        self.__page_left_margin: float = 0.0
+        self.__page_right_margin: float = 0.0
+
+        self.__page_top_padding: float = 0.0
+        self.__page_bottom_padding: float = 0.0
+        self.__page_left_padding: float = 0.0
+        self.__page_right_padding: float = 0.0
+
+        self.__border_width: float = 0.0
+        self.__border_color: QColor = QColor("black")
+
+        self.__header_height: float = 0.0
+        self.__footer_height: float = 0.0
 
     def pageWidth(self) -> float:
         return self.__page_width
 
-    def setPageWidth(self, page_width) -> None:
-        self.__page_width = page_width
+    def setPageWidth(self, width: float) -> None:
+        self.__page_width = width
+        self.layoutSizeChanged.emit()
 
     def pageHeight(self) -> float:
         return self.__page_height
 
-    def setPageHeight(self, page_height) -> None:
-        self.__page_width = page_height
+    def setPageHeight(self, height: float) -> None:
+        self.__page_height = height
+        self.layoutSizeChanged.emit()
 
-    def pageMargin(self) -> float:
-        return self.__page_margin
+    def pageSpacing(self) -> float:
+        return self.__page_spacing
 
-    def setPageMargin(self, page_margin) -> None:
-        self.__page_margin = page_margin
-
-    def pagePadding(self) -> float:
-        return self.__page_padding
-
-    def setPagePadding(self, page_padding) -> None:
-        self.__page_padding = page_padding
-
-    def spacing(self) -> float:
-        return self.__spacing
-
-    def setSpacing(self, spacing) -> None:
-        self.__spacing = spacing
+    def setPageSpacing(self, spacing: float) -> None:
+        self.__page_spacing = spacing
+        self.layoutSizeChanged.emit()
 
     def pageCount(self) -> int:
         return self.__page_count
 
     def addPage(self, count: int = 1) -> None:
         self.__page_count += count
-        self.sizeChanged.emit(PointF(self.width(), self.height()))
-
-        self.pageCountChanged.emit(self.__page_count)
+        self.layoutSizeChanged.emit()
 
     def removePage(self, count: int = 1) -> None:
         self.__page_count -= count
-        self.sizeChanged.emit(PointF(self.width(), self.height()))
-
-        self.pageCountChanged.emit(self.__page_count)
+        self.layoutSizeChanged.emit()
 
     def height(self) -> float:
-        return self.__page_height * self.__page_count + self.__spacing * (self.__page_count - 1)
+        return self.__page_height * self.__page_count + self.__page_spacing * (self.__page_count - 1)
 
     def width(self) -> float:
         return self.__page_width
+
+    def pageXPosition(self, index: int) -> float:
+        return 0.0
+
+    def pageYPosition(self, index: int) -> float:
+        return (self.__page_height + self.__page_spacing) * index
+
+    def pageColor(self) -> QColor:
+        return self.__page_color
+
+    def setPageColor(self, color: QColor) -> None:
+        self.__page_color = color
+        self.colorChanged.emit()
+
+    def pageTopMargin(self) -> float:
+        return self.__page_top_margin
+
+    def setPageTopMargin(self, margin: float) -> None:
+        self.__page_top_margin = margin
+        self.pageLayoutSizeChanged.emit()
+
+    def pageBottomMargin(self) -> float:
+        return self.__page_bottom_margin
+
+    def setPageBottomMargin(self, margin: float) -> None:
+        self.__page_bottom_margin = margin
+        self.pageLayoutSizeChanged.emit()
+
+    def pageLeftMargin(self) -> float:
+        return self.__page_left_margin
+
+    def setPageLeftMargin(self, margin: float) -> None:
+        self.__page_left_margin = margin
+        self.pageLayoutSizeChanged.emit()
+
+    def pageRightMargin(self) -> float:
+        return self.__page_right_margin
+
+    def setPageRightMargin(self, margin: float) -> None:
+        self.__page_right_margin = margin
+        self.pageLayoutSizeChanged.emit()
+
+    def pageTopPadding(self) -> float:
+        return self.__page_top_padding
+
+    def setPageTopPadding(self, padding: float) -> None:
+        self.__page_top_padding = padding
+        self.pageLayoutSizeChanged.emit()
+
+    def pageBottomPadding(self) -> float:
+        return self.__page_bottom_padding
+
+    def setPageBottomPadding(self, padding: float) -> None:
+        self.__page_bottom_padding = padding
+        self.pageLayoutSizeChanged.emit()
+
+    def pageLeftPadding(self) -> float:
+        return self.__page_left_padding
+
+    def setPageLeftPadding(self, padding: float) -> None:
+        self.__page_left_padding = padding
+        self.pageLayoutSizeChanged.emit()
+
+    def pageRightPadding(self) -> float:
+        return self.__page_right_padding
+
+    def setPageRightPadding(self, padding: float) -> None:
+        self.__page_right_padding = padding
+        self.pageLayoutSizeChanged.emit()
+
+    def borderWidth(self) -> float:
+        return self.__border_width
+
+    def setBorderWidth(self, width: float) -> None:
+        self.__border_width = width
+
+    def borderColor(self) -> QColor:
+        return self.__border_color
+
+    def setBorderColor(self, color: QColor) -> None:
+        self.__border_color = color
+
+    def headerHeight(self) -> float:
+        return self.__header_height
+
+    def setHeaderHeight(self, height: float):
+        self.__header_height = height
 
     def footerHeight(self) -> float:
         return self.__footer_height
@@ -95,17 +172,50 @@ class PageLayout(QObject):
     def setFooterHeight(self, height: float):
         self.__footer_height = height
 
-    def pagePosition(self, index: int) -> PointF:
-        return PointF(0, (self.__page_height + self.__spacing) * (index - 1))
-
-    def textXPosition(self) -> float:
-        return self.__page_margin + self.__page_padding
-
-    def textYPosition(self) -> float:
-        return self.__page_margin + self.__page_padding
-
     def textWidth(self) -> float:
-        return self.__page_width - (self.__page_margin + self.__page_padding) * 2
+        return (
+            self.__page_width
+            - self.__page_left_margin
+            - self.__border_width
+            - self.__page_left_padding
+            - self.__page_right_padding
+            - self.__border_width
+            - self.__page_right_margin
+        )
 
     def textHeight(self) -> float:
-        return self.__page_height - (self.__page_margin + self.__page_padding) * 2 - self.__footer_height
+        return (
+            self.__page_height
+            - self.__page_top_margin
+            - self.__border_width
+            - self.__page_top_padding
+            - self.__header_height
+            - self.__footer_height
+            - self.__page_bottom_padding
+            - self.__border_width
+            - self.__page_bottom_margin
+        )
+
+    def textXPosition(self, index: int) -> float:
+        return self.pageXPosition(index) + self.__page_left_margin + self.__border_width + self.__page_left_padding
+
+    def textYPosition(self, index: int) -> float:
+        return (
+            self.pageYPosition(index)
+            + self.__page_top_margin
+            + self.__border_width
+            + self.__page_top_margin
+            + self.__header_height
+        )
+
+    def headerXPosition(self, index: int) -> float:
+        return self.pageXPosition(index) + self.__page_left_margin + self.__border_width + self.__page_left_padding
+
+    def headerYPosition(self, index: int) -> float:
+        return self.pageYPosition(index) + self.__page_top_margin + self.__border_width + self.__page_top_padding
+
+    def footerXPosition(self, index: int) -> float:
+        return self.pageXPosition(index) + self.__page_left_margin + self.__border_width + self.__page_left_padding
+
+    def footerYPosition(self, index: int) -> float:
+        return self.textYPosition(index) + self.textHeight()

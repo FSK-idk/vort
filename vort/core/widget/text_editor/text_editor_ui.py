@@ -19,6 +19,8 @@ class TextEditorUI(QGraphicsView):
         self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
 
+        self.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignHCenter)
+
         # TODO: to config
         self.zoom_factor_max: float = 3.0
         self.zoom_factor_min: float = 0.2

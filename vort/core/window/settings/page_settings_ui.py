@@ -106,7 +106,7 @@ class PageSettingsUI(QScrollArea):
         self.spacing_spin_box.setSingleStep(0.25)
         self.spacing_spin_box.setDecimals(2)
         self.spacing_spin_box.setSuffix(" cm")
-        self.spacing_spin_box.setValue(self.context.height)
+        self.spacing_spin_box.setValue(self.context.spacing)
 
         self.spacing_spin_box_error: QLabel = QLabel(self)
         self.spacing_spin_box_error.setText("Invalid input")
@@ -547,3 +547,53 @@ class PageSettingsUI(QScrollArea):
         self.scroll_widget = QWidget()
         self.scroll_widget.setLayout(main_layout)
         self.setWidget(self.scroll_widget)
+
+    def validate(self) -> bool:
+        is_valid = True
+
+        is_valid = is_valid and self.width_spin_box.hasAcceptableInput()
+        self.width_spin_box_error.setHidden(self.width_spin_box.hasAcceptableInput())
+
+        is_valid = is_valid and self.height_spin_box.hasAcceptableInput()
+        self.height_spin_box_error.setHidden(self.height_spin_box.hasAcceptableInput())
+
+        is_valid = is_valid and self.spacing_spin_box.hasAcceptableInput()
+        self.spacing_spin_box_error.setHidden(self.spacing_spin_box.hasAcceptableInput())
+
+        # if not self.indent_spin_box.hasAcceptableInput():
+        #     is_valid = False
+        #     self.indent_spin_box_error.show()
+        # else:
+        #     self.indent_spin_box_error.hide()
+
+        # if not self.line_spacing_spin_box.hasAcceptableInput():
+        #     is_valid = False
+        #     self.line_spacing_spin_box_error.show()
+        # else:
+        #     self.line_spacing_spin_box_error.hide()
+
+        # if not self.top_margin_spin_box.hasAcceptableInput():
+        #     is_valid = False
+        #     self.top_margin_spin_box_error.show()
+        # else:
+        #     self.top_margin_spin_box_error.hide()
+
+        # if not self.bottom_margin_spin_box.hasAcceptableInput():
+        #     is_valid = False
+        #     self.bottom_margin_spin_box_error.show()
+        # else:
+        #     self.bottom_margin_spin_box_error.hide()
+
+        # if not self.left_margin_spin_box.hasAcceptableInput():
+        #     is_valid = False
+        #     self.left_margin_spin_box_error.show()
+        # else:
+        #     self.left_margin_spin_box_error.hide()
+
+        # if not self.right_margin_spin_box.hasAcceptableInput():
+        #     is_valid = False
+        #     self.right_margin_spin_box_error.show()
+        # else:
+        #     self.right_margin_spin_box_error.hide()
+
+        return is_valid

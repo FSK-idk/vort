@@ -1,5 +1,5 @@
 from PySide6.QtCore import Qt, QObject, Slot
-from PySide6.QtGui import QFont, QColor, QGuiApplication
+from PySide6.QtGui import QFont, QColor, QGuiApplication, QTextDocument
 
 from core.widget.text_editor.component.select_component import HyperlinkSelection
 
@@ -8,7 +8,14 @@ from core.window.dialog.edit_paragraph_dialog_ui import EditParagraphDialogUI, E
 from core.window.dialog.edit_hyperlink_dialog_ui import EditHyperlinkDialogUI, EditHyperlinkDialogContext
 from core.window.settings.settings_dialog_ui import SettingsDialogUI, SettingsContext
 
+from core.window.settings.page_settings_ui import PageSettingsContext
+from core.window.settings.paragraph_settings_ui import ParagraphSettingsContext
+from core.window.settings.header_settings_ui import HeaderSettingsContext
+from core.window.settings.footer_settings_ui import FooterSettingsContext
+
 # some code may be unnecessary, but I want everything to be consistent
+
+from core.widget.text_editor.document_file import DocumentFile
 
 
 class TextEditorWindow(QObject):
@@ -154,11 +161,104 @@ class TextEditorWindow(QObject):
         self.ui.zoom_slider.zoomFactorChanged.connect(self.ui.text_editor.ui.setFocus)
         self.ui.text_editor.zoomFactorSelected.connect(self.onTextEditorZoomFactorChanged)
 
-        self.setDefault()
+        self.setDeafultDocument()
+        self.setDefaultEditor()
 
         self.ui.show()
 
-    def setDefault(self) -> None:
+    def setDeafultDocument(self) -> None:
+        config: DocumentFile = DocumentFile()
+
+        dpi = QGuiApplication.screens()[0].logicalDotsPerInch()
+
+        cm_to_px = dpi / 2.54
+        mm_to_px = dpi / 25.4
+
+        # page layout
+
+        config.text_document = QTextDocument()
+
+        # page
+
+        config.page_width = 21 * cm_to_px
+        config.page_height = 29.7 * cm_to_px
+        config.page_spacing = 1 * cm_to_px
+
+        config.page_color = QColor("white")
+
+        config.page_top_margin = 1 * cm_to_px
+        config.page_bottom_margin = 1 * cm_to_px
+        config.page_left_margin = 1 * cm_to_px
+        config.page_right_margin = 1 * cm_to_px
+
+        config.page_top_padding = 1 * cm_to_px
+        config.page_bottom_padding = 1 * cm_to_px
+        config.page_left_padding = 1 * cm_to_px
+        config.page_right_padding = 1 * cm_to_px
+
+        config.border_width = 1 * mm_to_px
+        config.border_color = QColor("black")
+
+        config.header_height = 1 * cm_to_px
+        config.footer_height = 1 * cm_to_px
+
+        # indent step
+
+        config.default_indent_step = 1 * cm_to_px
+
+        # header
+
+        config.header_alignment = Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop
+
+        config.header_font_family = QFont().family()
+        config.header_font_size = 16
+
+        config.header_text_background_color = QColor("white")
+        config.header_text_foreground_color = QColor("black")
+
+        config.is_header_turned_for_first_page = False
+
+        config.is_header_pagination_turned = False
+        config.header_pagination_starting_number = 1
+
+        config.is_header_text_turned = True
+        config.header_text = "My text"
+
+        # footer
+
+        config.footer_alignment = Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignBottom
+
+        config.footer_font_family = QFont().family()
+        config.footer_font_size = 16
+
+        config.footer_text_background_color = QColor("white")
+        config.footer_text_foreground_color = QColor("black")
+
+        config.is_footer_turned_for_first_page = False
+
+        config.is_footer_pagination_turned = True
+        config.footer_pagination_starting_number = 1
+
+        config.is_footer_text_turned = False
+        config.footer_text = ""
+
+        # hyperlink
+
+        config.is_hyperlink_bold_turned = False
+        config.is_hyperlink_bold = False
+        config.is_hyperlink_italic_turned = False
+        config.is_hyperlink_italic = False
+        config.is_hyperlink_underlined_turned = True
+        config.is_hyperlink_underlined = True
+
+        config.is_hyperlink_background_color_turned = False
+        config.hyperlink_background_color = QColor("red")
+        config.is_hyperlink_foreground_color_turned = True
+        config.hyperlink_foreground_color = QColor("blue")
+
+        self.ui.text_editor.setDocument(config)
+
+    def setDefaultEditor(self) -> None:
         # font
 
         self.onUserFontFamilyChanged(QFont().family())
@@ -467,7 +567,8 @@ class TextEditorWindow(QObject):
 
     @Slot(bool)
     def onUserPaginationTurned(self, is_shown) -> None:
-        self.ui.text_editor.setFooterShown(is_shown)
+        pass
+        # self.ui.text_editor.setFooterShown(is_shown)
 
     @Slot(bool)
     def onTextEditorPaginationTurned(self, is_shown) -> None:
@@ -530,8 +631,28 @@ class TextEditorWindow(QObject):
     # settings
 
     def openSettings(self, name: str) -> None:
-        settings_context = SettingsContext()
+        document_context = self.ui.text_editor.documentContext()
+
+        if document_context is None:
+            return
+
         # populate data
+        page_context: PageSettingsContext = PageSettingsContext()
+        page_context.width = document_context.page_layout.pageWidth()
+        page_context.height = document_context.page_layout.pageHeight()
+        page_context.spacing = document_context.page_layout.pageSpacing()
+
+        paragraph_context: ParagraphSettingsContext = ParagraphSettingsContext()
+
+        header_context: HeaderSettingsContext = HeaderSettingsContext()
+
+        footer_context: FooterSettingsContext = FooterSettingsContext()
+
+        settings_context = SettingsContext()
+        settings_context.page_context = page_context
+        settings_context.paragraph_context = paragraph_context
+        settings_context.header_context = header_context
+        settings_context.footer_context = footer_context
 
         dialog = SettingsDialogUI(settings_context, self.ui)
         dialog.openTab(name)
