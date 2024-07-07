@@ -107,4 +107,4 @@ class TextCanvas(QWidget):
 
         self.__footer_document_layout.paint(footer_context)
 
-        # TODO: draw border
+        painter.end()

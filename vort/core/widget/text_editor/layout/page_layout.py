@@ -204,7 +204,7 @@ class PageLayout(QObject):
             self.pageYPosition(index)
             + self.__page_top_margin
             + self.__border_width
-            + self.__page_top_margin
+            + self.__page_top_padding
             + self.__header_height
         )
 

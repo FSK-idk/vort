@@ -31,7 +31,7 @@ class SettingsDialogUI(QDialog):
         self.context: SettingsContext = context
 
         self.setWindowTitle("Settings")
-        self.resize(600, 400)
+        self.resize(650, 400)
 
         self.page_settings: PageSettingsUI = PageSettingsUI(self.context.page_context)
         self.paragraph_settings: ParagraphSettingsUI = ParagraphSettingsUI(self.context.paragraph_context)
@@ -92,6 +92,20 @@ class SettingsDialogUI(QDialog):
             invalid_tab = "page"
 
         # set context
+        self.context.page_context.page_width = self.page_settings.width_spin_box.value()
+        self.context.page_context.page_height = self.page_settings.height_spin_box.value()
+        self.context.page_context.page_spacing = self.page_settings.spacing_spin_box.value()
+        self.context.page_context.page_color = self.page_settings.page_color_picker.color()
+        self.context.page_context.page_top_margin = self.page_settings.top_margin_spin_box.value()
+        self.context.page_context.page_bottom_margin = self.page_settings.bottom_margin_spin_box.value()
+        self.context.page_context.page_left_margin = self.page_settings.left_margin_spin_box.value()
+        self.context.page_context.page_right_margin = self.page_settings.right_margin_spin_box.value()
+        self.context.page_context.page_top_padding = self.page_settings.top_padding_spin_box.value()
+        self.context.page_context.page_bottom_padding = self.page_settings.bottom_padding_spin_box.value()
+        self.context.page_context.page_left_padding = self.page_settings.left_padding_spin_box.value()
+        self.context.page_context.page_right_padding = self.page_settings.right_padding_spin_box.value()
+        self.context.page_context.border_width = self.page_settings.border_width_spin_box.value()
+        self.context.page_context.border_color = self.page_settings.border_color_picker.color()
 
         if invalid_tab == "":
             self.applied.emit(self.context)

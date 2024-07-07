@@ -48,7 +48,8 @@ class FooterDocumentLayout(QAbstractTextDocumentLayout):
 
         self.addPage(self.__page_layout.pageCount())
 
-        self.__page_layout.layoutSizeChanged.connect(self.onPageCountChange)
+        self.__page_layout.layoutSizeChanged.connect(self.onPageCountChanged)
+        self.__page_layout.pageLayoutSizeChanged.connect(self.onPageLayoutSizeChanged)
 
     def alignment(self) -> Qt.AlignmentFlag:
         return self.__alignment
@@ -139,12 +140,15 @@ class FooterDocumentLayout(QAbstractTextDocumentLayout):
 
         self.updateFooter()
 
-    def onPageCountChange(self) -> None:
+    def onPageCountChanged(self) -> None:
         difference = self.__page_layout.pageCount() - (self.document().blockCount() - 1)
         if difference > 0:
             self.addPage(difference)
         elif difference < 0:
             self.removePage(-difference)
+
+    def onPageLayoutSizeChanged(self) -> None:
+        self.documentChanged(0, 0, 0)
 
     def documentChanged(self, from_: int, charsRemoved: int, charsAdded: int) -> None:
         for i in range(self.document().blockCount() - 1):

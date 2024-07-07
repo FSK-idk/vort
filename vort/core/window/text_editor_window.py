@@ -644,11 +644,24 @@ class TextEditorWindow(QObject):
         px_to_cm = 2.54 / dpi
         px_to_mm = 25.4 / dpi
 
+        print("f", document_context.page_layout)
+
         # populate data
         page_context: PageSettingsContext = PageSettingsContext()
-        page_context.width = document_context.page_layout.pageWidth() * px_to_cm
-        page_context.height = document_context.page_layout.pageHeight() * px_to_cm
-        page_context.spacing = document_context.page_layout.pageSpacing() * px_to_cm
+        page_context.page_width = document_context.page_layout.pageWidth() * px_to_cm
+        page_context.page_height = document_context.page_layout.pageHeight() * px_to_cm
+        page_context.page_spacing = document_context.page_layout.pageSpacing() * px_to_cm
+        page_context.page_color = document_context.page_layout.pageColor()
+        page_context.page_top_margin = document_context.page_layout.pageTopMargin() * px_to_cm
+        page_context.page_bottom_margin = document_context.page_layout.pageBottomMargin() * px_to_cm
+        page_context.page_left_margin = document_context.page_layout.pageLeftMargin() * px_to_cm
+        page_context.page_right_margin = document_context.page_layout.pageRightMargin() * px_to_cm
+        page_context.page_top_padding = document_context.page_layout.pageTopPadding() * px_to_cm
+        page_context.page_bottom_padding = document_context.page_layout.pageBottomPadding() * px_to_cm
+        page_context.page_left_padding = document_context.page_layout.pageLeftPadding() * px_to_cm
+        page_context.page_right_padding = document_context.page_layout.pageRightPadding() * px_to_cm
+        page_context.border_width = document_context.page_layout.borderWidth() * px_to_mm
+        page_context.border_color = document_context.page_layout.borderColor()
 
         paragraph_context: ParagraphSettingsContext = ParagraphSettingsContext()
 
@@ -664,12 +677,40 @@ class TextEditorWindow(QObject):
 
         dialog = SettingsDialogUI(settings_context, self.ui)
         dialog.openTab(name)
+        dialog.applied.connect(self.onSettingsApplied)
 
         if dialog.exec():
             print("ok")
 
     def onSettingsApplied(self, context: SettingsContext) -> None:
-        # apply
+        document_context = self.ui.text_editor.documentContext()
+
+        if document_context is None:
+            return
+
+        print("apply")
+
+        dpi = QGuiApplication.screens()[0].logicalDotsPerInch()
+
+        cm_to_px = dpi / 2.54
+        mm_to_px = dpi / 25.4
+
+        page_context = context.page_context
+        document_context.page_layout.setPageWidth(page_context.page_width * cm_to_px)
+        document_context.page_layout.setPageHeight(page_context.page_height * cm_to_px)
+        document_context.page_layout.setPageSpacing(page_context.page_spacing * cm_to_px)
+        document_context.page_layout.setPageColor(page_context.page_color)
+        document_context.page_layout.setPageTopMargin(page_context.page_top_margin * cm_to_px)
+        document_context.page_layout.setPageBottomMargin(page_context.page_bottom_margin * cm_to_px)
+        document_context.page_layout.setPageLeftMargin(page_context.page_left_margin * cm_to_px)
+        document_context.page_layout.setPageRightMargin(page_context.page_right_margin * cm_to_px)
+        document_context.page_layout.setPageTopPadding(page_context.page_top_padding * cm_to_px)
+        document_context.page_layout.setPageBottomPadding(page_context.page_bottom_padding * cm_to_px)
+        document_context.page_layout.setPageLeftPadding(page_context.page_left_padding * cm_to_px)
+        document_context.page_layout.setPageRightPadding(page_context.page_right_padding * cm_to_px)
+        document_context.page_layout.setBorderWidth(page_context.border_width * mm_to_px)
+        document_context.page_layout.setBorderColor(page_context.border_color)
+
         pass
 
     @Slot()

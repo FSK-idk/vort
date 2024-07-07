@@ -15,6 +15,7 @@ from PySide6.QtGui import (
     QTextFragment,
     QTextImageFormat,
     QFont,
+    QPen,
 )
 
 from util import PointF, RectF
@@ -83,6 +84,15 @@ class TextDocumentLayout(QAbstractTextDocumentLayout):
         self.__hyperlink_background_color: QColor = QColor("blue")
         self.__is_hyperlink_foreground_color_turned: bool = True
         self.__hyperlink_foreground_color: QColor = QColor("blue")
+
+        self.__page_layout.layoutSizeChanged.connect(self.onPageLayoutSizeChanged)
+        self.__page_layout.pageLayoutSizeChanged.connect(self.onPagePageLayoutSizeChanged)
+
+    def onPageLayoutSizeChanged(self) -> None:
+        self.documentChanged(0, 0, 0)
+
+    def onPagePageLayoutSizeChanged(self) -> None:
+        self.documentChanged(0, 0, 0)
 
     def characterCount(self) -> int:
         return self.__character_count
@@ -379,6 +389,12 @@ class TextDocumentLayout(QAbstractTextDocumentLayout):
         painter: QPainter = context.painter
         rect: RectF = context.rect
 
+        old_pen: QPen = painter.pen()
+        pen: QPen = QPen()
+        pen.setColor(self.__page_layout.borderColor())
+        pen.setWidth(int(self.__page_layout.borderWidth()))
+        painter.setPen(pen)
+
         for i in range(self.__page_layout.pageCount()):
             page_rect: QRectF = QRectF(
                 self.__page_layout.pageXPosition(i),
@@ -387,8 +403,27 @@ class TextDocumentLayout(QAbstractTextDocumentLayout):
                 self.__page_layout.pageHeight(),
             )
             clip = page_rect.intersected(rect.toQRectF())
-
             painter.fillRect(clip, self.__page_layout.pageColor())
+
+            border_rect: QRectF = QRectF(
+                self.__page_layout.pageXPosition(i)
+                + self.__page_layout.pageLeftMargin()
+                + self.__page_layout.borderWidth() / 2,
+                self.__page_layout.pageYPosition(i)
+                + self.__page_layout.pageTopMargin()
+                + self.__page_layout.borderWidth() / 2,
+                self.__page_layout.pageWidth()
+                - self.__page_layout.pageLeftMargin()
+                - self.__page_layout.pageRightMargin()
+                - self.__page_layout.borderWidth(),
+                self.__page_layout.pageHeight()
+                - self.__page_layout.pageTopMargin()
+                - self.__page_layout.pageBottomMargin()
+                - self.__page_layout.borderWidth(),
+            )
+            painter.drawRect(border_rect)
+
+        painter.setPen(old_pen)
 
     def paintText(self, context: PaintContext):
         painter: QPainter = context.painter

@@ -8,24 +8,24 @@ from core.widget.tool_bar.color_picker.color_picker import ColorPicker
 
 class PageSettingsContext:
     def __init__(self) -> None:
-        self.width: float = 21  # cm
-        self.height: float = 29.7  # cm
-        self.spacing: float = 1  # cm
+        self.page_width: float = 0.0  # cm
+        self.page_height: float = 0.0  # cm
+        self.page_spacing: float = 0.0  # cm
 
-        self.page_color: QColor = QColor("white")
+        self.page_color: QColor = QColor()
 
-        self.top_margin: float = 1  # cm
-        self.bottom_margin: float = 1  # cm
-        self.left_margin: float = 1  # cm
-        self.right_margin: float = 1  # cm
+        self.page_top_margin: float = 0.0  # cm
+        self.page_bottom_margin: float = 0.0  # cm
+        self.page_left_margin: float = 0.0  # cm
+        self.page_right_margin: float = 0.0  # cm
 
-        self.top_padding: float = 1  # cm
-        self.bottom_padding: float = 1  # cm
-        self.left_padding: float = 1  # cm
-        self.right_padding: float = 1  # cm
+        self.page_top_padding: float = 0.0  # cm
+        self.page_bottom_padding: float = 0.0  # cm
+        self.page_left_padding: float = 0.0  # cm
+        self.page_right_padding: float = 0.0  # cm
 
-        self.border_width: float = 0  # mm
-        self.border_color: QColor = QColor("black")
+        self.border_width: float = 0.0  # mm
+        self.border_color: QColor = QColor()
 
 
 class PageSettingsUI(QScrollArea):
@@ -53,7 +53,7 @@ class PageSettingsUI(QScrollArea):
         self.width_spin_box.setSingleStep(0.25)
         self.width_spin_box.setDecimals(2)
         self.width_spin_box.setSuffix(" cm")
-        self.width_spin_box.setValue(self.context.width)
+        self.width_spin_box.setValue(self.context.page_width)
 
         self.width_spin_box_error: QLabel = QLabel(self)
         self.width_spin_box_error.setText("Invalid input")
@@ -79,7 +79,7 @@ class PageSettingsUI(QScrollArea):
         self.height_spin_box.setSingleStep(0.25)
         self.height_spin_box.setDecimals(2)
         self.height_spin_box.setSuffix(" cm")
-        self.height_spin_box.setValue(self.context.height)
+        self.height_spin_box.setValue(self.context.page_height)
 
         self.height_spin_box_error: QLabel = QLabel(self)
         self.height_spin_box_error.setText("Invalid input")
@@ -100,14 +100,14 @@ class PageSettingsUI(QScrollArea):
         self.spacing: float = 1  # cm
 
         self.spacing_spin_box_label: QLabel = QLabel(self)
-        self.spacing_spin_box_label.setText("Height")
+        self.spacing_spin_box_label.setText("Spacing")
 
         self.spacing_spin_box: DoubleSpinBox = DoubleSpinBox(self)
         self.spacing_spin_box.setMinimum(0.0)
         self.spacing_spin_box.setSingleStep(0.25)
         self.spacing_spin_box.setDecimals(2)
         self.spacing_spin_box.setSuffix(" cm")
-        self.spacing_spin_box.setValue(self.context.spacing)
+        self.spacing_spin_box.setValue(self.context.page_spacing)
 
         self.spacing_spin_box_error: QLabel = QLabel(self)
         self.spacing_spin_box_error.setText("Invalid input")
@@ -147,28 +147,28 @@ class PageSettingsUI(QScrollArea):
         self.color_title_label.setText("Color")
 
         self.page_color_line_edit_label: QLabel = QLabel(self)
-        self.page_color_line_edit_label.setText("Page")
+        self.page_color_line_edit_label.setText("Color")
 
         self.page_color_red_spin_box: SpinBox = SpinBox(self)
         self.page_color_red_spin_box.setMinimum(0)
         self.page_color_red_spin_box.setMaximum(255)
         self.page_color_red_spin_box.setSuffix(" R")
         self.page_color_red_spin_box.setValue(self.context.page_color.red())
-        self.page_color_red_spin_box.valueChanged.connect(self.onColorSpinBoxValueChanged)
+        self.page_color_red_spin_box.valueChanged.connect(self.onPageColorSpinBoxValueChanged)
 
         self.page_color_green_spin_box: SpinBox = SpinBox(self)
         self.page_color_green_spin_box.setMinimum(0)
         self.page_color_green_spin_box.setMaximum(255)
         self.page_color_green_spin_box.setSuffix(" G")
         self.page_color_green_spin_box.setValue(self.context.page_color.green())
-        self.page_color_green_spin_box.valueChanged.connect(self.onColorSpinBoxValueChanged)
+        self.page_color_green_spin_box.valueChanged.connect(self.onPageColorSpinBoxValueChanged)
 
         self.page_color_blue_spin_box: SpinBox = SpinBox(self)
         self.page_color_blue_spin_box.setMinimum(0)
         self.page_color_blue_spin_box.setMaximum(255)
         self.page_color_blue_spin_box.setSuffix(" B")
         self.page_color_blue_spin_box.setValue(self.context.page_color.blue())
-        self.page_color_blue_spin_box.valueChanged.connect(self.onColorSpinBoxValueChanged)
+        self.page_color_blue_spin_box.valueChanged.connect(self.onPageColorSpinBoxValueChanged)
 
         self.page_color_picker: ColorPicker = ColorPicker(self)
         self.page_color_picker.setColor(self.context.page_color)
@@ -178,36 +178,34 @@ class PageSettingsUI(QScrollArea):
         self.page_color_picker.ui.setPalette(page_color_picker_palette)
         self.page_color_picker.colorChanged.connect(self.onPageColorChanged)
 
-        # connect etc
-
-        self.color_line_edit_error: QLabel = QLabel(self)
-        self.color_line_edit_error.setText("Invalid input")
-        self.color_line_edit_error.setFixedHeight(10)
-        font = self.color_line_edit_error.font()
+        self.page_color_picker_error: QLabel = QLabel(self)
+        self.page_color_picker_error.setText("Invalid input")
+        self.page_color_picker_error.setFixedHeight(10)
+        font = self.page_color_picker_error.font()
         font.setItalic(True)
         font.setPixelSize(10)
-        self.color_line_edit_error.setFont(font)
-        self.color_line_edit_error.hide()
+        self.page_color_picker_error.setFont(font)
+        self.page_color_picker_error.hide()
 
-        color_picker_layout = QHBoxLayout()
-        color_picker_layout.setContentsMargins(0, 0, 0, 0)
-        color_picker_layout.setSpacing(10)
-        color_picker_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        color_picker_layout.addWidget(self.page_color_line_edit_label)
-        color_picker_layout.addWidget(self.page_color_red_spin_box)
-        color_picker_layout.addWidget(self.page_color_green_spin_box)
-        color_picker_layout.addWidget(self.page_color_blue_spin_box)
-        color_picker_layout.addWidget(self.page_color_picker.ui)
+        page_color_picker_layout = QHBoxLayout()
+        page_color_picker_layout.setContentsMargins(0, 0, 0, 0)
+        page_color_picker_layout.setSpacing(10)
+        page_color_picker_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        page_color_picker_layout.addWidget(self.page_color_line_edit_label)
+        page_color_picker_layout.addWidget(self.page_color_red_spin_box)
+        page_color_picker_layout.addWidget(self.page_color_green_spin_box)
+        page_color_picker_layout.addWidget(self.page_color_blue_spin_box)
+        page_color_picker_layout.addWidget(self.page_color_picker.ui)
 
-        color_layout = QVBoxLayout()
-        color_layout.setContentsMargins(0, 0, 0, 0)
-        color_layout.setSpacing(0)
-        color_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
-        color_layout.addWidget(self.color_title_label)
-        color_layout.addSpacing(15)
-        color_layout.addLayout(color_picker_layout)
-        color_layout.addWidget(self.color_line_edit_error)
-        color_layout.addSpacing(5)
+        page_color_layout = QVBoxLayout()
+        page_color_layout.setContentsMargins(0, 0, 0, 0)
+        page_color_layout.setSpacing(0)
+        page_color_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        page_color_layout.addWidget(self.color_title_label)
+        page_color_layout.addSpacing(15)
+        page_color_layout.addLayout(page_color_picker_layout)
+        page_color_layout.addWidget(self.page_color_picker_error)
+        page_color_layout.addSpacing(5)
 
         # margin
 
@@ -222,7 +220,7 @@ class PageSettingsUI(QScrollArea):
         self.top_margin_spin_box.setSingleStep(0.25)
         self.top_margin_spin_box.setDecimals(2)
         self.top_margin_spin_box.setSuffix(" cm")
-        self.top_margin_spin_box.setValue(self.context.top_margin)
+        self.top_margin_spin_box.setValue(self.context.page_top_margin)
 
         self.top_margin_spin_box_error: QLabel = QLabel(self)
         self.top_margin_spin_box_error.setText("Invalid input")
@@ -248,7 +246,7 @@ class PageSettingsUI(QScrollArea):
         self.bottom_margin_spin_box.setSingleStep(0.25)
         self.bottom_margin_spin_box.setDecimals(2)
         self.bottom_margin_spin_box.setSuffix(" cm")
-        self.bottom_margin_spin_box.setValue(self.context.bottom_margin)
+        self.bottom_margin_spin_box.setValue(self.context.page_bottom_margin)
 
         self.bottom_margin_spin_box_error: QLabel = QLabel(self)
         self.bottom_margin_spin_box_error.setText("Invalid input")
@@ -274,7 +272,7 @@ class PageSettingsUI(QScrollArea):
         self.left_margin_spin_box.setSingleStep(0.25)
         self.left_margin_spin_box.setDecimals(2)
         self.left_margin_spin_box.setSuffix(" cm")
-        self.left_margin_spin_box.setValue(self.context.left_margin)
+        self.left_margin_spin_box.setValue(self.context.page_left_margin)
 
         self.left_margin_spin_box_error: QLabel = QLabel(self)
         self.left_margin_spin_box_error.setText("Invalid input")
@@ -300,7 +298,7 @@ class PageSettingsUI(QScrollArea):
         self.right_margin_spin_box.setSingleStep(0.25)
         self.right_margin_spin_box.setDecimals(2)
         self.right_margin_spin_box.setSuffix(" cm")
-        self.right_margin_spin_box.setValue(self.context.right_margin)
+        self.right_margin_spin_box.setValue(self.context.page_right_margin)
 
         self.right_margin_spin_box_error: QLabel = QLabel(self)
         self.right_margin_spin_box_error.setText("Invalid input")
@@ -350,7 +348,7 @@ class PageSettingsUI(QScrollArea):
         self.top_padding_spin_box.setSingleStep(0.25)
         self.top_padding_spin_box.setDecimals(2)
         self.top_padding_spin_box.setSuffix(" cm")
-        self.top_padding_spin_box.setValue(self.context.top_padding)
+        self.top_padding_spin_box.setValue(self.context.page_top_padding)
 
         self.top_padding_spin_box_error: QLabel = QLabel(self)
         self.top_padding_spin_box_error.setText("Invalid input")
@@ -376,7 +374,7 @@ class PageSettingsUI(QScrollArea):
         self.bottom_padding_spin_box.setSingleStep(0.25)
         self.bottom_padding_spin_box.setDecimals(2)
         self.bottom_padding_spin_box.setSuffix(" cm")
-        self.bottom_padding_spin_box.setValue(self.context.bottom_padding)
+        self.bottom_padding_spin_box.setValue(self.context.page_bottom_padding)
 
         self.bottom_padding_spin_box_error: QLabel = QLabel(self)
         self.bottom_padding_spin_box_error.setText("Invalid input")
@@ -402,7 +400,7 @@ class PageSettingsUI(QScrollArea):
         self.left_padding_spin_box.setSingleStep(0.25)
         self.left_padding_spin_box.setDecimals(2)
         self.left_padding_spin_box.setSuffix(" cm")
-        self.left_padding_spin_box.setValue(self.context.left_padding)
+        self.left_padding_spin_box.setValue(self.context.page_left_padding)
 
         self.left_padding_spin_box_error: QLabel = QLabel(self)
         self.left_padding_spin_box_error.setText("Invalid input")
@@ -428,7 +426,7 @@ class PageSettingsUI(QScrollArea):
         self.right_padding_spin_box.setSingleStep(0.25)
         self.right_padding_spin_box.setDecimals(2)
         self.right_padding_spin_box.setSuffix(" cm")
-        self.right_padding_spin_box.setValue(self.context.right_padding)
+        self.right_padding_spin_box.setValue(self.context.page_right_padding)
 
         self.right_padding_spin_box_error: QLabel = QLabel(self)
         self.right_padding_spin_box_error.setText("Invalid input")
@@ -499,32 +497,53 @@ class PageSettingsUI(QScrollArea):
         self.border_color_line_edit_label: QLabel = QLabel(self)
         self.border_color_line_edit_label.setText("Color")
 
-        # TODO: add validator #FFFFFF
-        self.border_color_line_edit: QLineEdit = QLineEdit(self)
-        # self.border_color_line_edit.setValidator()
+        self.border_color_red_spin_box: SpinBox = SpinBox(self)
+        self.border_color_red_spin_box.setMinimum(0)
+        self.border_color_red_spin_box.setMaximum(255)
+        self.border_color_red_spin_box.setSuffix(" R")
+        self.border_color_red_spin_box.setValue(self.context.border_color.red())
+        self.border_color_red_spin_box.valueChanged.connect(self.onBorderColorSpinBoxValueChanged)
 
-        # self.border_color: QColor = QColor("black")
-        # TODO: own widget
+        self.border_color_green_spin_box: SpinBox = SpinBox(self)
+        self.border_color_green_spin_box.setMinimum(0)
+        self.border_color_green_spin_box.setMaximum(255)
+        self.border_color_green_spin_box.setSuffix(" G")
+        self.border_color_green_spin_box.setValue(self.context.border_color.green())
+        self.border_color_green_spin_box.valueChanged.connect(self.onBorderColorSpinBoxValueChanged)
 
-        # self.border_color_picker: ColorPicker = ColorPicker(self)
-        # connect etc
+        self.border_color_blue_spin_box: SpinBox = SpinBox(self)
+        self.border_color_blue_spin_box.setMinimum(0)
+        self.border_color_blue_spin_box.setMaximum(255)
+        self.border_color_blue_spin_box.setSuffix(" B")
+        self.border_color_blue_spin_box.setValue(self.context.border_color.blue())
+        self.border_color_blue_spin_box.valueChanged.connect(self.onBorderColorSpinBoxValueChanged)
 
-        self.border_color_line_edit_error: QLabel = QLabel(self)
-        self.border_color_line_edit_error.setText("Invalid input")
-        self.border_color_line_edit_error.setFixedHeight(10)
-        font = self.border_color_line_edit_error.font()
+        self.border_color_picker: ColorPicker = ColorPicker(self)
+        self.border_color_picker.setColor(self.context.border_color)
+        border_color_picker_palette = self.border_color_picker.ui.palette()
+        border_color_picker_palette.setColor(QPalette.ColorRole.Button, palette.color(QPalette.ColorRole.Base))
+        border_color_picker_palette.setColor(QPalette.ColorRole.Window, palette.color(QPalette.ColorRole.Base))
+        self.border_color_picker.ui.setPalette(border_color_picker_palette)
+        self.border_color_picker.colorChanged.connect(self.onBorderColorChanged)
+
+        self.border_color_picker_error: QLabel = QLabel(self)
+        self.border_color_picker_error.setText("Invalid input")
+        self.border_color_picker_error.setFixedHeight(10)
+        font = self.border_color_picker_error.font()
         font.setItalic(True)
         font.setPixelSize(10)
-        self.border_color_line_edit_error.setFont(font)
-        self.border_color_line_edit_error.hide()
+        self.border_color_picker_error.setFont(font)
+        self.border_color_picker_error.hide()
 
         border_color_picker_layout = QHBoxLayout()
         border_color_picker_layout.setContentsMargins(0, 0, 0, 0)
         border_color_picker_layout.setSpacing(10)
         border_color_picker_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
         border_color_picker_layout.addWidget(self.border_color_line_edit_label)
-        border_color_picker_layout.addWidget(self.border_color_line_edit)
-        # border_color_picker_layout.addWidget(self.border_color_picker)
+        border_color_picker_layout.addWidget(self.border_color_red_spin_box)
+        border_color_picker_layout.addWidget(self.border_color_green_spin_box)
+        border_color_picker_layout.addWidget(self.border_color_blue_spin_box)
+        border_color_picker_layout.addWidget(self.border_color_picker.ui)
 
         border_layout = QVBoxLayout()
         border_layout.setContentsMargins(0, 0, 0, 0)
@@ -536,7 +555,7 @@ class PageSettingsUI(QScrollArea):
         border_layout.addWidget(self.border_width_spin_box_error)
         border_layout.addSpacing(5)
         border_layout.addLayout(border_color_picker_layout)
-        border_layout.addWidget(self.border_color_line_edit_error)
+        border_layout.addWidget(self.border_color_picker_error)
         border_layout.addSpacing(5)
 
         # layout
@@ -546,7 +565,8 @@ class PageSettingsUI(QScrollArea):
         left_layout.setContentsMargins(0, 0, 0, 0)
         left_layout.setSpacing(20)
         left_layout.addLayout(size_layout)
-        left_layout.addLayout(color_layout)
+        left_layout.addLayout(page_color_layout)
+        left_layout.addLayout(border_layout)
 
         right_layout = QVBoxLayout()
         right_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
@@ -554,7 +574,6 @@ class PageSettingsUI(QScrollArea):
         right_layout.setSpacing(20)
         right_layout.addLayout(margin_layout)
         right_layout.addLayout(padding_layout)
-        right_layout.addLayout(border_layout)
 
         top_layout = QHBoxLayout()
         top_layout.setContentsMargins(0, 0, 0, 0)
@@ -590,47 +609,50 @@ class PageSettingsUI(QScrollArea):
             and self.page_color_green_spin_box.hasAcceptableInput()
             and self.page_color_blue_spin_box.hasAcceptableInput()
         )
-        self.color_line_edit_error.setHidden(
+        self.page_color_picker_error.setHidden(
             self.page_color_red_spin_box.hasAcceptableInput()
             and self.page_color_green_spin_box.hasAcceptableInput()
             and self.page_color_blue_spin_box.hasAcceptableInput()
         )
 
-        # if not self.indent_spin_box.hasAcceptableInput():
-        #     is_valid = False
-        #     self.indent_spin_box_error.show()
-        # else:
-        #     self.indent_spin_box_error.hide()
+        is_valid = is_valid and self.top_margin_spin_box.hasAcceptableInput()
+        self.top_margin_spin_box_error.setHidden(self.top_margin_spin_box.hasAcceptableInput())
 
-        # if not self.line_spacing_spin_box.hasAcceptableInput():
-        #     is_valid = False
-        #     self.line_spacing_spin_box_error.show()
-        # else:
-        #     self.line_spacing_spin_box_error.hide()
+        is_valid = is_valid and self.bottom_margin_spin_box.hasAcceptableInput()
+        self.bottom_margin_spin_box_error.setHidden(self.bottom_margin_spin_box.hasAcceptableInput())
 
-        # if not self.top_margin_spin_box.hasAcceptableInput():
-        #     is_valid = False
-        #     self.top_margin_spin_box_error.show()
-        # else:
-        #     self.top_margin_spin_box_error.hide()
+        is_valid = is_valid and self.left_margin_spin_box.hasAcceptableInput()
+        self.left_margin_spin_box_error.setHidden(self.left_margin_spin_box.hasAcceptableInput())
 
-        # if not self.bottom_margin_spin_box.hasAcceptableInput():
-        #     is_valid = False
-        #     self.bottom_margin_spin_box_error.show()
-        # else:
-        #     self.bottom_margin_spin_box_error.hide()
+        is_valid = is_valid and self.right_margin_spin_box.hasAcceptableInput()
+        self.right_margin_spin_box_error.setHidden(self.right_margin_spin_box.hasAcceptableInput())
 
-        # if not self.left_margin_spin_box.hasAcceptableInput():
-        #     is_valid = False
-        #     self.left_margin_spin_box_error.show()
-        # else:
-        #     self.left_margin_spin_box_error.hide()
+        is_valid = is_valid and self.top_padding_spin_box.hasAcceptableInput()
+        self.top_padding_spin_box_error.setHidden(self.top_padding_spin_box.hasAcceptableInput())
 
-        # if not self.right_margin_spin_box.hasAcceptableInput():
-        #     is_valid = False
-        #     self.right_margin_spin_box_error.show()
-        # else:
-        #     self.right_margin_spin_box_error.hide()
+        is_valid = is_valid and self.bottom_padding_spin_box.hasAcceptableInput()
+        self.bottom_padding_spin_box_error.setHidden(self.bottom_padding_spin_box.hasAcceptableInput())
+
+        is_valid = is_valid and self.left_padding_spin_box.hasAcceptableInput()
+        self.left_padding_spin_box_error.setHidden(self.left_padding_spin_box.hasAcceptableInput())
+
+        is_valid = is_valid and self.right_padding_spin_box.hasAcceptableInput()
+        self.right_padding_spin_box_error.setHidden(self.right_padding_spin_box.hasAcceptableInput())
+
+        is_valid = is_valid and self.border_width_spin_box.hasAcceptableInput()
+        self.border_width_spin_box_error.setHidden(self.border_width_spin_box.hasAcceptableInput())
+
+        is_valid = (
+            is_valid
+            and self.border_color_red_spin_box.hasAcceptableInput()
+            and self.border_color_green_spin_box.hasAcceptableInput()
+            and self.border_color_blue_spin_box.hasAcceptableInput()
+        )
+        self.border_color_picker_error.setHidden(
+            self.border_color_red_spin_box.hasAcceptableInput()
+            and self.border_color_green_spin_box.hasAcceptableInput()
+            and self.border_color_blue_spin_box.hasAcceptableInput()
+        )
 
         return is_valid
 
@@ -639,9 +661,21 @@ class PageSettingsUI(QScrollArea):
         self.page_color_green_spin_box.setValue(color.green())
         self.page_color_blue_spin_box.setValue(color.blue())
 
-    def onColorSpinBoxValueChanged(self, _: int) -> None:
+    def onPageColorSpinBoxValueChanged(self, _: int) -> None:
         red = self.page_color_red_spin_box.value()
         green = self.page_color_green_spin_box.value()
         blue = self.page_color_blue_spin_box.value()
 
         self.page_color_picker.setColor(QColor(red, green, blue))
+
+    def onBorderColorChanged(self, color: QColor) -> None:
+        self.border_color_red_spin_box.setValue(color.red())
+        self.border_color_green_spin_box.setValue(color.green())
+        self.border_color_blue_spin_box.setValue(color.blue())
+
+    def onBorderColorSpinBoxValueChanged(self, _: int) -> None:
+        red = self.border_color_red_spin_box.value()
+        green = self.border_color_green_spin_box.value()
+        blue = self.border_color_blue_spin_box.value()
+
+        self.border_color_picker.setColor(QColor(red, green, blue))
