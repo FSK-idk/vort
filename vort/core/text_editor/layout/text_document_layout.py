@@ -90,6 +90,9 @@ class TextDocumentLayout(QAbstractTextDocumentLayout):
     def characterCount(self) -> int:
         return self.__character_count
 
+    def imageLayout(self) -> list[ImageFormat]:
+        return self.__image_layout
+
     def indentStep(self) -> float:
         return self.__indent_step
 
@@ -319,7 +322,7 @@ class TextDocumentLayout(QAbstractTextDocumentLayout):
                     case Qt.AlignmentFlag.AlignLeft:
                         image_x += 0
 
-                    case Qt.AlignmentFlag.AlignCenter:
+                    case Qt.AlignmentFlag.AlignHCenter:
                         image_x += (self.__page_layout.textWidth() - block_width_reduce - image_width) / 2
 
                     case Qt.AlignmentFlag.AlignRight:
@@ -395,7 +398,7 @@ class TextDocumentLayout(QAbstractTextDocumentLayout):
                     case Qt.AlignmentFlag.AlignLeft:
                         line_x += 0
 
-                    case Qt.AlignmentFlag.AlignCenter:
+                    case Qt.AlignmentFlag.AlignHCenter:
                         line_x += (self.__page_layout.textWidth() - block_width_reduce - line_rect.width()) / 2
 
                     case Qt.AlignmentFlag.AlignRight:

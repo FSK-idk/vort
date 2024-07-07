@@ -1,7 +1,8 @@
-from PySide6.QtCore import Qt, Signal, QObject, Slot, QRectF, QTimer, QEvent
+from PySide6.QtCore import Qt, Signal, QObject, Slot, QRectF, QTimer, QEvent, QByteArray, QBuffer, QIODevice
 from PySide6.QtWidgets import QWidget, QGraphicsScene, QToolTip
 from PySide6.QtGui import (
     QGuiApplication,
+    QImage,
     QKeyEvent,
     QMouseEvent,
     QTextDocument,
@@ -53,6 +54,8 @@ class DocumentContext:
 
 
 class TextEditor(QObject):
+    contentsChanged = Signal()
+
     fontFamilyChanged = Signal(str)
 
     fontSizeChnaged = Signal(int)
@@ -128,6 +131,23 @@ class TextEditor(QObject):
 
         document_file.html_text = self.__document_context.text_document.toHtml()
 
+        document_file.png_image = {}
+
+        for image_format in self.__document_context.text_document_layout.imageLayout():
+            name: str = image_format.name
+
+            image: QImage = self.__document_context.text_document.resource(
+                QTextDocument.ResourceType.ImageResource, image_format.name
+            )
+
+            bytes_array: QByteArray = QByteArray()
+            buffer: QBuffer = QBuffer(bytes_array)
+            buffer.open(QIODevice.OpenModeFlag.WriteOnly)
+            image.save(buffer, "png")
+            image_bytes: bytes = bytes_array.data()
+
+            document_file.png_image[name] = image_bytes
+
         page_layout: PageLayout = self.__document_context.page_layout
 
         document_file.page_width = page_layout.pageWidth() * px_to_cm
@@ -197,6 +217,13 @@ class TextEditor(QObject):
         text_cursor: QTextCursor = QTextCursor(text_document)
         text_cursor.insertHtml(document_file.html_text)
 
+        for name, image_bytes in document_file.png_image.items():
+            bytes_array: QByteArray = QByteArray(image_bytes)
+            image: QImage = QImage()
+            image.loadFromData(bytes_array, "PNG")
+
+            text_document.addResource(QTextDocument.ResourceType.ImageResource, name, image)
+
         # set default format if it is empty document
         if text_document.characterCount() == 1:
             char_format: QTextCharFormat = QTextCharFormat()
@@ -224,6 +251,8 @@ class TextEditor(QObject):
             text_cursor.movePosition(QTextCursor.MoveOperation.Start, QTextCursor.MoveMode.MoveAnchor)
 
         text_document.clearUndoRedoStacks()
+
+        text_document.contentsChanged.connect(self.contentsChanged.emit)
 
         page_layout: PageLayout = PageLayout()
 

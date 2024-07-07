@@ -47,7 +47,7 @@ class ParagraphSettingsUI(QScrollArea):
         self.alignment_combo_box.lineEdit().setEnabled(False)
         self.aligment_flags: list[Qt.AlignmentFlag] = [
             Qt.AlignmentFlag.AlignLeft,
-            Qt.AlignmentFlag.AlignCenter,
+            Qt.AlignmentFlag.AlignHCenter,
             Qt.AlignmentFlag.AlignRight,
         ]
         self.aligment_names: list[str] = ["Left", "Center", "Right"]

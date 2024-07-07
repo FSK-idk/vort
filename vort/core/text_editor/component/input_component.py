@@ -1,4 +1,6 @@
-from PySide6.QtCore import Qt, QMimeData, QByteArray
+import hashlib
+
+from PySide6.QtCore import Qt, QMimeData, QByteArray, QBuffer, QIODevice
 from PySide6.QtGui import (
     QTextCursor,
     QGuiApplication,
@@ -13,10 +15,6 @@ from PySide6.QtGui import (
 )
 
 from core.text_editor.component.component import Component
-
-
-# TODO: use hash
-img_count = 0
 
 
 class InputComponent(Component):
@@ -105,13 +103,17 @@ class InputComponent(Component):
 
         self._text_cursor.beginEditBlock()
 
-        global img_count
-
-        name: str = f"pasted_image_{img_count}"
         image: QImage = QImage(mime_data.imageData())
 
+        bytes_array: QByteArray = QByteArray()
+        buffer: QBuffer = QBuffer(bytes_array)
+        buffer.open(QIODevice.OpenModeFlag.WriteOnly)
+        image.save(buffer, "png")
+        image_bytes: bytes = bytes_array.data()
+
+        name: str = f"pasted_image_{hashlib.sha256(image_bytes).hexdigest()}"
+
         self._text_cursor.document().addResource(QTextDocument.ResourceType.ImageResource, name, image)
-        img_count += 1
 
         image_format: QTextImageFormat = QTextImageFormat()
         image_format.setWidth(image.width())

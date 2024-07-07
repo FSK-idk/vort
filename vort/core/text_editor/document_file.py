@@ -1,12 +1,13 @@
 from typing import Self
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QColor, QTextDocument, QTextCursor, QTextCharFormat, QTextBlockFormat, QFont
+from PySide6.QtGui import QColor
 
 
 class DocumentFile:
     def __init__(self) -> None:
         self.html_text: str = ""
+        self.png_image: dict[str, bytes] = {}
 
         # page
 
@@ -93,6 +94,7 @@ class DocumentFile:
         file: Self = cls()
 
         file.html_text = ""
+        file.png_image = {}
         file.page_width = 21
         file.page_height = 29.7
         file.page_spacing = 1

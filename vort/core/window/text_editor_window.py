@@ -158,11 +158,17 @@ class TextEditorWindow(QObject):
 
         self.filepath = ""
         self.is_document_open = False
+        self.is_document_changed = False
+        self.ui.text_editor.contentsChanged.connect(self.onContentsChanged)
 
     def setDefaultEditor(self) -> None:
         self.ui.character_count.setCharacterCount(0)
         self.onUserZoomFactorChanged(1)
         self.onTextEditorZoomFactorChanged(1)
+
+    @Slot()
+    def onContentsChanged(self) -> None:
+        self.is_document_changed = True
 
     @Slot()
     def closeApplication(self) -> None:
@@ -171,7 +177,7 @@ class TextEditorWindow(QObject):
 
     @Slot()
     def newDocument(self) -> None:
-        if self.is_document_open:
+        if self.is_document_open and self.is_document_changed:
             message = QMessageBox(
                 QMessageBox.Icon.Warning,
                 "File not saved",
@@ -186,10 +192,11 @@ class TextEditorWindow(QObject):
         self.ui.text_editor.setDocument(DocumentFile.default_file())
         self.filepath = ""
         self.is_document_open = True
+        self.is_document_changed = True
 
     @Slot()
     def openDocument(self) -> None:
-        if self.is_document_open:
+        if self.is_document_open and self.is_document_changed:
             message = QMessageBox(
                 QMessageBox.Icon.Warning,
                 "File not saved",
@@ -211,35 +218,33 @@ class TextEditorWindow(QObject):
                     self.ui.text_editor.setDocument(document_file)
                     self.filepath = filepath
                     self.is_document_open = True
+                    self.is_document_changed = False
             except FileNotFoundError:
                 print("File not found")
-            else:
-                print("Error")
-
-        print("openDocument")
 
     @Slot()
     def closeDocument(self) -> None:
         if self.is_document_open:
-            message = QMessageBox(
-                QMessageBox.Icon.Warning,
-                "File not saved",
-                "Do you want to save your changes?",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                self.ui,
-            )
-            if message.exec() == QMessageBox.StandardButton.Yes:
-                self.saveDocument()
+            if self.is_document_changed:
+                message = QMessageBox(
+                    QMessageBox.Icon.Warning,
+                    "File not saved",
+                    "Do you want to save your changes?",
+                    QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                    self.ui,
+                )
+                if message.exec() == QMessageBox.StandardButton.Yes:
+                    self.saveDocument()
 
             self.ui.text_editor.closeDocument()
 
         self.filepath = ""
         self.is_document_open = False
-        print("closeDocument")
+        self.is_document_changed = False
 
     @Slot()
     def saveDocument(self) -> None:
-        if self.is_document_open:
+        if self.is_document_open and self.is_document_changed:
             document_file: DocumentFile = self.ui.text_editor.document()
 
             if self.filepath == "":
@@ -248,20 +253,15 @@ class TextEditorWindow(QObject):
                     with open(filepath, "wb") as f:
                         pickle.dump(document_file, f)
                         self.filepath = filepath
+                        self.is_document_changed = False
                 except FileNotFoundError:
                     print("File not found")
-                else:
-                    print("Error")
             else:
                 try:
                     with open(self.filepath, "wb") as f:
                         pickle.dump(document_file, f)
                 except FileNotFoundError:
                     print("File not found")
-                else:
-                    print("Error")
-
-        print("saveDocument")
 
     # history
 
