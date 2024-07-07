@@ -205,10 +205,10 @@ class TextEditorWindow(QObject):
         config.header_font_family = QFont().family()
         config.header_font_size = 16
 
-        config.header_text_background_color = QColor("white")
+        config.header_text_background_color = QColor("transparent")
         config.header_text_foreground_color = QColor("black")
 
-        config.is_header_turned_for_first_page = False
+        config.is_header_turned_for_first_page = True
 
         config.is_header_pagination_turned = False
         config.header_pagination_starting_number = 1
@@ -223,10 +223,10 @@ class TextEditorWindow(QObject):
         config.footer_font_family = QFont().family()
         config.footer_font_size = 16
 
-        config.footer_text_background_color = QColor("white")
+        config.footer_text_background_color = QColor("transparent")
         config.footer_text_foreground_color = QColor("black")
 
-        config.is_footer_turned_for_first_page = False
+        config.is_footer_turned_for_first_page = True
 
         config.is_footer_pagination_turned = True
         config.footer_pagination_starting_number = 1
@@ -272,11 +272,11 @@ class TextEditorWindow(QObject):
 
         # color
 
-        self.onUserForegroundColorChanged(QColor(Qt.GlobalColor.black))
-        self.onTextEditorForegroundColorChanged(QColor(Qt.GlobalColor.black))
+        self.onUserForegroundColorChanged(QColor("black"))
+        self.onTextEditorForegroundColorChanged(QColor("black"))
 
-        self.onUserBackgroundColorChanged(QColor(Qt.GlobalColor.white))
-        self.onTextEditorBackgroundColorChanged(QColor(Qt.GlobalColor.white))
+        self.onUserBackgroundColorChanged(QColor("transparent"))
+        self.onTextEditorBackgroundColorChanged(QColor("transparent"))
 
         # indent
 
@@ -625,8 +625,30 @@ class TextEditorWindow(QObject):
         paragraph_context.right_margin = self.ui.text_editor.spacing_component.rightMargin() * px_to_cm
 
         header_context: HeaderSettingsContext = HeaderSettingsContext()
+        header_context.height = document_context.page_layout.headerHeight() * px_to_cm
+        header_context.alignment = document_context.text_canvas.headerLayout().alignment()
+        header_context.font_family = document_context.text_canvas.headerLayout().fontFamily()
+        header_context.font_size = document_context.text_canvas.headerLayout().fontSize()
+        header_context.background_color = document_context.text_canvas.headerLayout().textBackgroundColor()
+        header_context.foreground_color = document_context.text_canvas.headerLayout().textForegroundColor()
+        header_context.is_turned_for_first_page = document_context.text_canvas.headerLayout().isTurnedForFirstPage()
+        header_context.is_pagination_turned = document_context.text_canvas.headerLayout().isPaginationTurned()
+        header_context.starting_number = document_context.text_canvas.headerLayout().paginationStartingNumber()
+        header_context.is_text_turned = document_context.text_canvas.headerLayout().isTextTurned()
+        header_context.text = document_context.text_canvas.headerLayout().text()
 
         footer_context: FooterSettingsContext = FooterSettingsContext()
+        footer_context.height = document_context.page_layout.footerHeight() * px_to_cm
+        footer_context.alignment = document_context.text_canvas.footerLayout().alignment()
+        footer_context.font_family = document_context.text_canvas.footerLayout().fontFamily()
+        footer_context.font_size = document_context.text_canvas.footerLayout().fontSize()
+        footer_context.background_color = document_context.text_canvas.footerLayout().textBackgroundColor()
+        footer_context.foreground_color = document_context.text_canvas.footerLayout().textForegroundColor()
+        footer_context.is_turned_for_first_page = document_context.text_canvas.footerLayout().isTurnedForFirstPage()
+        footer_context.is_pagination_turned = document_context.text_canvas.footerLayout().isPaginationTurned()
+        footer_context.starting_number = document_context.text_canvas.footerLayout().paginationStartingNumber()
+        footer_context.is_text_turned = document_context.text_canvas.footerLayout().isTextTurned()
+        footer_context.text = document_context.text_canvas.footerLayout().text()
 
         settings_context = SettingsContext()
         settings_context.page_context = page_context
@@ -671,7 +693,6 @@ class TextEditorWindow(QObject):
         document_context.page_layout.setBorderColor(page_context.border_color)
 
         paragraph_context = context.paragraph_context
-
         self.onUserParagraphAlignmentChanged(paragraph_context.alignment)
         self.onUserFirstLineIndentTurned(paragraph_context.is_first_line_indent_turned)
         self.onTextEditorFirstLineIndentTurned(paragraph_context.is_first_line_indent_turned)
@@ -685,6 +706,32 @@ class TextEditorWindow(QObject):
         self.onUserParagraphBottomMarginChanged(paragraph_context.bottom_margin * cm_to_px)
         self.onUserParagraphLeftMarginChanged(paragraph_context.left_margin * cm_to_px)
         self.onUserParagraphRightMarginChanged(paragraph_context.right_margin * cm_to_px)
+
+        header_context = context.header_context
+        document_context.page_layout.setHeaderHeight(header_context.height * cm_to_px)
+        document_context.text_canvas.headerLayout().setAlignment(header_context.alignment)
+        document_context.text_canvas.headerLayout().setFontFamily(header_context.font_family)
+        document_context.text_canvas.headerLayout().setFontSize(header_context.font_size)
+        document_context.text_canvas.headerLayout().setTextBackgroundColor(header_context.background_color)
+        document_context.text_canvas.headerLayout().setTextForegroundColor(header_context.foreground_color)
+        document_context.text_canvas.headerLayout().turnForFirstPage(header_context.is_turned_for_first_page)
+        document_context.text_canvas.headerLayout().turnPagination(header_context.is_pagination_turned)
+        document_context.text_canvas.headerLayout().setPaginationStartingNumber(header_context.starting_number)
+        document_context.text_canvas.headerLayout().turnText(header_context.is_text_turned)
+        document_context.text_canvas.headerLayout().setText(header_context.text)
+
+        footer_context = context.footer_context
+        document_context.page_layout.setFooterHeight(footer_context.height * cm_to_px)
+        document_context.text_canvas.footerLayout().setAlignment(footer_context.alignment)
+        document_context.text_canvas.footerLayout().setFontFamily(footer_context.font_family)
+        document_context.text_canvas.footerLayout().setFontSize(footer_context.font_size)
+        document_context.text_canvas.footerLayout().setTextBackgroundColor(footer_context.background_color)
+        document_context.text_canvas.footerLayout().setTextForegroundColor(footer_context.foreground_color)
+        document_context.text_canvas.footerLayout().turnForFirstPage(footer_context.is_turned_for_first_page)
+        document_context.text_canvas.footerLayout().turnPagination(footer_context.is_pagination_turned)
+        document_context.text_canvas.footerLayout().setPaginationStartingNumber(footer_context.starting_number)
+        document_context.text_canvas.footerLayout().turnText(footer_context.is_text_turned)
+        document_context.text_canvas.footerLayout().setText(footer_context.text)
 
         self.ui.text_editor.repaintViewport()
 

@@ -36,7 +36,7 @@ class DocumentFile:
 
         # header
 
-        self.header_alignment: Qt.AlignmentFlag = Qt.AlignmentFlag.AlignLeft
+        self.header_alignment: Qt.AlignmentFlag = Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop
 
         self.header_font_family: str = ""
         self.header_font_size: int = 1
@@ -54,7 +54,7 @@ class DocumentFile:
 
         # footer
 
-        self.footer_alignment: Qt.AlignmentFlag = Qt.AlignmentFlag.AlignLeft
+        self.footer_alignment: Qt.AlignmentFlag = Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignBottom
 
         self.footer_font_family: str = ""
         self.footer_font_size: int = 1

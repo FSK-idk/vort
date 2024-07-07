@@ -5,22 +5,24 @@ from PySide6.QtGui import QColor, QPalette, QFont
 from core.widget.basic_widget import DoubleSpinBox, ComboBox, SpinBox
 from core.widget.font_combo_box.font_combo_box import FontComboBox
 from core.widget.font_combo_box.font_size_combo_box import FontSizeComboBox
+from core.widget.color_picker.color_picker import ColorPicker
 
 
 class HeaderSettingsContext:
 
     def __init__(self) -> None:
-        self.height: float = 0  # cm
+        self.height: float = 0.0  # cm
 
-        self.alignment: Qt.AlignmentFlag = Qt.AlignmentFlag.AlignCenter
+        self.alignment: Qt.AlignmentFlag = Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop
 
-        self.font_family: str = QFont().family()
-        self.font_size: int = 16
-        self.foreground_color: QColor = QColor("black")
-        self.background_color: QColor = QColor("white")
+        self.font_family: str = ""
+        self.font_size: int = 0
+        self.background_color: QColor = QColor()
+        self.foreground_color: QColor = QColor()
+
+        self.is_turned_for_first_page: bool = False
 
         self.is_pagination_turned: bool = False
-        self.is_pagination_turned_off_for_first_page: bool = False
         self.starting_number: int = 1
 
         self.is_text_turned: bool = False
@@ -65,6 +67,7 @@ class HeaderSettingsUI(QScrollArea):
 
         height_spin_box_layout = QHBoxLayout()
         height_spin_box_layout.setContentsMargins(0, 0, 0, 0)
+        height_spin_box_layout.setSpacing(10)
         height_spin_box_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
         height_spin_box_layout.addWidget(self.height_spin_box_label)
         height_spin_box_layout.addWidget(self.height_spin_box)
@@ -80,13 +83,13 @@ class HeaderSettingsUI(QScrollArea):
         size_layout.addSpacing(5)
 
         # alignment
+
         self.alignment_title_label: QLabel = QLabel(self)
         self.alignment_title_label.setText("Alignment")
 
         self.alignment_combo_box_label: QLabel = QLabel(self)
         self.alignment_combo_box_label.setText("Alignment")
 
-        # TODO: own widget
         self.alignment_combo_box: ComboBox = ComboBox(self)
         self.alignment_combo_box.setEditable(True)
         self.alignment_combo_box.lineEdit().setEnabled(False)
@@ -170,67 +173,107 @@ class HeaderSettingsUI(QScrollArea):
         font_size_combo_box_layout.addWidget(self.font_size_combo_box_label)
         font_size_combo_box_layout.addWidget(self.font_size_combo_box)
 
-        self.foreground_color_line_edit_label: QLabel = QLabel(self)
-        self.foreground_color_line_edit_label.setText("Foreground color")
+        self.background_color_picker_label: QLabel = QLabel(self)
+        self.background_color_picker_label.setText("Background color")
 
-        # TODO: add validator #FFFFFF
-        self.foreground_color_line_edit: QLineEdit = QLineEdit(self)
-        # self.color_line_edit.setValidator()
+        self.background_color_red_spin_box: SpinBox = SpinBox(self)
+        self.background_color_red_spin_box.setMinimum(0)
+        self.background_color_red_spin_box.setMaximum(255)
+        self.background_color_red_spin_box.setSuffix(" R")
+        self.background_color_red_spin_box.setValue(self.context.background_color.red())
+        self.background_color_red_spin_box.valueChanged.connect(self.onBackgroundColorSpinBoxValueChanged)
 
-        # self.color: QColor = QColor("white")
-        # TODO: own widget
+        self.background_color_green_spin_box: SpinBox = SpinBox(self)
+        self.background_color_green_spin_box.setMinimum(0)
+        self.background_color_green_spin_box.setMaximum(255)
+        self.background_color_green_spin_box.setSuffix(" G")
+        self.background_color_green_spin_box.setValue(self.context.background_color.green())
+        self.background_color_green_spin_box.valueChanged.connect(self.onBackgroundColorSpinBoxValueChanged)
 
-        # self.color_picker: ColorPicker = ColorPicker(self)
-        # connect etc
+        self.background_color_blue_spin_box: SpinBox = SpinBox(self)
+        self.background_color_blue_spin_box.setMinimum(0)
+        self.background_color_blue_spin_box.setMaximum(255)
+        self.background_color_blue_spin_box.setSuffix(" B")
+        self.background_color_blue_spin_box.setValue(self.context.background_color.blue())
+        self.background_color_blue_spin_box.valueChanged.connect(self.onBackgroundColorSpinBoxValueChanged)
 
-        self.foreground_color_line_edit_error: QLabel = QLabel(self)
-        self.foreground_color_line_edit_error.setText("Invalid input")
-        self.foreground_color_line_edit_error.setFixedHeight(10)
-        font = self.foreground_color_line_edit_error.font()
+        self.background_color_picker: ColorPicker = ColorPicker(self)
+        self.background_color_picker.setColor(self.context.background_color)
+        background_color_picker_palette = self.background_color_picker.ui.palette()
+        background_color_picker_palette.setColor(QPalette.ColorRole.Button, palette.color(QPalette.ColorRole.Base))
+        background_color_picker_palette.setColor(QPalette.ColorRole.Window, palette.color(QPalette.ColorRole.Base))
+        self.background_color_picker.ui.setPalette(background_color_picker_palette)
+        self.background_color_picker.colorChanged.connect(self.onBackgroundColorChanged)
+
+        self.background_color_picker_error: QLabel = QLabel(self)
+        self.background_color_picker_error.setText("Invalid input")
+        self.background_color_picker_error.setFixedHeight(10)
+        font = self.background_color_picker_error.font()
         font.setItalic(True)
         font.setPixelSize(10)
-        self.foreground_color_line_edit_error.setFont(font)
-        self.foreground_color_line_edit_error.hide()
+        self.background_color_picker_error.setFont(font)
+        self.background_color_picker_error.hide()
 
-        foreground_color_line_edit_layout = QHBoxLayout()
-        foreground_color_line_edit_layout.setContentsMargins(0, 0, 0, 0)
-        foreground_color_line_edit_layout.setSpacing(10)
-        foreground_color_line_edit_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        foreground_color_line_edit_layout.addWidget(self.foreground_color_line_edit_label)
-        foreground_color_line_edit_layout.addWidget(self.foreground_color_line_edit)
-        # color_picker_layout.addWidget(self.color_picker)
+        background_color_picker_layout = QHBoxLayout()
+        background_color_picker_layout.setContentsMargins(0, 0, 0, 0)
+        background_color_picker_layout.setSpacing(10)
+        background_color_picker_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        background_color_picker_layout.addWidget(self.background_color_picker_label)
+        background_color_picker_layout.addWidget(self.background_color_red_spin_box)
+        background_color_picker_layout.addWidget(self.background_color_green_spin_box)
+        background_color_picker_layout.addWidget(self.background_color_blue_spin_box)
+        background_color_picker_layout.addWidget(self.background_color_picker.ui)
 
-        self.background_color_line_edit_label: QLabel = QLabel(self)
-        self.background_color_line_edit_label.setText("Background color")
+        self.foreground_color_picker_label: QLabel = QLabel(self)
+        self.foreground_color_picker_label.setText("Foreground color")
 
-        # TODO: add validator #FFFFFF
-        self.background_color_line_edit: QLineEdit = QLineEdit(self)
-        # self.color_line_edit.setValidator()
+        self.foreground_color_red_spin_box: SpinBox = SpinBox(self)
+        self.foreground_color_red_spin_box.setMinimum(0)
+        self.foreground_color_red_spin_box.setMaximum(255)
+        self.foreground_color_red_spin_box.setSuffix(" R")
+        self.foreground_color_red_spin_box.setValue(self.context.foreground_color.red())
+        self.foreground_color_red_spin_box.valueChanged.connect(self.onForegroundColorSpinBoxValueChanged)
 
-        # self.color: QColor = QColor("white")
-        # TODO: own widget
+        self.foreground_color_green_spin_box: SpinBox = SpinBox(self)
+        self.foreground_color_green_spin_box.setMinimum(0)
+        self.foreground_color_green_spin_box.setMaximum(255)
+        self.foreground_color_green_spin_box.setSuffix(" G")
+        self.foreground_color_green_spin_box.setValue(self.context.foreground_color.green())
+        self.foreground_color_green_spin_box.valueChanged.connect(self.onForegroundColorSpinBoxValueChanged)
 
-        # self.color_picker: ColorPicker = ColorPicker(self)
-        # connect etc
+        self.foreground_color_blue_spin_box: SpinBox = SpinBox(self)
+        self.foreground_color_blue_spin_box.setMinimum(0)
+        self.foreground_color_blue_spin_box.setMaximum(255)
+        self.foreground_color_blue_spin_box.setSuffix(" B")
+        self.foreground_color_blue_spin_box.setValue(self.context.foreground_color.blue())
+        self.foreground_color_blue_spin_box.valueChanged.connect(self.onForegroundColorSpinBoxValueChanged)
 
-        self.background_color_line_edit_error: QLabel = QLabel(self)
-        self.background_color_line_edit_error.setText("Invalid input")
-        self.background_color_line_edit_error.setFixedHeight(10)
-        font = self.background_color_line_edit_error.font()
+        self.foreground_color_picker: ColorPicker = ColorPicker(self)
+        self.foreground_color_picker.setColor(self.context.foreground_color)
+        foreground_color_picker_palette = self.foreground_color_picker.ui.palette()
+        foreground_color_picker_palette.setColor(QPalette.ColorRole.Button, palette.color(QPalette.ColorRole.Base))
+        foreground_color_picker_palette.setColor(QPalette.ColorRole.Window, palette.color(QPalette.ColorRole.Base))
+        self.foreground_color_picker.ui.setPalette(foreground_color_picker_palette)
+        self.foreground_color_picker.colorChanged.connect(self.onForegroundColorChanged)
+
+        self.foreground_color_picker_error: QLabel = QLabel(self)
+        self.foreground_color_picker_error.setText("Invalid input")
+        self.foreground_color_picker_error.setFixedHeight(10)
+        font = self.foreground_color_picker_error.font()
         font.setItalic(True)
         font.setPixelSize(10)
-        self.background_color_line_edit_error.setFont(font)
-        self.background_color_line_edit_error.hide()
+        self.foreground_color_picker_error.setFont(font)
+        self.foreground_color_picker_error.hide()
 
-        background_color_line_edit_layout = QHBoxLayout()
-        background_color_line_edit_layout.setContentsMargins(0, 0, 0, 0)
-        background_color_line_edit_layout.setSpacing(10)
-        background_color_line_edit_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        background_color_line_edit_layout.addWidget(self.background_color_line_edit_label)
-        background_color_line_edit_layout.addWidget(self.background_color_line_edit)
-        # color_picker_layout.addWidget(self.color_picker)
-
-        self.background_color: QColor = QColor("white")
+        foreground_color_picker_layout = QHBoxLayout()
+        foreground_color_picker_layout.setContentsMargins(0, 0, 0, 0)
+        foreground_color_picker_layout.setSpacing(10)
+        foreground_color_picker_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        foreground_color_picker_layout.addWidget(self.foreground_color_picker_label)
+        foreground_color_picker_layout.addWidget(self.foreground_color_red_spin_box)
+        foreground_color_picker_layout.addWidget(self.foreground_color_green_spin_box)
+        foreground_color_picker_layout.addWidget(self.foreground_color_blue_spin_box)
+        foreground_color_picker_layout.addWidget(self.foreground_color_picker.ui)
 
         font_layout = QVBoxLayout()
         font_layout.setContentsMargins(0, 0, 0, 0)
@@ -244,12 +287,30 @@ class HeaderSettingsUI(QScrollArea):
         font_layout.addLayout(font_size_combo_box_layout)
         font_layout.addWidget(self.font_size_combo_box_error)
         font_layout.addSpacing(5)
-        font_layout.addLayout(foreground_color_line_edit_layout)
-        font_layout.addWidget(self.foreground_color_line_edit_error)
+        font_layout.addLayout(background_color_picker_layout)
+        font_layout.addWidget(self.background_color_picker_error)
         font_layout.addSpacing(5)
-        font_layout.addLayout(background_color_line_edit_layout)
-        font_layout.addWidget(self.background_color_line_edit_error)
+        font_layout.addLayout(foreground_color_picker_layout)
+        font_layout.addWidget(self.foreground_color_picker_error)
         font_layout.addSpacing(5)
+
+        # first page
+
+        self.first_page_title_label: QLabel = QLabel(self)
+        self.first_page_title_label.setText("First page")
+
+        self.first_page_check_box: QCheckBox = QCheckBox(self)
+        self.first_page_check_box.setText("Turn off header for the first page")
+        self.first_page_check_box.setChecked(not self.context.is_turned_for_first_page)
+
+        first_page_layout = QVBoxLayout()
+        first_page_layout.setContentsMargins(0, 0, 0, 0)
+        first_page_layout.setSpacing(0)
+        first_page_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        first_page_layout.addWidget(self.first_page_title_label)
+        first_page_layout.addSpacing(15)
+        first_page_layout.addWidget(self.first_page_check_box)
+        first_page_layout.addSpacing(5)
 
         # pagination
 
@@ -260,12 +321,6 @@ class HeaderSettingsUI(QScrollArea):
         self.pagination_check_box.setText("Turn pagination")
         self.pagination_check_box.setChecked(self.context.is_pagination_turned)
         self.pagination_check_box.stateChanged.connect(self.onPaginationCheckBoxStateChanged)
-
-        self.first_page_pagination_check_box: QCheckBox = QCheckBox(self)
-        self.first_page_pagination_check_box.setText("Turn off pagination for the first page")
-        self.first_page_pagination_check_box.setChecked(self.context.is_pagination_turned_off_for_first_page)
-        self.first_page_pagination_check_box.setEnabled(self.context.is_pagination_turned)
-        self.pagination_check_box.stateChanged.connect(self.first_page_pagination_check_box.setEnabled)
 
         self.starting_number_spin_box_label: QLabel = QLabel(self)
         self.starting_number_spin_box_label.setText("Starting number")
@@ -300,8 +355,6 @@ class HeaderSettingsUI(QScrollArea):
         pagination_layout.addWidget(self.pagination_title_label)
         pagination_layout.addSpacing(15)
         pagination_layout.addWidget(self.pagination_check_box)
-        pagination_layout.addSpacing(5)
-        pagination_layout.addWidget(self.first_page_pagination_check_box)
         pagination_layout.addSpacing(5)
         pagination_layout.addLayout(starting_number_spin_box_layout)
         pagination_layout.addWidget(self.starting_number_spin_box_error)
@@ -343,13 +396,6 @@ class HeaderSettingsUI(QScrollArea):
         text_layout.addLayout(text_line_edit_layout)
         text_layout.addSpacing(5)
 
-        # group
-
-        # check_box_group: QButtonGroup = QButtonGroup(self)
-        # check_box_group.addButton(self.pagination_check_box)
-        # check_box_group.addButton(self.text_check_box)
-        # check_box_group.setExclusive(True)
-
         # layout
 
         left_layout = QVBoxLayout()
@@ -364,6 +410,7 @@ class HeaderSettingsUI(QScrollArea):
         right_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         right_layout.setContentsMargins(0, 0, 0, 0)
         right_layout.setSpacing(20)
+        right_layout.addLayout(first_page_layout)
         right_layout.addLayout(pagination_layout)
         right_layout.addLayout(text_layout)
 
@@ -384,6 +431,48 @@ class HeaderSettingsUI(QScrollArea):
         self.scroll_widget.setLayout(main_layout)
         self.setWidget(self.scroll_widget)
 
+    def validate(self) -> bool:
+        is_valid = True
+
+        is_valid = is_valid and self.height_spin_box.hasAcceptableInput()
+        self.height_spin_box_error.setHidden(self.height_spin_box.hasAcceptableInput())
+
+        is_valid = is_valid and self.font_family_combo_box.lineEdit().hasAcceptableInput()
+        self.font_family_combo_box_error.setHidden(self.font_family_combo_box.lineEdit().hasAcceptableInput())
+
+        is_valid = is_valid and self.font_size_combo_box.lineEdit().hasAcceptableInput()
+        self.font_size_combo_box_error.setHidden(self.font_size_combo_box.lineEdit().hasAcceptableInput())
+
+        is_valid = (
+            is_valid
+            and self.background_color_red_spin_box.hasAcceptableInput()
+            and self.background_color_green_spin_box.hasAcceptableInput()
+            and self.background_color_blue_spin_box.hasAcceptableInput()
+        )
+        self.background_color_picker_error.setHidden(
+            self.background_color_red_spin_box.hasAcceptableInput()
+            and self.background_color_green_spin_box.hasAcceptableInput()
+            and self.background_color_blue_spin_box.hasAcceptableInput()
+        )
+
+        is_valid = (
+            is_valid
+            and self.foreground_color_red_spin_box.hasAcceptableInput()
+            and self.foreground_color_green_spin_box.hasAcceptableInput()
+            and self.foreground_color_blue_spin_box.hasAcceptableInput()
+        )
+        self.foreground_color_picker_error.setHidden(
+            self.foreground_color_red_spin_box.hasAcceptableInput()
+            and self.foreground_color_green_spin_box.hasAcceptableInput()
+            and self.foreground_color_blue_spin_box.hasAcceptableInput()
+        )
+
+        if self.pagination_check_box.isChecked():
+            is_valid = is_valid and self.starting_number_spin_box.hasAcceptableInput()
+            self.starting_number_spin_box_error.setHidden(self.starting_number_spin_box.hasAcceptableInput())
+
+        return is_valid
+
     @Slot(int)
     def onPaginationCheckBoxStateChanged(self, state: int) -> None:
         if state:
@@ -393,3 +482,31 @@ class HeaderSettingsUI(QScrollArea):
     def onTextCheckBoxStateChanged(self, state: int) -> None:
         if state:
             self.pagination_check_box.setChecked(False)
+
+    @Slot(QColor)
+    def onBackgroundColorChanged(self, color: QColor) -> None:
+        self.background_color_red_spin_box.setValue(color.red())
+        self.background_color_green_spin_box.setValue(color.green())
+        self.background_color_blue_spin_box.setValue(color.blue())
+
+    @Slot(int)
+    def onBackgroundColorSpinBoxValueChanged(self, _: int) -> None:
+        red = self.background_color_red_spin_box.value()
+        green = self.background_color_green_spin_box.value()
+        blue = self.background_color_blue_spin_box.value()
+
+        self.background_color_picker.setColor(QColor(red, green, blue))
+
+    @Slot(QColor)
+    def onForegroundColorChanged(self, color: QColor) -> None:
+        self.foreground_color_red_spin_box.setValue(color.red())
+        self.foreground_color_green_spin_box.setValue(color.green())
+        self.foreground_color_blue_spin_box.setValue(color.blue())
+
+    @Slot(int)
+    def onForegroundColorSpinBoxValueChanged(self, _: int) -> None:
+        red = self.foreground_color_red_spin_box.value()
+        green = self.foreground_color_green_spin_box.value()
+        blue = self.foreground_color_blue_spin_box.value()
+
+        self.foreground_color_picker.setColor(QColor(red, green, blue))

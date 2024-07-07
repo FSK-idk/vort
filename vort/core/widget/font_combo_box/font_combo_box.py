@@ -16,6 +16,9 @@ class FontComboBox(QFontComboBox):
         self.activated.connect(self.onActivated)
         self.lineEdit().returnPressed.connect(self.onLineEditReturnPressed)
 
+    def fontFamily(self) -> str:
+        return self.currentFont().family()
+
     def setFontFamily(self, font_family: str) -> None:
         self.setCurrentFont(font_family)
 

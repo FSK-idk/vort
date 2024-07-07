@@ -146,8 +146,8 @@ class PageSettingsUI(QScrollArea):
         self.color_title_label: QLabel = QLabel(self)
         self.color_title_label.setText("Color")
 
-        self.page_color_line_edit_label: QLabel = QLabel(self)
-        self.page_color_line_edit_label.setText("Color")
+        self.page_color_picker_label: QLabel = QLabel(self)
+        self.page_color_picker_label.setText("Color")
 
         self.page_color_red_spin_box: SpinBox = SpinBox(self)
         self.page_color_red_spin_box.setMinimum(0)
@@ -191,7 +191,7 @@ class PageSettingsUI(QScrollArea):
         page_color_picker_layout.setContentsMargins(0, 0, 0, 0)
         page_color_picker_layout.setSpacing(10)
         page_color_picker_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        page_color_picker_layout.addWidget(self.page_color_line_edit_label)
+        page_color_picker_layout.addWidget(self.page_color_picker_label)
         page_color_picker_layout.addWidget(self.page_color_red_spin_box)
         page_color_picker_layout.addWidget(self.page_color_green_spin_box)
         page_color_picker_layout.addWidget(self.page_color_blue_spin_box)
@@ -494,8 +494,8 @@ class PageSettingsUI(QScrollArea):
         border_width_spin_box_layout.addWidget(self.border_width_spin_box_label)
         border_width_spin_box_layout.addWidget(self.border_width_spin_box)
 
-        self.border_color_line_edit_label: QLabel = QLabel(self)
-        self.border_color_line_edit_label.setText("Color")
+        self.border_color_picker_label: QLabel = QLabel(self)
+        self.border_color_picker_label.setText("Color")
 
         self.border_color_red_spin_box: SpinBox = SpinBox(self)
         self.border_color_red_spin_box.setMinimum(0)
@@ -539,7 +539,7 @@ class PageSettingsUI(QScrollArea):
         border_color_picker_layout.setContentsMargins(0, 0, 0, 0)
         border_color_picker_layout.setSpacing(10)
         border_color_picker_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        border_color_picker_layout.addWidget(self.border_color_line_edit_label)
+        border_color_picker_layout.addWidget(self.border_color_picker_label)
         border_color_picker_layout.addWidget(self.border_color_red_spin_box)
         border_color_picker_layout.addWidget(self.border_color_green_spin_box)
         border_color_picker_layout.addWidget(self.border_color_blue_spin_box)

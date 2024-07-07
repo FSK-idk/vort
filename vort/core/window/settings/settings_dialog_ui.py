@@ -80,6 +80,7 @@ class SettingsDialogUI(QDialog):
     @Slot()
     def onApplyClicked(self) -> None:
         # validate
+
         invalid_tab: str = ""
 
         if not self.page_settings.validate() and invalid_tab == "":
@@ -88,7 +89,14 @@ class SettingsDialogUI(QDialog):
         if not self.paragraph_settings.validate() and invalid_tab == "":
             invalid_tab = "paragraph"
 
+        if not self.header_settings.validate() and invalid_tab == "":
+            invalid_tab = "header"
+
+        if not self.footer_settings.validate() and invalid_tab == "":
+            invalid_tab = "footer"
+
         # set context
+
         self.context.page_context.page_width = self.page_settings.width_spin_box.value()
         self.context.page_context.page_height = self.page_settings.height_spin_box.value()
         self.context.page_context.page_spacing = self.page_settings.spacing_spin_box.value()
@@ -119,10 +127,37 @@ class SettingsDialogUI(QDialog):
         self.context.paragraph_context.left_margin = self.paragraph_settings.left_margin_spin_box.value()
         self.context.paragraph_context.right_margin = self.paragraph_settings.right_margin_spin_box.value()
 
+        self.context.header_context.height = self.header_settings.height_spin_box.value()
+        self.context.header_context.alignment = self.header_settings.aligment_flags[
+            self.header_settings.alignment_combo_box.currentIndex()
+        ]
+        self.context.header_context.font_family = self.header_settings.font_family_combo_box.fontFamily()
+        self.context.header_context.font_size = self.header_settings.font_size_combo_box.fontSize()
+        self.context.header_context.background_color = self.header_settings.background_color_picker.color()
+        self.context.header_context.foreground_color = self.header_settings.foreground_color_picker.color()
+        self.context.header_context.is_turned_for_first_page = not self.header_settings.first_page_check_box.isChecked()
+        self.context.header_context.is_pagination_turned = self.header_settings.pagination_check_box.isChecked()
+        self.context.header_context.starting_number = self.header_settings.starting_number_spin_box.value()
+        self.context.header_context.is_text_turned = self.header_settings.text_check_box.isChecked()
+        self.context.header_context.text = self.header_settings.text_line_edit.text()
+
+        self.context.footer_context.height = self.footer_settings.height_spin_box.value()
+        self.context.footer_context.alignment = self.footer_settings.aligment_flags[
+            self.footer_settings.alignment_combo_box.currentIndex()
+        ]
+        self.context.footer_context.font_family = self.footer_settings.font_family_combo_box.fontFamily()
+        self.context.footer_context.font_size = self.footer_settings.font_size_combo_box.fontSize()
+        self.context.footer_context.background_color = self.footer_settings.background_color_picker.color()
+        self.context.footer_context.foreground_color = self.footer_settings.foreground_color_picker.color()
+        self.context.footer_context.is_turned_for_first_page = not self.footer_settings.first_page_check_box.isChecked()
+        self.context.footer_context.is_pagination_turned = self.footer_settings.pagination_check_box.isChecked()
+        self.context.footer_context.starting_number = self.footer_settings.starting_number_spin_box.value()
+        self.context.footer_context.is_text_turned = self.footer_settings.text_check_box.isChecked()
+        self.context.footer_context.text = self.footer_settings.text_line_edit.text()
+
         if invalid_tab == "":
             self.applied.emit(self.context)
         else:
-            print("invalid tab =", invalid_tab)
             self.openTab(invalid_tab)
 
     @Slot()

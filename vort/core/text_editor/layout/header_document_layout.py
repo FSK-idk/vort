@@ -135,7 +135,7 @@ class HeaderDocumentLayout(QAbstractTextDocumentLayout):
         for i in range(count):
             self.__text_cursor.movePosition(QTextCursor.MoveOperation.End, QTextCursor.MoveMode.MoveAnchor)
             self.__text_cursor.movePosition(QTextCursor.MoveOperation.PreviousBlock, QTextCursor.MoveMode.KeepAnchor)
-            self.__text_cursor.removeSelectedText()
+            self.__text_cursor.deleteChar()
 
         self.updateHeader()
 
@@ -157,7 +157,7 @@ class HeaderDocumentLayout(QAbstractTextDocumentLayout):
             self.__text_cursor.setPosition(block.position())
             self.__text_cursor.movePosition(QTextCursor.MoveOperation.EndOfBlock, QTextCursor.MoveMode.KeepAnchor)
 
-            if i == 0 and self.__is_turned_for_first_page:
+            if i == 0 and not self.__is_turned_for_first_page:
                 self.__text_cursor.insertText("")
 
             elif self.__is_pagination_turned:
@@ -168,6 +168,7 @@ class HeaderDocumentLayout(QAbstractTextDocumentLayout):
 
             else:
                 self.__text_cursor.insertText("")
+        self.updateFormat()
 
     def documentChanged(self, from_: int, charsRemoved: int, charsAdded: int) -> None:
         for i in range(self.document().blockCount() - 1):

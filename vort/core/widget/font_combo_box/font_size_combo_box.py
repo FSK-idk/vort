@@ -24,6 +24,9 @@ class FontSizeComboBox(QComboBox):
         self.activated.connect(self.onActivated)
         self.lineEdit().returnPressed.connect(self.onLineEditReturnPressed)
 
+    def fontSize(self) -> int:
+        return int(self.currentText()[:-3])
+
     def setFontSize(self, font_size: int) -> None:
         self.setEditText(str(font_size) + " pt")
 
