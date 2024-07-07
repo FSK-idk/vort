@@ -138,7 +138,7 @@ class TextDocumentLayout(QAbstractTextDocumentLayout):
     def setHyperlinkBackgroundColorTurned(self, is_turned: bool) -> None:
         self.__is_hyperlink_background_color_turned = is_turned
 
-    def isHyperlinkBackgroundColor(self) -> QColor:
+    def hyperlinkBackgroundColor(self) -> QColor:
         return self.__hyperlink_background_color
 
     def setHyperlinkBackgroundColor(self, color: QColor) -> None:
@@ -150,7 +150,7 @@ class TextDocumentLayout(QAbstractTextDocumentLayout):
     def setHyperlinkForegroundColorTurned(self, is_turned: bool) -> None:
         self.__is_hyperlink_foreground_color_turned = is_turned
 
-    def isHyperlinkForegroundColor(self) -> QColor:
+    def hyperlinkForegroundColor(self) -> QColor:
         return self.__hyperlink_foreground_color
 
     def setHyperlinkForegroundColor(self, color: QColor) -> None:

@@ -1,5 +1,8 @@
-from PySide6.QtCore import Qt, QObject, Slot
-from PySide6.QtGui import QFont, QColor, QGuiApplication, QTextDocument
+import pickle
+
+from PySide6.QtCore import Qt, QObject, Slot, QByteArray, QDataStream
+from PySide6.QtWidgets import QFileDialog
+from PySide6.QtGui import QFont, QColor, QGuiApplication, QTextDocument, QTextDocumentWriter
 
 from core.window.text_editor_window_ui import TextEditorWindowUI
 from core.window.dialog.edit_hyperlink_dialog_ui import EditHyperlinkDialogUI, EditHyperlinkDialogContext
@@ -154,6 +157,8 @@ class TextEditorWindow(QObject):
 
         self.ui.show()
 
+        self.filepath = ""
+
     def setDeafultDocument(self) -> None:
         self.ui.text_editor.setDocument(DocumentFile.default_file())
 
@@ -166,12 +171,29 @@ class TextEditorWindow(QObject):
         print("newDocument")
 
     def openDocument(self) -> None:
+        filepath, _ = QFileDialog.getOpenFileName(filter="")
+        document_file: DocumentFile = self.ui.text_editor.document()
+
+        with open(filepath, "rb") as f:
+            document_file = pickle.load(f)
+            self.ui.text_editor.setDocument(document_file)
+            self.filepath = filepath
+
         print("openDocument")
 
     def closeDocument(self) -> None:
         print("closeDocument")
 
     def saveDocument(self) -> None:
+        if self.filepath == "":
+            document_file: DocumentFile = self.ui.text_editor.document()
+
+            filepath, _ = QFileDialog.getSaveFileName(filter="Vort file (*.vrt)")
+
+            with open(filepath, "wb") as f:
+                pickle.dump(document_file, f)
+                self.filepath = filepath
+
         print("saveDocument")
 
     # history

@@ -134,29 +134,12 @@ class InputComponent(Component):
 
         self._text_cursor.beginEditBlock()
 
-        # is_image_before = self._text_cursor.charFormat().isImageFormat() and self._text_cursor.atBlockEnd()
-        # is_image_after = self._text_cursor.charFormat().isImageFormat() and self._text_cursor.atBlockStart()
-
-        # if is_image_before:
-        #     block_char_format = self._text_cursor.blockCharFormat()
-        #     self._text_cursor.insertBlock()
-        #     self._text_cursor.movePosition(QTextCursor.MoveOperation.EndOfBlock, QTextCursor.MoveMode.KeepAnchor)
-        #     self._text_cursor.setCharFormat(block_char_format)
-        #     self._text_cursor.movePosition(QTextCursor.MoveOperation.StartOfBlock, QTextCursor.MoveMode.KeepAnchor)
-        #     self._text_cursor.clearSelection()
-        #     self._text_cursor.setBlockCharFormat(block_char_format)
-
         format = self._text_cursor.charFormat()
         if format.isImageFormat():
             format = self._text_cursor.blockCharFormat()
 
         format.setAnchorHref(hyperlink)
         self._text_cursor.insertText(text, format)
-
-        # if is_image_after:
-        #     self._text_cursor.insertBlock()
-        #     self._text_cursor.movePosition(QTextCursor.MoveOperation.PreviousBlock, QTextCursor.MoveMode.MoveAnchor)
-        #     self._text_cursor.movePosition(QTextCursor.MoveOperation.EndOfBlock, QTextCursor.MoveMode.MoveAnchor)
 
         self.fixup()
         self._text_cursor.endEditBlock()
@@ -169,6 +152,8 @@ class InputComponent(Component):
             match event.key():
                 case Qt.Key.Key_Backspace:
                     self._text_cursor.beginEditBlock()
+
+                    format = self._text_cursor.charFormat()
 
                     # has selection -> delete selection
                     if self._text_cursor.hasSelection():
@@ -216,7 +201,6 @@ class InputComponent(Component):
                         self._text_cursor.deletePreviousChar()
 
                     if self._text_cursor.atBlockStart():
-                        format = self._text_cursor.charFormat()
                         format.setAnchorHref("")
                         self._text_cursor.mergeBlockCharFormat(format)
 
@@ -225,6 +209,8 @@ class InputComponent(Component):
 
                 case Qt.Key.Key_Delete:
                     self._text_cursor.beginEditBlock()
+
+                    format = self._text_cursor.charFormat()
 
                     # has selection -> delete selection
                     if self._text_cursor.hasSelection():
@@ -284,7 +270,6 @@ class InputComponent(Component):
                         self._text_cursor.deleteChar()
 
                     if self._text_cursor.atBlockStart():
-                        format = self._text_cursor.charFormat()
                         format.setAnchorHref("")
                         self._text_cursor.mergeBlockCharFormat(format)
 
@@ -301,6 +286,8 @@ class InputComponent(Component):
             match event.key():
                 case Qt.Key.Key_Backspace:
                     self._text_cursor.beginEditBlock()
+
+                    format = self._text_cursor.charFormat()
 
                     # has selection -> delete selection
                     if self._text_cursor.hasSelection():
@@ -355,7 +342,6 @@ class InputComponent(Component):
                         self._text_cursor.deletePreviousChar()
 
                     if self._text_cursor.atBlockStart():
-                        format = self._text_cursor.charFormat()
                         format.setAnchorHref("")
                         self._text_cursor.mergeBlockCharFormat(format)
 
@@ -364,6 +350,8 @@ class InputComponent(Component):
 
                 case Qt.Key.Key_Delete:
                     self._text_cursor.beginEditBlock()
+
+                    format = self._text_cursor.charFormat()
 
                     # has selection -> delete selection
                     if self._text_cursor.hasSelection():
@@ -433,7 +421,6 @@ class InputComponent(Component):
                         self._text_cursor.deleteChar()
 
                     if self._text_cursor.atBlockStart():
-                        format = self._text_cursor.charFormat()
                         format.setAnchorHref("")
                         self._text_cursor.mergeBlockCharFormat(format)
 

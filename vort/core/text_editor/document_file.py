@@ -6,7 +6,7 @@ from PySide6.QtGui import QColor, QTextDocument, QTextCursor, QTextCharFormat, Q
 
 class DocumentFile:
     def __init__(self) -> None:
-        self.text_document: QTextDocument = QTextDocument()
+        self.html_text: str = ""
 
         # page
 
@@ -92,7 +92,7 @@ class DocumentFile:
     def default_file(cls) -> Self:
         file: Self = cls()
 
-        file.text_document = QTextDocument()
+        text_document: QTextDocument = QTextDocument()
 
         char_format: QTextCharFormat = QTextCharFormat()
         char_format.setFont("Segoe UI")
@@ -113,12 +113,15 @@ class DocumentFile:
         block_format.setLeftMargin(0)
         block_format.setRightMargin(0)
 
-        text_cursor: QTextCursor = QTextCursor(file.text_document)
+        text_cursor: QTextCursor = QTextCursor(text_document)
         text_cursor.select(QTextCursor.SelectionType.Document)
-        text_cursor.setCharFormat(char_format)
+        text_document.rootFrame().setFormat(char_format)
         text_cursor.setBlockCharFormat(char_format)
+        text_cursor.setCharFormat(char_format)
         text_cursor.setBlockFormat(block_format)
 
+        file.html_text = ""
+        print(file.html_text)
         file.page_width = 21
         file.page_height = 29.7
         file.page_spacing = 1
