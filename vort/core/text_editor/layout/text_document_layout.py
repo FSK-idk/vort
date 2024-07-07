@@ -72,7 +72,7 @@ class TextDocumentLayout(QAbstractTextDocumentLayout):
 
         self.__character_count: int = 0
 
-        self.__default_indent_step: float = 0.0
+        self.__indent_step: float = 0.0
 
         self.__is_hyperlink_bold_turned: bool = False
         self.__is_hyperlink_bold: bool = False
@@ -90,11 +90,11 @@ class TextDocumentLayout(QAbstractTextDocumentLayout):
     def characterCount(self) -> int:
         return self.__character_count
 
-    def defaultIndentStep(self) -> float:
-        return self.__default_indent_step
+    def indentStep(self) -> float:
+        return self.__indent_step
 
-    def setDefaultIndentStep(self, step: float) -> None:
-        self.__default_indent_step = step
+    def setIndentStep(self, step: float) -> None:
+        self.__indent_step = step
 
     def isHyperlinkBoldTurned(self) -> bool:
         return self.__is_hyperlink_bold_turned
@@ -248,13 +248,11 @@ class TextDocumentLayout(QAbstractTextDocumentLayout):
             block_layout: QTextLayout = block.layout()
             block_format: QTextBlockFormat = block.blockFormat()
 
-            block_x: float = block_format.indent() * self.__default_indent_step + block_format.leftMargin()
+            block_x: float = block_format.indent() * self.__indent_step + block_format.leftMargin()
             block_y: float = 0
 
             block_width_reduce: float = (
-                block_format.indent() * self.__default_indent_step
-                + block_format.leftMargin()
-                + block_format.rightMargin()
+                block_format.indent() * self.__indent_step + block_format.leftMargin() + block_format.rightMargin()
             )
 
             # block parsing structure:
@@ -380,7 +378,7 @@ class TextDocumentLayout(QAbstractTextDocumentLayout):
                     ):
                         block_x = (
                             self.__page_layout.textXPosition(page_count)
-                            + block_format.indent() * self.__default_indent_step
+                            + block_format.indent() * self.__indent_step
                             + block_format.leftMargin()
                         )
                         block_y = self.__page_layout.textYPosition(page_count)

@@ -85,6 +85,9 @@ class SettingsDialogUI(QDialog):
         if not self.page_settings.validate() and invalid_tab == "":
             invalid_tab = "page"
 
+        if not self.paragraph_settings.validate() and invalid_tab == "":
+            invalid_tab = "paragraph"
+
         # set context
         self.context.page_context.page_width = self.page_settings.width_spin_box.value()
         self.context.page_context.page_height = self.page_settings.height_spin_box.value()
@@ -100,6 +103,21 @@ class SettingsDialogUI(QDialog):
         self.context.page_context.page_right_padding = self.page_settings.right_padding_spin_box.value()
         self.context.page_context.border_width = self.page_settings.border_width_spin_box.value()
         self.context.page_context.border_color = self.page_settings.border_color_picker.color()
+
+        self.context.paragraph_context.alignment = self.paragraph_settings.aligment_flags[
+            self.paragraph_settings.alignment_combo_box.currentIndex()
+        ]
+        self.context.paragraph_context.is_first_line_indent_turned = (
+            self.paragraph_settings.first_line_indent_check_box.isChecked()
+        )
+        self.context.paragraph_context.first_line_indent = self.paragraph_settings.first_line_indent_spin_box.value()
+        self.context.paragraph_context.indent = self.paragraph_settings.indent_spin_box.value()
+        self.context.paragraph_context.indent_step = self.paragraph_settings.indent_step_spin_box.value()
+        self.context.paragraph_context.line_spacing = self.paragraph_settings.line_spacing_spin_box.value()
+        self.context.paragraph_context.top_margin = self.paragraph_settings.top_margin_spin_box.value()
+        self.context.paragraph_context.bottom_margin = self.paragraph_settings.bottom_margin_spin_box.value()
+        self.context.paragraph_context.left_margin = self.paragraph_settings.left_margin_spin_box.value()
+        self.context.paragraph_context.right_margin = self.paragraph_settings.right_margin_spin_box.value()
 
         if invalid_tab == "":
             self.applied.emit(self.context)

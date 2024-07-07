@@ -2,7 +2,6 @@ from PySide6.QtCore import Qt, QObject, Slot
 from PySide6.QtGui import QFont, QColor, QGuiApplication, QTextDocument
 
 from core.window.text_editor_window_ui import TextEditorWindowUI
-from core.window.dialog.edit_paragraph_dialog_ui import EditParagraphDialogUI, EditParagraphDialogContext
 from core.window.dialog.edit_hyperlink_dialog_ui import EditHyperlinkDialogUI, EditHyperlinkDialogContext
 from core.window.settings.settings_dialog_ui import SettingsDialogUI, SettingsContext
 
@@ -119,14 +118,6 @@ class TextEditorWindow(QObject):
         self.ui.set_line_spacing_1_15_action.triggered.connect(self.setLineSpacing_1_15)
         self.ui.set_line_spacing_1_5_action.triggered.connect(self.setLineSpacing_1_5)
         self.ui.set_line_spacing_2_action.triggered.connect(self.setLineSpacing_2)
-
-        # page
-
-        self.ui.turn_pagination_action.triggered.connect(self.onUserPaginationTurned)
-
-        # edit
-
-        self.ui.open_edit_paragraph_action.triggered.connect(self.openEditParagraph)
 
         # style
 
@@ -294,12 +285,9 @@ class TextEditorWindow(QObject):
 
         # space
 
+        self.onUserParagraphAlignmentChanged(Qt.AlignmentFlag.AlignLeft)
+
         self.onUserLineSpacingChanged(1.0)
-
-        # pagination
-
-        self.onUserPaginationTurned(True)
-        self.onTextEditorPaginationTurned(True)
 
         # status
 
@@ -507,6 +495,19 @@ class TextEditorWindow(QObject):
 
     # space
 
+    def onUserParagraphAlignmentChanged(self, alignment: Qt.AlignmentFlag) -> None:
+        self.ui.text_editor.blockSignals(True)
+        self.ui.text_editor.spacing_component.setAlignment(alignment)
+        self.ui.text_editor.blockSignals(False)
+
+    def onUserIndentStepChanged(self, step: float) -> None:
+        document_context = self.ui.text_editor.documentContext()
+        if document_context is None:
+            return
+        self.ui.text_editor.blockSignals(True)
+        document_context.text_document_layout.setIndentStep(step)
+        self.ui.text_editor.blockSignals(False)
+
     @Slot(float)
     def onUserLineSpacingChanged(self, spacing: float) -> None:
         self.ui.text_editor.blockSignals(True)
@@ -564,57 +565,6 @@ class TextEditorWindow(QObject):
     def onUserParagraphRightMarginChanged(self, margin: float) -> None:
         self.ui.text_editor.spacing_component.setRightMargin(margin)
 
-    # page
-
-    @Slot(bool)
-    def onUserPaginationTurned(self, is_shown) -> None:
-        pass
-        # self.ui.text_editor.setFooterShown(is_shown)
-
-    @Slot(bool)
-    def onTextEditorPaginationTurned(self, is_shown) -> None:
-        self.ui.turn_pagination_action.blockSignals(True)
-        self.ui.turn_pagination_action.setChecked(is_shown)
-        self.ui.turn_pagination_action.blockSignals(False)
-
-    # edit
-
-    def openEditParagraph(self) -> None:
-        dpi = QGuiApplication.screens()[0].logicalDotsPerInch()
-
-        context: EditParagraphDialogContext = EditParagraphDialogContext()
-        context.alignment = Qt.AlignmentFlag.AlignLeft  # TODO:
-        context.heading_level = 0  # TODO:
-        context.is_first_line_indent_turned = self.ui.text_editor.spacing_component.isFirstLineIndentTurned()
-        context.first_line_indent = self.ui.text_editor.spacing_component.firstLineIndent() * 2.54 / dpi
-        context.indent = self.ui.text_editor.spacing_component.indent()
-        context.line_spacing = self.ui.text_editor.spacing_component.lineSpacing()
-        context.top_margin = self.ui.text_editor.spacing_component.topMargin() * 2.54 / dpi
-        context.bottom_margin = self.ui.text_editor.spacing_component.bottomMargin() * 2.54 / dpi
-        context.left_margin = self.ui.text_editor.spacing_component.leftMargin() * 2.54 / dpi
-        context.right_margin = self.ui.text_editor.spacing_component.rightMargin() * 2.54 / dpi
-
-        dialog = EditParagraphDialogUI(context)
-        if dialog.exec():
-            self.onUserFirstLineIndentTurned(context.is_first_line_indent_turned)
-            self.onTextEditorFirstLineIndentTurned(context.is_first_line_indent_turned)
-
-            if context.is_first_line_indent_turned:
-                self.onUserFirstLineIndentChnaged(context.first_line_indent * dpi / 2.54)
-
-            self.onUserIndentChanged(context.indent)
-
-            self.onUserLineSpacingChanged(context.line_spacing)
-            self.onTextEditorLineSpacingChanged(context.line_spacing)
-
-            self.onUserParagraphTopMarginChanged(context.top_margin * dpi / 2.54)
-
-            self.onUserParagraphBottomMarginChanged(context.bottom_margin * dpi / 2.54)
-
-            self.onUserParagraphLeftMarginChanged(context.left_margin * dpi / 2.54)
-
-            self.onUserParagraphRightMarginChanged(context.right_margin * dpi / 2.54)
-
     # style
 
     def openStyle(self) -> None:
@@ -663,6 +613,16 @@ class TextEditorWindow(QObject):
         page_context.border_color = document_context.page_layout.borderColor()
 
         paragraph_context: ParagraphSettingsContext = ParagraphSettingsContext()
+        paragraph_context.alignment = self.ui.text_editor.spacing_component.alignment()
+        paragraph_context.is_first_line_indent_turned = self.ui.text_editor.spacing_component.isFirstLineIndentTurned()
+        paragraph_context.first_line_indent = self.ui.text_editor.spacing_component.firstLineIndent() * px_to_cm
+        paragraph_context.indent = self.ui.text_editor.spacing_component.indent()
+        paragraph_context.indent_step = document_context.text_document_layout.indentStep() * px_to_cm
+        paragraph_context.line_spacing = self.ui.text_editor.spacing_component.lineSpacing()
+        paragraph_context.top_margin = self.ui.text_editor.spacing_component.topMargin() * px_to_cm
+        paragraph_context.bottom_margin = self.ui.text_editor.spacing_component.bottomMargin() * px_to_cm
+        paragraph_context.left_margin = self.ui.text_editor.spacing_component.leftMargin() * px_to_cm
+        paragraph_context.right_margin = self.ui.text_editor.spacing_component.rightMargin() * px_to_cm
 
         header_context: HeaderSettingsContext = HeaderSettingsContext()
 
@@ -710,7 +670,23 @@ class TextEditorWindow(QObject):
         document_context.page_layout.setBorderWidth(page_context.border_width * mm_to_px)
         document_context.page_layout.setBorderColor(page_context.border_color)
 
-        pass
+        paragraph_context = context.paragraph_context
+
+        self.onUserParagraphAlignmentChanged(paragraph_context.alignment)
+        self.onUserFirstLineIndentTurned(paragraph_context.is_first_line_indent_turned)
+        self.onTextEditorFirstLineIndentTurned(paragraph_context.is_first_line_indent_turned)
+        if paragraph_context.is_first_line_indent_turned:
+            self.onUserFirstLineIndentChnaged(paragraph_context.first_line_indent * cm_to_px)
+        self.onUserIndentChanged(paragraph_context.indent)
+        self.onUserIndentStepChanged(paragraph_context.indent_step * cm_to_px)
+        self.onUserLineSpacingChanged(paragraph_context.line_spacing)
+        self.onTextEditorLineSpacingChanged(paragraph_context.line_spacing)
+        self.onUserParagraphTopMarginChanged(paragraph_context.top_margin * cm_to_px)
+        self.onUserParagraphBottomMarginChanged(paragraph_context.bottom_margin * cm_to_px)
+        self.onUserParagraphLeftMarginChanged(paragraph_context.left_margin * cm_to_px)
+        self.onUserParagraphRightMarginChanged(paragraph_context.right_margin * cm_to_px)
+
+        self.ui.text_editor.repaintViewport()
 
     @Slot()
     def openPageSettings(self) -> None:

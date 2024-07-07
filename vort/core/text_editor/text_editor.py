@@ -147,7 +147,7 @@ class TextEditor(QObject):
         text_document_layout: TextDocumentLayout = TextDocumentLayout(text_document, page_layout)
         text_document.setDocumentLayout(text_document_layout)
 
-        text_document_layout.setDefaultIndentStep(document_file.default_indent_step)
+        text_document_layout.setIndentStep(document_file.default_indent_step)
         text_document_layout.setHyperlinkBoldTurned(document_file.is_hyperlink_bold_turned)
         text_document_layout.setHyperlinkBold(document_file.is_hyperlink_bold)
         text_document_layout.setHyperlinkItalicTurned(document_file.is_hyperlink_italic_turned)

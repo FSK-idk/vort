@@ -1,3 +1,4 @@
+from PySide6.QtCore import Qt
 from PySide6.QtGui import QTextBlockFormat, QTextCursor, QGuiApplication
 
 from core.text_editor.component.component import Component
@@ -11,6 +12,15 @@ class SpacingComponent(Component):
 
         # TODO: to config
         self.__default_first_line_indent: float = 10 * dpi / 25.4
+
+    def alignment(self) -> Qt.AlignmentFlag:
+        return self._text_cursor.blockFormat().alignment()
+
+    def setAlignment(self, alignment: Qt.AlignmentFlag) -> None:
+        format: QTextBlockFormat = QTextBlockFormat()
+        format.setAlignment(alignment)
+        self._text_cursor.mergeBlockFormat(format)
+        self.applied.emit()
 
     def isFirstLineIndentTurned(self) -> bool:
         return self._text_cursor.blockFormat().textIndent() != 0

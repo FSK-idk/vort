@@ -13,6 +13,7 @@ class ParagraphSettingsContext:
         self.is_first_line_indent_turned: bool = False
         self.first_line_indent: float = 0.0  # cm
         self.indent: int = 0  # cm
+        self.indent_step: float = 0.0  # cm
 
         self.line_spacing: float = 1.0  # ratio
 
@@ -42,7 +43,6 @@ class ParagraphSettingsUI(QScrollArea):
         self.alignment_combo_box_label: QLabel = QLabel(self)
         self.alignment_combo_box_label.setText("Alignment")
 
-        # TODO: own widget
         self.alignment_combo_box: ComboBox = ComboBox(self)
         self.alignment_combo_box.setEditable(True)
         self.alignment_combo_box.lineEdit().setEnabled(False)
@@ -132,6 +132,32 @@ class ParagraphSettingsUI(QScrollArea):
         indent_spin_box_layout.addWidget(self.indent_spin_box_label)
         indent_spin_box_layout.addWidget(self.indent_spin_box)
 
+        self.indent_step_spin_box_label: QLabel = QLabel(self)
+        self.indent_step_spin_box_label.setText("Indent step")
+
+        self.indent_step_spin_box: DoubleSpinBox = DoubleSpinBox(self)
+        self.indent_step_spin_box.setMinimum(0.0)
+        self.indent_step_spin_box.setSingleStep(0.25)
+        self.indent_step_spin_box.setDecimals(2)
+        self.indent_step_spin_box.setSuffix(" cm")
+        self.indent_step_spin_box.setValue(self.context.indent_step)
+
+        self.indent_step_spin_box_error: QLabel = QLabel(self)
+        self.indent_step_spin_box_error.setText("Invalid input")
+        self.indent_step_spin_box_error.setFixedHeight(10)
+        font = self.indent_step_spin_box_error.font()
+        font.setItalic(True)
+        font.setPixelSize(10)
+        self.indent_step_spin_box_error.setFont(font)
+        self.indent_step_spin_box_error.hide()
+
+        indent_step_spin_box_layout = QHBoxLayout()
+        indent_step_spin_box_layout.setContentsMargins(0, 0, 0, 0)
+        indent_step_spin_box_layout.setSpacing(10)
+        indent_step_spin_box_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        indent_step_spin_box_layout.addWidget(self.indent_step_spin_box_label)
+        indent_step_spin_box_layout.addWidget(self.indent_step_spin_box)
+
         indent_layout = QVBoxLayout()
         indent_layout.setContentsMargins(0, 0, 0, 0)
         indent_layout.setSpacing(0)
@@ -145,6 +171,9 @@ class ParagraphSettingsUI(QScrollArea):
         indent_layout.addSpacing(5)
         indent_layout.addLayout(indent_spin_box_layout)
         indent_layout.addWidget(self.indent_spin_box_error)
+        indent_layout.addSpacing(5)
+        indent_layout.addLayout(indent_step_spin_box_layout)
+        indent_layout.addWidget(self.indent_step_spin_box_error)
         indent_layout.addSpacing(5)
 
         # line spacing
@@ -173,6 +202,7 @@ class ParagraphSettingsUI(QScrollArea):
 
         line_spacing_spin_box_layout = QHBoxLayout()
         line_spacing_spin_box_layout.setContentsMargins(0, 0, 0, 0)
+        line_spacing_spin_box_layout.setSpacing(10)
         line_spacing_spin_box_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
         line_spacing_spin_box_layout.addWidget(self.line_spacing_spin_box_label)
         line_spacing_spin_box_layout.addWidget(self.line_spacing_spin_box)
@@ -347,3 +377,32 @@ class ParagraphSettingsUI(QScrollArea):
         self.scroll_widget = QWidget()
         self.scroll_widget.setLayout(main_layout)
         self.setWidget(self.scroll_widget)
+
+    def validate(self) -> bool:
+        is_valid = True
+
+        is_valid = is_valid and self.first_line_indent_spin_box.hasAcceptableInput()
+        self.first_line_indent_spin_box_error.setHidden(self.first_line_indent_spin_box.hasAcceptableInput())
+
+        is_valid = is_valid and self.indent_spin_box.hasAcceptableInput()
+        self.indent_spin_box_error.setHidden(self.indent_spin_box.hasAcceptableInput())
+
+        is_valid = is_valid and self.indent_step_spin_box.hasAcceptableInput()
+        self.indent_step_spin_box_error.setHidden(self.indent_step_spin_box.hasAcceptableInput())
+
+        is_valid = is_valid and self.line_spacing_spin_box.hasAcceptableInput()
+        self.line_spacing_spin_box_error.setHidden(self.line_spacing_spin_box.hasAcceptableInput())
+
+        is_valid = is_valid and self.top_margin_spin_box.hasAcceptableInput()
+        self.top_margin_spin_box_error.setHidden(self.top_margin_spin_box.hasAcceptableInput())
+
+        is_valid = is_valid and self.bottom_margin_spin_box.hasAcceptableInput()
+        self.bottom_margin_spin_box_error.setHidden(self.bottom_margin_spin_box.hasAcceptableInput())
+
+        is_valid = is_valid and self.left_margin_spin_box.hasAcceptableInput()
+        self.left_margin_spin_box_error.setHidden(self.left_margin_spin_box.hasAcceptableInput())
+
+        is_valid = is_valid and self.right_margin_spin_box.hasAcceptableInput()
+        self.right_margin_spin_box_error.setHidden(self.right_margin_spin_box.hasAcceptableInput())
+
+        return is_valid

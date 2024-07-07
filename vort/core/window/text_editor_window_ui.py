@@ -171,17 +171,6 @@ class TextEditorWindowUI(QMainWindow):
         self.line_space_group.addAction(self.set_line_spacing_2_action)
         self.line_space_group.setExclusive(True)
 
-        # page
-
-        self.turn_pagination_action: QAction = QAction("Pages")
-        self.turn_pagination_action.setCheckable(True)
-        self.turn_pagination_action.setStatusTip("Show pages")
-
-        # edit
-
-        self.open_edit_paragraph_action: QAction = QAction("Edit pragraph")
-        self.open_edit_paragraph_action.setStatusTip("Open edit paragraph dialog")
-
         # style
 
         self.open_style_action: QAction = QAction("Styles")
@@ -292,10 +281,6 @@ class TextEditorWindowUI(QMainWindow):
         self.format_menu.addAction(self.indent_left_action)
         self.format_menu.addSeparator()
         self.format_menu.addMenu(self.line_space_menu)
-        self.format_menu.addSeparator()
-        self.format_menu.addAction(self.turn_pagination_action)
-        self.format_menu.addSeparator()
-        self.format_menu.addAction(self.open_edit_paragraph_action)
         self.menu_bar.addMenu(self.format_menu)
 
         self.style_menu: QMenu = QMenu("Style")
