@@ -1,4 +1,4 @@
-from PySide6.QtCore import Qt, QMimeData
+from PySide6.QtCore import Qt, QMimeData, QByteArray
 from PySide6.QtGui import (
     QTextCursor,
     QGuiApplication,

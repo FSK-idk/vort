@@ -1,6 +1,6 @@
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QMenuBar, QMenu, QToolBar, QComboBox, QMainWindow, QWidget, QStatusBar
-from PySide6.QtGui import QAction, QPixmap, QFont, QColor, QActionGroup
+from PySide6.QtGui import QAction, QPixmap, QFont, QColor, QActionGroup, QCloseEvent
 
 from core.widget.color_picker.color_picker import ColorPicker
 from core.widget.font_combo_box.font_size_combo_box import FontSizeComboBox
@@ -337,3 +337,6 @@ class TextEditorWindowUI(QMainWindow):
         self.status_bar.addPermanentWidget(self.zoom_slider)
 
         self.setStatusBar(self.status_bar)
+
+    def closeEvent(self, event: QCloseEvent) -> None:
+        self.exit_application_action.triggered.emit()

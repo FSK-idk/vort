@@ -115,6 +115,78 @@ class TextEditor(QObject):
         self.repaintViewport()
         return
 
+    def document(self) -> DocumentFile:
+        document_file = DocumentFile()
+
+        if self.__document_context is None:
+            return document_file
+
+        dpi = QGuiApplication.screens()[0].logicalDotsPerInch()
+
+        px_to_cm = 2.54 / dpi
+        px_to_mm = 25.4 / dpi
+
+        document_file.html_text = self.__document_context.text_document.toHtml()
+
+        page_layout: PageLayout = self.__document_context.page_layout
+
+        document_file.page_width = page_layout.pageWidth() * px_to_cm
+        document_file.page_height = page_layout.pageHeight() * px_to_cm
+        document_file.page_spacing = page_layout.pageSpacing() * px_to_cm
+        document_file.page_color = page_layout.pageColor()
+        document_file.page_top_margin = page_layout.pageTopMargin() * px_to_cm
+        document_file.page_bottom_margin = page_layout.pageBottomMargin() * px_to_cm
+        document_file.page_left_margin = page_layout.pageLeftMargin() * px_to_cm
+        document_file.page_right_margin = page_layout.pageRightMargin() * px_to_cm
+        document_file.page_top_padding = page_layout.pageTopPadding() * px_to_cm
+        document_file.page_bottom_padding = page_layout.pageBottomPadding() * px_to_cm
+        document_file.page_left_padding = page_layout.pageLeftPadding() * px_to_cm
+        document_file.page_right_padding = page_layout.pageRightPadding() * px_to_cm
+        document_file.border_width = page_layout.borderWidth() * px_to_mm
+        document_file.border_color = page_layout.borderColor()
+        document_file.header_height = page_layout.headerHeight() * px_to_cm
+        document_file.footer_height = page_layout.footerHeight() * px_to_cm
+
+        text_document_layout: TextDocumentLayout = self.__document_context.text_document_layout
+
+        document_file.default_indent_step = text_document_layout.indentStep() * px_to_cm
+        document_file.is_hyperlink_bold_turned = text_document_layout.isHyperlinkBoldTurned()
+        document_file.is_hyperlink_bold = text_document_layout.isHyperlinkBold()
+        document_file.is_hyperlink_italic_turned = text_document_layout.isHyperlinkItalicTurned()
+        document_file.is_hyperlink_italic = text_document_layout.isHyperlinkItalic()
+        document_file.is_hyperlink_underlined_turned = text_document_layout.isHyperlinkUnderlinedTurned()
+        document_file.is_hyperlink_underlined = text_document_layout.isHyperlinkUnderlined()
+        document_file.is_hyperlink_background_color_turned = text_document_layout.isHyperlinkBackgroundColorTurned()
+        document_file.hyperlink_background_color = text_document_layout.hyperlinkBackgroundColor()
+        document_file.is_hyperlink_foreground_color_turned = text_document_layout.isHyperlinkForegroundColorTurned()
+        document_file.hyperlink_foreground_color = text_document_layout.hyperlinkForegroundColor()
+
+        text_canvas: TextCanvas = self.__document_context.text_canvas
+
+        document_file.header_alignment = text_canvas.headerLayout().alignment()
+        document_file.header_font_family = text_canvas.headerLayout().fontFamily()
+        document_file.header_font_size = text_canvas.headerLayout().fontSize()
+        document_file.header_text_background_color = text_canvas.headerLayout().textBackgroundColor()
+        document_file.header_text_background_color = text_canvas.headerLayout().textBackgroundColor()
+        document_file.is_header_turned_for_first_page = text_canvas.headerLayout().isTurnedForFirstPage()
+        document_file.is_header_pagination_turned = text_canvas.headerLayout().isPaginationTurned()
+        document_file.header_pagination_starting_number = text_canvas.headerLayout().paginationStartingNumber()
+        document_file.is_header_text_turned = text_canvas.headerLayout().isTextTurned()
+        document_file.header_text = text_canvas.headerLayout().text()
+
+        document_file.footer_alignment = text_canvas.footerLayout().alignment()
+        document_file.footer_font_family = text_canvas.footerLayout().fontFamily()
+        document_file.footer_font_size = text_canvas.footerLayout().fontSize()
+        document_file.footer_text_background_color = text_canvas.footerLayout().textBackgroundColor()
+        document_file.footer_text_background_color = text_canvas.footerLayout().textBackgroundColor()
+        document_file.is_footer_turned_for_first_page = text_canvas.footerLayout().isTurnedForFirstPage()
+        document_file.is_footer_pagination_turned = text_canvas.footerLayout().isPaginationTurned()
+        document_file.footer_pagination_starting_number = text_canvas.footerLayout().paginationStartingNumber()
+        document_file.is_footer_text_turned = text_canvas.footerLayout().isTextTurned()
+        document_file.footer_text = text_canvas.footerLayout().text()
+
+        return document_file
+
     def setDocument(self, document_file: DocumentFile) -> None:
         dpi = QGuiApplication.screens()[0].logicalDotsPerInch()
 
@@ -149,6 +221,7 @@ class TextEditor(QObject):
             text_cursor.setBlockCharFormat(char_format)
             text_cursor.setCharFormat(char_format)
             text_cursor.setBlockFormat(block_format)
+            text_cursor.movePosition(QTextCursor.MoveOperation.Start, QTextCursor.MoveMode.MoveAnchor)
 
         text_document.clearUndoRedoStacks()
 
@@ -246,6 +319,8 @@ class TextEditor(QObject):
         text_canvas.footerLayout().setText(document_file.footer_text)
 
         self.__scene.addWidget(text_canvas)
+        self.__scene.setSceneRect(QRectF(0, 0, page_layout.width(), page_layout.height()))
+        self.ui.setScene(self.__scene)
 
         self.__document_context = DocumentContext(
             text_document, page_layout, text_document_layout, text_cursor, text_canvas
@@ -254,77 +329,12 @@ class TextEditor(QObject):
         self.updateUI()
         self.characterCountChanged.emit(self.__document_context.text_document_layout.characterCount())
 
-    def document(self) -> DocumentFile:
-        document_file = DocumentFile()
-
-        if self.__document_context is None:
-            return document_file
-
-        dpi = QGuiApplication.screens()[0].logicalDotsPerInch()
-
-        px_to_cm = 2.54 / dpi
-        px_to_mm = 25.4 / dpi
-
-        document_file.html_text = self.__document_context.text_document.toHtml()
-
-        page_layout: PageLayout = self.__document_context.page_layout
-
-        document_file.page_width = page_layout.pageWidth() * px_to_cm
-        document_file.page_height = page_layout.pageHeight() * px_to_cm
-        document_file.page_spacing = page_layout.pageSpacing() * px_to_cm
-        document_file.page_color = page_layout.pageColor()
-        document_file.page_top_margin = page_layout.pageTopMargin() * px_to_cm
-        document_file.page_bottom_margin = page_layout.pageBottomMargin() * px_to_cm
-        document_file.page_left_margin = page_layout.pageLeftMargin() * px_to_cm
-        document_file.page_right_margin = page_layout.pageRightMargin() * px_to_cm
-        document_file.page_top_padding = page_layout.pageTopPadding() * px_to_cm
-        document_file.page_bottom_padding = page_layout.pageBottomPadding() * px_to_cm
-        document_file.page_left_padding = page_layout.pageLeftPadding() * px_to_cm
-        document_file.page_right_padding = page_layout.pageRightPadding() * px_to_cm
-        document_file.border_width = page_layout.borderWidth() * px_to_mm
-        document_file.border_color = page_layout.borderColor()
-        document_file.header_height = page_layout.headerHeight() * px_to_cm
-        document_file.footer_height = page_layout.footerHeight() * px_to_cm
-
-        text_document_layout: TextDocumentLayout = self.__document_context.text_document_layout
-
-        document_file.default_indent_step = text_document_layout.indentStep() * px_to_cm
-        document_file.is_hyperlink_bold_turned = text_document_layout.isHyperlinkBoldTurned()
-        document_file.is_hyperlink_bold = text_document_layout.isHyperlinkBold()
-        document_file.is_hyperlink_italic_turned = text_document_layout.isHyperlinkItalicTurned()
-        document_file.is_hyperlink_italic = text_document_layout.isHyperlinkItalic()
-        document_file.is_hyperlink_underlined_turned = text_document_layout.isHyperlinkUnderlinedTurned()
-        document_file.is_hyperlink_underlined = text_document_layout.isHyperlinkUnderlined()
-        document_file.is_hyperlink_background_color_turned = text_document_layout.isHyperlinkBackgroundColorTurned()
-        document_file.hyperlink_background_color = text_document_layout.hyperlinkBackgroundColor()
-        document_file.is_hyperlink_foreground_color_turned = text_document_layout.isHyperlinkForegroundColorTurned()
-        document_file.hyperlink_foreground_color = text_document_layout.hyperlinkForegroundColor()
-
-        text_canvas: TextCanvas = self.__document_context.text_canvas
-
-        document_file.header_alignment = text_canvas.headerLayout().alignment()
-        document_file.header_font_family = text_canvas.headerLayout().fontFamily()
-        document_file.header_font_size = text_canvas.headerLayout().fontSize()
-        document_file.header_text_background_color = text_canvas.headerLayout().textBackgroundColor()
-        document_file.header_text_background_color = text_canvas.headerLayout().textBackgroundColor()
-        document_file.is_header_turned_for_first_page = text_canvas.headerLayout().isTurnedForFirstPage()
-        document_file.is_header_pagination_turned = text_canvas.headerLayout().isPaginationTurned()
-        document_file.header_pagination_starting_number = text_canvas.headerLayout().paginationStartingNumber()
-        document_file.is_header_text_turned = text_canvas.headerLayout().isTextTurned()
-        document_file.header_text = text_canvas.headerLayout().text()
-
-        document_file.footer_alignment = text_canvas.footerLayout().alignment()
-        document_file.footer_font_family = text_canvas.footerLayout().fontFamily()
-        document_file.footer_font_size = text_canvas.footerLayout().fontSize()
-        document_file.footer_text_background_color = text_canvas.footerLayout().textBackgroundColor()
-        document_file.footer_text_background_color = text_canvas.footerLayout().textBackgroundColor()
-        document_file.is_footer_turned_for_first_page = text_canvas.footerLayout().isTurnedForFirstPage()
-        document_file.is_footer_pagination_turned = text_canvas.footerLayout().isPaginationTurned()
-        document_file.footer_pagination_starting_number = text_canvas.footerLayout().paginationStartingNumber()
-        document_file.is_footer_text_turned = text_canvas.footerLayout().isTextTurned()
-        document_file.footer_text = text_canvas.footerLayout().text()
-
-        return document_file
+    def closeDocument(self) -> None:
+        if self.__document_context is not None:
+            self.__scene.clear()
+            self.__document_context = None
+            self.__scene.setSceneRect(QRectF(0, 0, 1, 1))
+        self.repaintViewport()
 
     def documentContext(self) -> DocumentContext | None:
         return self.__document_context

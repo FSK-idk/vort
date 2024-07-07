@@ -1,8 +1,8 @@
 import pickle
 
 from PySide6.QtCore import Qt, QObject, Slot, QByteArray, QDataStream
-from PySide6.QtWidgets import QFileDialog
-from PySide6.QtGui import QFont, QColor, QGuiApplication, QTextDocument, QTextDocumentWriter
+from PySide6.QtWidgets import QFileDialog, QMessageBox
+from PySide6.QtGui import QFont, QColor, QGuiApplication, QTextDocument, QTextDocumentWriter, QIcon
 
 from core.window.text_editor_window_ui import TextEditorWindowUI
 from core.window.dialog.edit_hyperlink_dialog_ui import EditHyperlinkDialogUI, EditHyperlinkDialogContext
@@ -29,7 +29,7 @@ class TextEditorWindow(QObject):
 
         # app
 
-        self.ui.exit_application_action.triggered.connect(self.ui.close)
+        self.ui.exit_application_action.triggered.connect(self.closeApplication)
 
         # file
 
@@ -152,47 +152,114 @@ class TextEditorWindow(QObject):
         self.ui.zoom_slider.zoomFactorChanged.connect(self.ui.text_editor.ui.setFocus)
         self.ui.text_editor.zoomFactorSelected.connect(self.onTextEditorZoomFactorChanged)
 
-        self.setDeafultDocument()
         self.setDefaultEditor()
 
         self.ui.show()
 
         self.filepath = ""
-
-    def setDeafultDocument(self) -> None:
-        self.ui.text_editor.setDocument(DocumentFile.default_file())
+        self.is_document_open = False
 
     def setDefaultEditor(self) -> None:
         self.ui.character_count.setCharacterCount(0)
         self.onUserZoomFactorChanged(1)
         self.onTextEditorZoomFactorChanged(1)
 
-    def newDocument(self) -> None:
-        print("newDocument")
+    @Slot()
+    def closeApplication(self) -> None:
+        self.closeDocument()
+        self.ui.destroy()
 
+    @Slot()
+    def newDocument(self) -> None:
+        if self.is_document_open:
+            message = QMessageBox(
+                QMessageBox.Icon.Warning,
+                "File not saved",
+                "Do you want to save your changes?",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                self.ui,
+            )
+            if message.exec() == QMessageBox.StandardButton.Yes:
+                self.saveDocument()
+
+        self.ui.text_editor.closeDocument()
+        self.ui.text_editor.setDocument(DocumentFile.default_file())
+        self.filepath = ""
+        self.is_document_open = True
+
+    @Slot()
     def openDocument(self) -> None:
-        filepath, _ = QFileDialog.getOpenFileName(filter="")
+        if self.is_document_open:
+            message = QMessageBox(
+                QMessageBox.Icon.Warning,
+                "File not saved",
+                "Do you want to save your changes?",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                self.ui,
+            )
+            if message.exec() == QMessageBox.StandardButton.Yes:
+                self.saveDocument()
+
+        filepath, _ = QFileDialog.getOpenFileName(filter="Vort file (*.vrt)")
         document_file: DocumentFile = self.ui.text_editor.document()
 
-        with open(filepath, "rb") as f:
-            document_file = pickle.load(f)
-            self.ui.text_editor.setDocument(document_file)
-            self.filepath = filepath
+        if self.filepath != filepath:
+            try:
+                with open(filepath, "rb") as f:
+                    document_file = pickle.load(f)
+                    self.ui.text_editor.closeDocument()
+                    self.ui.text_editor.setDocument(document_file)
+                    self.filepath = filepath
+                    self.is_document_open = True
+            except FileNotFoundError:
+                print("File not found")
+            else:
+                print("Error")
 
         print("openDocument")
 
+    @Slot()
     def closeDocument(self) -> None:
+        if self.is_document_open:
+            message = QMessageBox(
+                QMessageBox.Icon.Warning,
+                "File not saved",
+                "Do you want to save your changes?",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                self.ui,
+            )
+            if message.exec() == QMessageBox.StandardButton.Yes:
+                self.saveDocument()
+
+            self.ui.text_editor.closeDocument()
+
+        self.filepath = ""
+        self.is_document_open = False
         print("closeDocument")
 
+    @Slot()
     def saveDocument(self) -> None:
-        if self.filepath == "":
+        if self.is_document_open:
             document_file: DocumentFile = self.ui.text_editor.document()
 
-            filepath, _ = QFileDialog.getSaveFileName(filter="Vort file (*.vrt)")
-
-            with open(filepath, "wb") as f:
-                pickle.dump(document_file, f)
-                self.filepath = filepath
+            if self.filepath == "":
+                filepath, _ = QFileDialog.getSaveFileName(filter="Vort file (*.vrt)")
+                try:
+                    with open(filepath, "wb") as f:
+                        pickle.dump(document_file, f)
+                        self.filepath = filepath
+                except FileNotFoundError:
+                    print("File not found")
+                else:
+                    print("Error")
+            else:
+                try:
+                    with open(self.filepath, "wb") as f:
+                        pickle.dump(document_file, f)
+                except FileNotFoundError:
+                    print("File not found")
+                else:
+                    print("Error")
 
         print("saveDocument")
 
@@ -371,11 +438,13 @@ class TextEditorWindow(QObject):
 
     # space
 
+    @Slot(Qt.AlignmentFlag)
     def onUserParagraphAlignmentChanged(self, alignment: Qt.AlignmentFlag) -> None:
         self.ui.text_editor.blockSignals(True)
         self.ui.text_editor.spacing_component.setAlignment(alignment)
         self.ui.text_editor.blockSignals(False)
 
+    @Slot(float)
     def onUserIndentStepChanged(self, step: float) -> None:
         document_context = self.ui.text_editor.documentContext()
         if document_context is None:
@@ -457,6 +526,7 @@ class TextEditorWindow(QObject):
 
     # settings
 
+    @Slot(str)
     def openSettings(self, name: str) -> None:
         document_context = self.ui.text_editor.documentContext()
 
@@ -536,6 +606,7 @@ class TextEditorWindow(QObject):
         dialog.applied.connect(self.onSettingsApplied)
         dialog.exec()
 
+    @Slot(SettingsContext)
     def onSettingsApplied(self, context: SettingsContext) -> None:
         document_context = self.ui.text_editor.documentContext()
 

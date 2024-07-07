@@ -92,36 +92,7 @@ class DocumentFile:
     def default_file(cls) -> Self:
         file: Self = cls()
 
-        text_document: QTextDocument = QTextDocument()
-
-        char_format: QTextCharFormat = QTextCharFormat()
-        char_format.setFont("Segoe UI")
-        char_format.setFontPointSize(16)
-        char_format.setBackground(QColor("transparent"))
-        char_format.setForeground(QColor("black"))
-        char_format.setFontWeight(QFont.Weight.Normal)
-        char_format.setFontItalic(False)
-        char_format.setFontUnderline(False)
-
-        block_format: QTextBlockFormat = QTextBlockFormat()
-        block_format.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        block_format.setTextIndent(0)
-        block_format.setIndent(0)
-        block_format.setLineHeight(1, 1)
-        block_format.setTopMargin(0)
-        block_format.setBottomMargin(0)
-        block_format.setLeftMargin(0)
-        block_format.setRightMargin(0)
-
-        text_cursor: QTextCursor = QTextCursor(text_document)
-        text_cursor.select(QTextCursor.SelectionType.Document)
-        text_document.rootFrame().setFormat(char_format)
-        text_cursor.setBlockCharFormat(char_format)
-        text_cursor.setCharFormat(char_format)
-        text_cursor.setBlockFormat(block_format)
-
         file.html_text = ""
-        print(file.html_text)
         file.page_width = 21
         file.page_height = 29.7
         file.page_spacing = 1
