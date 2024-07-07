@@ -18,7 +18,6 @@ class SelectComponent(Component):
     def selectedText(self) -> str:
         return self._text_cursor.selectedText()
 
-    # fmt:off
     def selectedHyperlink(self) -> HyperlinkSelection:  # text, hyperlink
         result: HyperlinkSelection = HyperlinkSelection()
 
@@ -31,7 +30,7 @@ class SelectComponent(Component):
             helper: QTextCursor = QTextCursor(self._text_cursor.document())
             helper.setPosition(selection_start)
 
-            while(helper.position() <= selection_end):
+            while helper.position() <= selection_end:
 
                 block = helper.block()
                 it: QTextBlock.iterator = block.begin()
@@ -48,7 +47,8 @@ class SelectComponent(Component):
                     # --|----case-1----|----|----case-2----|--
 
                     # case 1
-                    if (selection_start <= fragment_start
+                    if (
+                        selection_start <= fragment_start
                         and selection_start <= selection_end
                         and selection_end <= fragment_end
                         and fragment_start < selection_end
@@ -64,7 +64,8 @@ class SelectComponent(Component):
                         selections.append(selection)
 
                     # case 2
-                    elif (fragment_end <= selection_end
+                    elif (
+                        fragment_end <= selection_end
                         and fragment_start <= selection_start
                         and selection_start <= fragment_end
                         and selection_start < fragment_end
@@ -78,9 +79,10 @@ class SelectComponent(Component):
                         selection.start = selection_start
                         selection.end = fragment_end
                         selections.append(selection)
-                    
+
                     # case 3
-                    elif (fragment_start <= selection_start
+                    elif (
+                        fragment_start <= selection_start
                         and selection_start <= fragment_end
                         and fragment_start <= selection_end
                         and selection_end <= fragment_end
@@ -97,7 +99,8 @@ class SelectComponent(Component):
                         selections.append(selection)
 
                     # case 4
-                    elif (selection_start <= fragment_start
+                    elif (
+                        selection_start <= fragment_start
                         and fragment_start <= selection_end
                         and selection_start <= fragment_end
                         and fragment_end <= selection_end
@@ -115,7 +118,7 @@ class SelectComponent(Component):
 
                     it += 1
 
-                if (block.position() + block.length() <= selection_end):
+                if block.position() + block.length() <= selection_end:
                     helper.setPosition(block.position() + block.length(), QTextCursor.MoveMode.MoveAnchor)
                 else:
                     break
@@ -123,14 +126,14 @@ class SelectComponent(Component):
             prev_position = selection_start
             need_hyperlink = True
             for selection in selections:
-                if (selection.start == prev_position):
+                if selection.start == prev_position:
                     if need_hyperlink and (prev_position == selection_start or result.hyperlink == selection.hyperlink):
                         result.hyperlink = selection.hyperlink
 
                     else:
                         need_hyperlink = False
                         result.hyperlink = ""
-                    
+
                     prev_position = selection.end
 
                 else:

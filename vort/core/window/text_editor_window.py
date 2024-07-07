@@ -636,11 +636,19 @@ class TextEditorWindow(QObject):
         if document_context is None:
             return
 
+        dpi = QGuiApplication.screens()[0].logicalDotsPerInch()
+
+        cm_to_px = dpi / 2.54
+        mm_to_px = dpi / 25.4
+
+        px_to_cm = 2.54 / dpi
+        px_to_mm = 25.4 / dpi
+
         # populate data
         page_context: PageSettingsContext = PageSettingsContext()
-        page_context.width = document_context.page_layout.pageWidth()
-        page_context.height = document_context.page_layout.pageHeight()
-        page_context.spacing = document_context.page_layout.pageSpacing()
+        page_context.width = document_context.page_layout.pageWidth() * px_to_cm
+        page_context.height = document_context.page_layout.pageHeight() * px_to_cm
+        page_context.spacing = document_context.page_layout.pageSpacing() * px_to_cm
 
         paragraph_context: ParagraphSettingsContext = ParagraphSettingsContext()
 

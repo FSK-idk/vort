@@ -238,12 +238,14 @@ class TextEditorWindowUI(QMainWindow):
         self.font_size_combo_box = FontSizeComboBox()
 
         # color
+        icon = QPixmap(16, 16)
+        icon.fill(Qt.GlobalColor.cyan)
 
         self.foreground_color_picker = ColorPicker(self)
-        self.foreground_color_picker.setText("Color")
+        self.foreground_color_picker.ui.setIcon(icon)
 
         self.background_color_picker = ColorPicker(self)
-        self.background_color_picker.setText("Bg Color")
+        # self.background_color_picker.ui.setIcon(icon)
 
         # style
 

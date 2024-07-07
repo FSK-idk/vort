@@ -2,7 +2,8 @@ from PySide6.QtCore import Qt, Signal, QObject, QEvent
 from PySide6.QtWidgets import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QLineEdit, QScrollArea
 from PySide6.QtGui import QColor, QPalette
 
-from core.window.settings.settings_widget import DoubleSpinBox
+from core.window.settings.settings_widget import DoubleSpinBox, SpinBox
+from core.widget.tool_bar.color_picker.color_picker import ColorPicker
 
 
 class PageSettingsContext:
@@ -11,7 +12,7 @@ class PageSettingsContext:
         self.height: float = 29.7  # cm
         self.spacing: float = 1  # cm
 
-        self.color: QColor = QColor("white")
+        self.page_color: QColor = QColor("white")
 
         self.top_margin: float = 1  # cm
         self.bottom_margin: float = 1  # cm
@@ -145,17 +146,38 @@ class PageSettingsUI(QScrollArea):
         self.color_title_label: QLabel = QLabel(self)
         self.color_title_label.setText("Color")
 
-        self.color_line_edit_label: QLabel = QLabel(self)
-        self.color_line_edit_label.setText("Color")
+        self.page_color_line_edit_label: QLabel = QLabel(self)
+        self.page_color_line_edit_label.setText("Page")
 
-        # TODO: add validator #FFFFFF
-        self.color_line_edit: QLineEdit = QLineEdit(self)
-        # self.color_line_edit.setValidator()
+        self.page_color_red_spin_box: SpinBox = SpinBox(self)
+        self.page_color_red_spin_box.setMinimum(0)
+        self.page_color_red_spin_box.setMaximum(255)
+        self.page_color_red_spin_box.setSuffix(" R")
+        self.page_color_red_spin_box.setValue(self.context.page_color.red())
+        self.page_color_red_spin_box.valueChanged.connect(self.onColorSpinBoxValueChanged)
 
-        # self.color: QColor = QColor("white")
-        # TODO: own widget
+        self.page_color_green_spin_box: SpinBox = SpinBox(self)
+        self.page_color_green_spin_box.setMinimum(0)
+        self.page_color_green_spin_box.setMaximum(255)
+        self.page_color_green_spin_box.setSuffix(" G")
+        self.page_color_green_spin_box.setValue(self.context.page_color.green())
+        self.page_color_green_spin_box.valueChanged.connect(self.onColorSpinBoxValueChanged)
 
-        # self.color_picker: ColorPicker = ColorPicker(self)
+        self.page_color_blue_spin_box: SpinBox = SpinBox(self)
+        self.page_color_blue_spin_box.setMinimum(0)
+        self.page_color_blue_spin_box.setMaximum(255)
+        self.page_color_blue_spin_box.setSuffix(" B")
+        self.page_color_blue_spin_box.setValue(self.context.page_color.blue())
+        self.page_color_blue_spin_box.valueChanged.connect(self.onColorSpinBoxValueChanged)
+
+        self.page_color_picker: ColorPicker = ColorPicker(self)
+        self.page_color_picker.setColor(self.context.page_color)
+        page_color_picker_palette = self.page_color_picker.ui.palette()
+        page_color_picker_palette.setColor(QPalette.ColorRole.Button, palette.color(QPalette.ColorRole.Base))
+        page_color_picker_palette.setColor(QPalette.ColorRole.Window, palette.color(QPalette.ColorRole.Base))
+        self.page_color_picker.ui.setPalette(page_color_picker_palette)
+        self.page_color_picker.colorChanged.connect(self.onPageColorChanged)
+
         # connect etc
 
         self.color_line_edit_error: QLabel = QLabel(self)
@@ -171,9 +193,11 @@ class PageSettingsUI(QScrollArea):
         color_picker_layout.setContentsMargins(0, 0, 0, 0)
         color_picker_layout.setSpacing(10)
         color_picker_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        color_picker_layout.addWidget(self.color_line_edit_label)
-        color_picker_layout.addWidget(self.color_line_edit)
-        # color_picker_layout.addWidget(self.color_picker)
+        color_picker_layout.addWidget(self.page_color_line_edit_label)
+        color_picker_layout.addWidget(self.page_color_red_spin_box)
+        color_picker_layout.addWidget(self.page_color_green_spin_box)
+        color_picker_layout.addWidget(self.page_color_blue_spin_box)
+        color_picker_layout.addWidget(self.page_color_picker.ui)
 
         color_layout = QVBoxLayout()
         color_layout.setContentsMargins(0, 0, 0, 0)
@@ -560,6 +584,18 @@ class PageSettingsUI(QScrollArea):
         is_valid = is_valid and self.spacing_spin_box.hasAcceptableInput()
         self.spacing_spin_box_error.setHidden(self.spacing_spin_box.hasAcceptableInput())
 
+        is_valid = (
+            is_valid
+            and self.page_color_red_spin_box.hasAcceptableInput()
+            and self.page_color_green_spin_box.hasAcceptableInput()
+            and self.page_color_blue_spin_box.hasAcceptableInput()
+        )
+        self.color_line_edit_error.setHidden(
+            self.page_color_red_spin_box.hasAcceptableInput()
+            and self.page_color_green_spin_box.hasAcceptableInput()
+            and self.page_color_blue_spin_box.hasAcceptableInput()
+        )
+
         # if not self.indent_spin_box.hasAcceptableInput():
         #     is_valid = False
         #     self.indent_spin_box_error.show()
@@ -597,3 +633,15 @@ class PageSettingsUI(QScrollArea):
         #     self.right_margin_spin_box_error.hide()
 
         return is_valid
+
+    def onPageColorChanged(self, color: QColor) -> None:
+        self.page_color_red_spin_box.setValue(color.red())
+        self.page_color_green_spin_box.setValue(color.green())
+        self.page_color_blue_spin_box.setValue(color.blue())
+
+    def onColorSpinBoxValueChanged(self, _: int) -> None:
+        red = self.page_color_red_spin_box.value()
+        green = self.page_color_green_spin_box.value()
+        blue = self.page_color_blue_spin_box.value()
+
+        self.page_color_picker.setColor(QColor(red, green, blue))

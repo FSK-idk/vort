@@ -1,6 +1,6 @@
-from PySide6.QtCore import QEvent, QObject, Signal, Slot
+from PySide6.QtCore import QEvent, QObject, Signal, Slot, QPoint
 from PySide6.QtWidgets import QWidget
-from PySide6.QtGui import QPixmap, QColor, QMouseEvent
+from PySide6.QtGui import QPixmap, QColor, QMouseEvent, QPainter, QPen, QPaintEvent, QKeyEvent
 
 from util import PointF, RectF
 
@@ -14,14 +14,15 @@ from core.widget.tool_bar.color_picker.color_picker_ui import ColorPickerUI
 
 
 # specifically for the color palette
-class MousePressedFilter(QObject):
+class ColorPickerFilter(QObject):
     mousePressed = Signal(QMouseEvent)
 
     def eventFilter(self, object: QObject, event: QEvent) -> bool:
-        # popup closes only on mouse pressed event
+        # popup closes only on mouse pressed event, we do it ourselves
         if isinstance(event, QMouseEvent) and event.type() == QEvent.Type.MouseButtonPress:
             self.mousePressed.emit(event)
-        # we reject other events, such as hiding, so we don't have to handle them inside the class
+            return True
+        # we reject other events, they may interfere with us
         return True
 
 
@@ -33,30 +34,30 @@ class ColorPicker(QWidget):
         super().__init__(parent)
 
         self.ui: ColorPickerUI = ColorPickerUI(parent)
+        self.__color: QColor = QColor()
 
-        self.ui.button.clicked.connect(self.onClicked)
+        # self.ui.button.clicked.connect(self.onClicked)
+        self.ui.clicked.connect(self.onClicked)
         self.ui.color_palette.colorClicked.connect(self.onColorSelected)
 
-        self.mouse_pressed_filter = MousePressedFilter()
+        self.mouse_pressed_filter = ColorPickerFilter()
         self.mouse_pressed_filter.mousePressed.connect(self.onMousePressed)
         self.ui.color_palette.installEventFilter(self.mouse_pressed_filter)
 
-    def setText(self, text: str) -> None:
-        self.ui.button.setText(text)
+    def color(self) -> QColor:
+        return self.__color
 
     def setColor(self, color: QColor) -> None:
-        icon: QPixmap = QPixmap(16, 16)
-        icon.fill(color)
-        self.ui.button.setIcon(icon)
+        self.__color = color
+        self.ui.setColorIcon(self.__color)
 
     @Slot(QColor)
     def onColorSelected(self, color: QColor) -> None:
-        icon: QPixmap = QPixmap(16, 16)
-        icon.fill(color)
-        self.ui.button.setIcon(icon)
-        self.ui.button.setChecked(False)
+        self.__color = color
+        self.ui.setColorIcon(self.__color)
+        self.ui.setChecked(False)
         self.ui.hidePalette()
-        self.colorChanged.emit(color)
+        self.colorChanged.emit(self.__color)
         self.closed.emit()
 
     @Slot(bool)
@@ -69,11 +70,11 @@ class ColorPicker(QWidget):
     def onMousePressed(self, event: QMouseEvent) -> None:
         # calculate rects with own classes to make sure the math is ok
         point: PointF = PointF.fromQPointF(self.ui.color_palette.mapToGlobal(event.position()))
-        button_pos: PointF = PointF.fromQPoint(self.ui.mapToGlobal(self.ui.button.pos()))
-        palette_pos: PointF = PointF.fromQPoint(self.ui.mapToGlobal(self.ui.button.geometry().bottomLeft()))
+        button_pos: PointF = PointF.fromQPoint(self.ui.mapToGlobal(QPoint(0, 0)))
+        palette_pos: PointF = PointF.fromQPoint(self.ui.mapToGlobal(QPoint(0, self.ui.height())))
 
-        button_rect_w: float = self.ui.button.width()
-        button_rect_h: float = self.ui.button.height()
+        button_rect_w: float = self.ui.width()
+        button_rect_h: float = self.ui.height()
         button_rect: RectF = RectF(button_pos.xPosition(), button_pos.yPosition(), button_rect_w, button_rect_h)
 
         palette_rect_w: float = self.ui.color_palette.width()
@@ -82,8 +83,8 @@ class ColorPicker(QWidget):
 
         if not palette_rect.contains(point):
             if button_rect.contains(point):
-                self.ui.button.setChecked(True)
+                self.ui.setChecked(True)
             else:
-                self.ui.button.setChecked(False)
+                self.ui.setChecked(False)
             self.ui.hidePalette()
             self.closed.emit()

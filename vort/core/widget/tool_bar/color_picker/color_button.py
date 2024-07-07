@@ -1,6 +1,6 @@
 from PySide6.QtCore import Signal, Slot
 from PySide6.QtWidgets import QWidget, QPushButton
-from PySide6.QtGui import QPixmap, QColor
+from PySide6.QtGui import QPixmap, QColor, QPainter, QPen
 
 
 class ColorButton(QPushButton):
@@ -21,7 +21,19 @@ class ColorButton(QPushButton):
     def setColor(self, color: QColor) -> None:
         self.__color = color
         icon: QPixmap = QPixmap(16, 16)
-        icon.fill(self.__color)
+
+        if self.__color == QColor("transparent"):
+            icon.fill(QColor("white"))
+            painter: QPainter = QPainter(icon)
+            pen: QPen = QPen(QColor("red"))
+            pen.setWidth(2)
+            painter.setPen(pen)
+            painter.drawLine(0, 16, 16, 0)
+            painter.end()
+
+        else:
+            icon.fill(self.__color)
+
         self.setIcon(icon)
 
     @Slot()
