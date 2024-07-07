@@ -22,7 +22,6 @@ from core.text_editor.component.history_component import HistoryComponent
 from core.text_editor.component.select_component import SelectComponent
 from core.text_editor.component.font_component import FontComponent
 from core.text_editor.component.format_component import FormatComponent
-from core.text_editor.component.color_component import ColorComponent
 from core.text_editor.component.spacing_component import SpacingComponent
 from core.text_editor.component.move_component import MoveComponent
 from core.text_editor.component.input_component import InputComponent
@@ -118,26 +117,31 @@ class TextEditor(QObject):
         return
 
     def setDocument(self, document_file: DocumentFile) -> None:
+        dpi = QGuiApplication.screens()[0].logicalDotsPerInch()
+
+        cm_to_px = dpi / 2.54
+        mm_to_px = dpi / 25.4
+
         text_document = document_file.text_document
 
         page_layout: PageLayout = PageLayout()
 
-        page_layout.setPageWidth(document_file.page_width)
-        page_layout.setPageHeight(document_file.page_height)
-        page_layout.setPageSpacing(document_file.page_spacing)
+        page_layout.setPageWidth(document_file.page_width * cm_to_px)
+        page_layout.setPageHeight(document_file.page_height * cm_to_px)
+        page_layout.setPageSpacing(document_file.page_spacing * cm_to_px)
         page_layout.setPageColor(document_file.page_color)
-        page_layout.setPageTopMargin(document_file.page_top_margin)
-        page_layout.setPageBottomMargin(document_file.page_bottom_margin)
-        page_layout.setPageLeftMargin(document_file.page_left_margin)
-        page_layout.setPageRightMargin(document_file.page_right_margin)
-        page_layout.setPageTopPadding(document_file.page_top_padding)
-        page_layout.setPageBottomPadding(document_file.page_bottom_padding)
-        page_layout.setPageLeftPadding(document_file.page_left_padding)
-        page_layout.setPageRightPadding(document_file.page_right_padding)
-        page_layout.setBorderWidth(document_file.border_width)
+        page_layout.setPageTopMargin(document_file.page_top_margin * cm_to_px)
+        page_layout.setPageBottomMargin(document_file.page_bottom_margin * cm_to_px)
+        page_layout.setPageLeftMargin(document_file.page_left_margin * cm_to_px)
+        page_layout.setPageRightMargin(document_file.page_right_margin * cm_to_px)
+        page_layout.setPageTopPadding(document_file.page_top_padding * cm_to_px)
+        page_layout.setPageBottomPadding(document_file.page_bottom_padding * cm_to_px)
+        page_layout.setPageLeftPadding(document_file.page_left_padding * cm_to_px)
+        page_layout.setPageRightPadding(document_file.page_right_padding * cm_to_px)
+        page_layout.setBorderWidth(document_file.border_width * mm_to_px)
         page_layout.setBorderColor(document_file.border_color)
-        page_layout.setHeaderHeight(document_file.header_height)
-        page_layout.setFooterHeight(document_file.footer_height)
+        page_layout.setHeaderHeight(document_file.header_height * cm_to_px)
+        page_layout.setFooterHeight(document_file.footer_height * cm_to_px)
 
         self.ui.horizontalScrollBar().setPageStep(int(page_layout.pageWidth()))
         self.ui.verticalScrollBar().setPageStep(int(page_layout.pageHeight()))
@@ -147,7 +151,7 @@ class TextEditor(QObject):
         text_document_layout: TextDocumentLayout = TextDocumentLayout(text_document, page_layout)
         text_document.setDocumentLayout(text_document_layout)
 
-        text_document_layout.setIndentStep(document_file.default_indent_step)
+        text_document_layout.setIndentStep(document_file.default_indent_step * cm_to_px)
         text_document_layout.setHyperlinkBoldTurned(document_file.is_hyperlink_bold_turned)
         text_document_layout.setHyperlinkBold(document_file.is_hyperlink_bold)
         text_document_layout.setHyperlinkItalicTurned(document_file.is_hyperlink_italic_turned)
@@ -165,7 +169,7 @@ class TextEditor(QObject):
 
         self.history_component: HistoryComponent = HistoryComponent(text_cursor)
         self.history_component.applied.connect(self.repaintViewport)
-        self.history_component.applied.connect(self.onCursorPositionChanged)
+        self.history_component.applied.connect(self.updateUI)
 
         self.select_component: SelectComponent = SelectComponent(text_cursor)
         self.select_component.applied.connect(self.repaintViewport)
@@ -176,19 +180,16 @@ class TextEditor(QObject):
         self.format_component: FormatComponent = FormatComponent(text_cursor)
         self.format_component.applied.connect(self.repaintViewport)
 
-        self.color_component: ColorComponent = ColorComponent(text_cursor)
-        self.color_component.applied.connect(self.repaintViewport)
-
         self.spacing_component: SpacingComponent = SpacingComponent(text_cursor)
         self.spacing_component.applied.connect(self.repaintViewport)
 
         self.move_component: MoveComponent = MoveComponent(text_cursor)
         self.move_component.applied.connect(self.repaintViewport)
-        self.move_component.applied.connect(self.onCursorPositionChanged)
+        self.move_component.applied.connect(self.updateUI)
 
         self.input_component: InputComponent = InputComponent(text_cursor)
         self.input_component.applied.connect(self.repaintViewport)
-        self.input_component.applied.connect(self.onCursorPositionChanged)
+        self.input_component.applied.connect(self.updateUI)
 
         text_canvas: TextCanvas = TextCanvas(
             page_layout,
@@ -223,6 +224,9 @@ class TextEditor(QObject):
         self.__document_context = DocumentContext(
             text_document, page_layout, text_document_layout, text_cursor, text_canvas
         )
+
+        self.updateUI()
+        self.characterCountChanged.emit(self.__document_context.text_document_layout.characterCount())
 
     def documentContext(self) -> DocumentContext | None:
         return self.__document_context
@@ -262,7 +266,7 @@ class TextEditor(QObject):
                 )
 
     @Slot()
-    def onCursorPositionChanged(self) -> None:
+    def updateUI(self) -> None:
         if self.__document_context is None:
             return
 

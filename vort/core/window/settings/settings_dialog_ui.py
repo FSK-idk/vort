@@ -78,7 +78,7 @@ class SettingsDialogUI(QDialog):
         self.tab_widget.setCurrentIndex(self.tab_index[name])
 
     @Slot()
-    def onApplyClicked(self) -> None:
+    def onApplyClicked(self) -> bool:
         # validate
 
         invalid_tab: str = ""
@@ -115,9 +115,6 @@ class SettingsDialogUI(QDialog):
         self.context.paragraph_context.alignment = self.paragraph_settings.aligment_flags[
             self.paragraph_settings.alignment_combo_box.currentIndex()
         ]
-        self.context.paragraph_context.is_first_line_indent_turned = (
-            self.paragraph_settings.first_line_indent_check_box.isChecked()
-        )
         self.context.paragraph_context.first_line_indent = self.paragraph_settings.first_line_indent_spin_box.value()
         self.context.paragraph_context.indent = self.paragraph_settings.indent_spin_box.value()
         self.context.paragraph_context.indent_step = self.paragraph_settings.indent_step_spin_box.value()
@@ -157,8 +154,10 @@ class SettingsDialogUI(QDialog):
 
         if invalid_tab == "":
             self.applied.emit(self.context)
+            return True
         else:
             self.openTab(invalid_tab)
+            return False
 
     @Slot()
     def onOkClicked(self) -> None:

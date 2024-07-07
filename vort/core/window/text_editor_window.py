@@ -105,9 +105,6 @@ class TextEditorWindow(QObject):
 
         # indent
 
-        self.ui.turn_first_line_indent_action.triggered.connect(self.onUserFirstLineIndentTurned)
-        self.ui.text_editor.firstLineIndentTurned.connect(self.onTextEditorFirstLineIndentTurned)
-
         self.ui.indent_right_action.triggered.connect(self.indentRight)
 
         self.ui.indent_left_action.triggered.connect(self.indentLeft)
@@ -148,7 +145,6 @@ class TextEditorWindow(QObject):
         # status
 
         self.ui.text_editor.characterCountChanged.connect(self.onTextEditorCharacterCountChanged)
-
         self.ui.zoom_slider.zoomFactorChanged.connect(self.onUserZoomFactorChanged)
         self.ui.zoom_slider.zoomFactorChanged.connect(self.ui.text_editor.ui.setFocus)
         self.ui.text_editor.zoomFactorSelected.connect(self.onTextEditorZoomFactorChanged)
@@ -159,140 +155,10 @@ class TextEditorWindow(QObject):
         self.ui.show()
 
     def setDeafultDocument(self) -> None:
-        config: DocumentFile = DocumentFile()
-
-        dpi = QGuiApplication.screens()[0].logicalDotsPerInch()
-
-        cm_to_px = dpi / 2.54
-        mm_to_px = dpi / 25.4
-
-        # page layout
-
-        config.text_document = QTextDocument()
-
-        # page
-
-        config.page_width = 21 * cm_to_px
-        config.page_height = 29.7 * cm_to_px
-        config.page_spacing = 1 * cm_to_px
-
-        config.page_color = QColor("white")
-
-        config.page_top_margin = 1 * cm_to_px
-        config.page_bottom_margin = 1 * cm_to_px
-        config.page_left_margin = 1 * cm_to_px
-        config.page_right_margin = 1 * cm_to_px
-
-        config.page_top_padding = 1 * cm_to_px
-        config.page_bottom_padding = 1 * cm_to_px
-        config.page_left_padding = 1 * cm_to_px
-        config.page_right_padding = 1 * cm_to_px
-
-        config.border_width = 1 * mm_to_px
-        config.border_color = QColor("black")
-
-        config.header_height = 1 * cm_to_px
-        config.footer_height = 1 * cm_to_px
-
-        # indent step
-
-        config.default_indent_step = 1 * cm_to_px
-
-        # header
-
-        config.header_alignment = Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop
-
-        config.header_font_family = QFont().family()
-        config.header_font_size = 16
-
-        config.header_text_background_color = QColor("transparent")
-        config.header_text_foreground_color = QColor("black")
-
-        config.is_header_turned_for_first_page = True
-
-        config.is_header_pagination_turned = False
-        config.header_pagination_starting_number = 1
-
-        config.is_header_text_turned = True
-        config.header_text = "My text"
-
-        # footer
-
-        config.footer_alignment = Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignBottom
-
-        config.footer_font_family = QFont().family()
-        config.footer_font_size = 16
-
-        config.footer_text_background_color = QColor("transparent")
-        config.footer_text_foreground_color = QColor("black")
-
-        config.is_footer_turned_for_first_page = True
-
-        config.is_footer_pagination_turned = True
-        config.footer_pagination_starting_number = 1
-
-        config.is_footer_text_turned = False
-        config.footer_text = ""
-
-        # hyperlink
-
-        config.is_hyperlink_bold_turned = False
-        config.is_hyperlink_bold = False
-        config.is_hyperlink_italic_turned = False
-        config.is_hyperlink_italic = False
-        config.is_hyperlink_underlined_turned = True
-        config.is_hyperlink_underlined = True
-
-        config.is_hyperlink_background_color_turned = False
-        config.hyperlink_background_color = QColor("red")
-        config.is_hyperlink_foreground_color_turned = True
-        config.hyperlink_foreground_color = QColor("blue")
-
-        self.ui.text_editor.setDocument(config)
+        self.ui.text_editor.setDocument(DocumentFile.default_file())
 
     def setDefaultEditor(self) -> None:
-        # font
-
-        self.onUserFontFamilyChanged(QFont().family())
-        self.onTextEditorFontFamilyChanged(QFont().family())
-
-        self.onUserFontSizeChanged(16)
-        self.onTextEditorFontSizeChanged(16)
-
-        # format
-
-        self.onUserBoldTurned(False)
-        self.onTextEditorBoldTurned(False)
-
-        self.onUserItalicTurned(False)
-        self.onTextEditorItalicTurned(False)
-
-        self.onUserUnderlinedTurned(False)
-        self.onTextEditorUnderlinedTurned(False)
-
-        # color
-
-        self.onUserForegroundColorChanged(QColor("black"))
-        self.onTextEditorForegroundColorChanged(QColor("black"))
-
-        self.onUserBackgroundColorChanged(QColor("transparent"))
-        self.onTextEditorBackgroundColorChanged(QColor("transparent"))
-
-        # indent
-
-        self.onUserFirstLineIndentTurned(False)
-        self.onTextEditorFirstLineIndentTurned(False)
-
-        # space
-
-        self.onUserParagraphAlignmentChanged(Qt.AlignmentFlag.AlignLeft)
-
-        self.onUserLineSpacingChanged(1.0)
-
-        # status
-
         self.ui.character_count.setCharacterCount(0)
-
         self.onUserZoomFactorChanged(1)
         self.onTextEditorZoomFactorChanged(1)
 
@@ -440,7 +306,7 @@ class TextEditorWindow(QObject):
     @Slot(QColor)
     def onUserForegroundColorChanged(self, color: QColor) -> None:
         self.ui.text_editor.blockSignals(True)
-        self.ui.text_editor.color_component.setForegroundColor(color)
+        self.ui.text_editor.font_component.setForegroundColor(color)
         self.ui.text_editor.blockSignals(False)
 
     @Slot(QColor)
@@ -452,7 +318,7 @@ class TextEditorWindow(QObject):
     @Slot(QColor)
     def onUserBackgroundColorChanged(self, color: QColor) -> None:
         self.ui.text_editor.blockSignals(True)
-        self.ui.text_editor.color_component.setBackgroundColor(color)
+        self.ui.text_editor.font_component.setBackgroundColor(color)
         self.ui.text_editor.blockSignals(False)
 
     @Slot(QColor)
@@ -463,20 +329,8 @@ class TextEditorWindow(QObject):
 
     # indent
 
-    @Slot(bool)
-    def onUserFirstLineIndentTurned(self, is_indent) -> None:
-        self.ui.text_editor.blockSignals(True)
-        self.ui.text_editor.spacing_component.turnFirstLineIndent(is_indent)
-        self.ui.text_editor.blockSignals(False)
-
-    @Slot(bool)
-    def onTextEditorFirstLineIndentTurned(self, is_indent) -> None:
-        self.ui.turn_first_line_indent_action.blockSignals(True)
-        self.ui.turn_first_line_indent_action.setChecked(is_indent)
-        self.ui.turn_first_line_indent_action.blockSignals(False)
-
     @Slot(float)
-    def onUserFirstLineIndentChnaged(self, indent: float) -> None:
+    def onUserFirstLineIndentChanged(self, indent: float) -> None:
         self.ui.text_editor.blockSignals(True)
         self.ui.text_editor.spacing_component.setFirstLineIndent(indent)
         self.ui.text_editor.blockSignals(False)
@@ -614,7 +468,6 @@ class TextEditorWindow(QObject):
 
         paragraph_context: ParagraphSettingsContext = ParagraphSettingsContext()
         paragraph_context.alignment = self.ui.text_editor.spacing_component.alignment()
-        paragraph_context.is_first_line_indent_turned = self.ui.text_editor.spacing_component.isFirstLineIndentTurned()
         paragraph_context.first_line_indent = self.ui.text_editor.spacing_component.firstLineIndent() * px_to_cm
         paragraph_context.indent = self.ui.text_editor.spacing_component.indent()
         paragraph_context.indent_step = document_context.text_document_layout.indentStep() * px_to_cm
@@ -659,17 +512,13 @@ class TextEditorWindow(QObject):
         dialog = SettingsDialogUI(settings_context, self.ui)
         dialog.openTab(name)
         dialog.applied.connect(self.onSettingsApplied)
-
-        if dialog.exec():
-            print("ok")
+        dialog.exec()
 
     def onSettingsApplied(self, context: SettingsContext) -> None:
         document_context = self.ui.text_editor.documentContext()
 
         if document_context is None:
             return
-
-        print("apply")
 
         dpi = QGuiApplication.screens()[0].logicalDotsPerInch()
 
@@ -694,10 +543,7 @@ class TextEditorWindow(QObject):
 
         paragraph_context = context.paragraph_context
         self.onUserParagraphAlignmentChanged(paragraph_context.alignment)
-        self.onUserFirstLineIndentTurned(paragraph_context.is_first_line_indent_turned)
-        self.onTextEditorFirstLineIndentTurned(paragraph_context.is_first_line_indent_turned)
-        if paragraph_context.is_first_line_indent_turned:
-            self.onUserFirstLineIndentChnaged(paragraph_context.first_line_indent * cm_to_px)
+        self.onUserFirstLineIndentChanged(paragraph_context.first_line_indent * cm_to_px)
         self.onUserIndentChanged(paragraph_context.indent)
         self.onUserIndentStepChanged(paragraph_context.indent_step * cm_to_px)
         self.onUserLineSpacingChanged(paragraph_context.line_spacing)

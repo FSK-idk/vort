@@ -470,23 +470,24 @@ class TextDocumentLayout(QAbstractTextDocumentLayout):
             clip = page_rect.intersected(rect.toQRectF())
             painter.fillRect(clip, self.__page_layout.pageColor())
 
-            border_rect: QRectF = QRectF(
-                self.__page_layout.pageXPosition(i)
-                + self.__page_layout.pageLeftMargin()
-                + self.__page_layout.borderWidth() / 2,
-                self.__page_layout.pageYPosition(i)
-                + self.__page_layout.pageTopMargin()
-                + self.__page_layout.borderWidth() / 2,
-                self.__page_layout.pageWidth()
-                - self.__page_layout.pageLeftMargin()
-                - self.__page_layout.pageRightMargin()
-                - self.__page_layout.borderWidth(),
-                self.__page_layout.pageHeight()
-                - self.__page_layout.pageTopMargin()
-                - self.__page_layout.pageBottomMargin()
-                - self.__page_layout.borderWidth(),
-            )
-            painter.drawRect(border_rect)
+            if self.__page_layout.borderWidth() > 0:
+                border_rect: QRectF = QRectF(
+                    self.__page_layout.pageXPosition(i)
+                    + self.__page_layout.pageLeftMargin()
+                    + self.__page_layout.borderWidth() / 2,
+                    self.__page_layout.pageYPosition(i)
+                    + self.__page_layout.pageTopMargin()
+                    + self.__page_layout.borderWidth() / 2,
+                    self.__page_layout.pageWidth()
+                    - self.__page_layout.pageLeftMargin()
+                    - self.__page_layout.pageRightMargin()
+                    - self.__page_layout.borderWidth(),
+                    self.__page_layout.pageHeight()
+                    - self.__page_layout.pageTopMargin()
+                    - self.__page_layout.pageBottomMargin()
+                    - self.__page_layout.borderWidth(),
+                )
+                painter.drawRect(border_rect)
 
         painter.setPen(old_pen)
 

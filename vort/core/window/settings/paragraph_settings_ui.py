@@ -10,7 +10,6 @@ class ParagraphSettingsContext:
     def __init__(self) -> None:
         self.alignment: Qt.AlignmentFlag = Qt.AlignmentFlag.AlignLeft
 
-        self.is_first_line_indent_turned: bool = False
         self.first_line_indent: float = 0.0  # cm
         self.indent: int = 0  # cm
         self.indent_step: float = 0.0  # cm
@@ -76,10 +75,6 @@ class ParagraphSettingsUI(QScrollArea):
         self.indent_title_label: QLabel = QLabel(self)
         self.indent_title_label.setText("Indent")
 
-        self.first_line_indent_check_box: QCheckBox = QCheckBox(self)
-        self.first_line_indent_check_box.setText("Turn first line indent")
-        self.first_line_indent_check_box.setChecked(self.context.is_first_line_indent_turned)
-
         self.first_line_indent_spin_box_label: QLabel = QLabel(self)
         self.first_line_indent_spin_box_label.setText("First line indent")
 
@@ -89,8 +84,6 @@ class ParagraphSettingsUI(QScrollArea):
         self.first_line_indent_spin_box.setDecimals(2)
         self.first_line_indent_spin_box.setSuffix(" cm")
         self.first_line_indent_spin_box.setValue(self.context.first_line_indent)
-        self.first_line_indent_spin_box.setEnabled(self.context.is_first_line_indent_turned)
-        self.first_line_indent_check_box.stateChanged.connect(self.first_line_indent_spin_box.setEnabled)
 
         self.first_line_indent_spin_box_error: QLabel = QLabel(self)
         self.first_line_indent_spin_box_error.setText("Invalid input")
@@ -164,8 +157,6 @@ class ParagraphSettingsUI(QScrollArea):
         indent_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         indent_layout.addWidget(self.indent_title_label)
         indent_layout.addSpacing(15)
-        indent_layout.addWidget(self.first_line_indent_check_box)
-        indent_layout.addSpacing(5)
         indent_layout.addLayout(first_line_indent_spin_box_layout)
         indent_layout.addWidget(self.first_line_indent_spin_box_error)
         indent_layout.addSpacing(5)

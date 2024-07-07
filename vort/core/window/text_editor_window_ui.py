@@ -142,10 +142,6 @@ class TextEditorWindowUI(QMainWindow):
         self.indent_left_action.setStatusTip("Indent left")
         self.indent_left_action.setShortcut("Ctrl+[")
 
-        self.turn_first_line_indent_action: QAction = QAction("First line indent")
-        self.turn_first_line_indent_action.setCheckable(True)
-        self.turn_first_line_indent_action.setStatusTip("Indent first line right")
-
         # space
 
         self.set_line_spacing_1_action: QAction = QAction("1 line spacing")
@@ -276,7 +272,6 @@ class TextEditorWindowUI(QMainWindow):
         self.format_menu.addAction(self.turn_italic_action)
         self.format_menu.addAction(self.turn_underlined_action)
         self.format_menu.addSeparator()
-        self.format_menu.addAction(self.turn_first_line_indent_action)
         self.format_menu.addAction(self.indent_right_action)
         self.format_menu.addAction(self.indent_left_action)
         self.format_menu.addSeparator()
