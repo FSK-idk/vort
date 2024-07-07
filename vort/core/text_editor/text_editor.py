@@ -1,4 +1,4 @@
-from PySide6.QtCore import Qt, Signal, QMimeData, QObject, Slot, QRectF, QTimer, QEvent
+from PySide6.QtCore import Qt, Signal, QObject, Slot, QRectF, QTimer, QEvent
 from PySide6.QtWidgets import QWidget, QGraphicsScene, QToolTip
 from PySide6.QtGui import (
     QGuiApplication,
@@ -7,40 +7,31 @@ from PySide6.QtGui import (
     QTextDocument,
     QTextCursor,
     QFont,
-    QResizeEvent,
     QKeyEvent,
     QTextCharFormat,
-    QPaintEvent,
     QTextBlockFormat,
-    QClipboard,
-    QPalette,
-    QTextDocumentFragment,
     QColor,
-    QTextImageFormat,
-    QImage,
-    QTextBlock,
-    QTextFragment,
     QDesktopServices,
 )
 
-from util import PointF, RectF
+from util import PointF
 
-from core.widget.text_editor.text_editor_ui import TextEditorUI
+from core.text_editor.text_editor_ui import TextEditorUI
 
-from core.widget.text_editor.component.history_component import HistoryComponent
-from core.widget.text_editor.component.select_component import SelectComponent
-from core.widget.text_editor.component.font_component import FontComponent
-from core.widget.text_editor.component.format_component import FormatComponent
-from core.widget.text_editor.component.color_component import ColorComponent
-from core.widget.text_editor.component.spacing_component import SpacingComponent
-from core.widget.text_editor.component.move_component import MoveComponent
-from core.widget.text_editor.component.input_component import InputComponent
+from core.text_editor.component.history_component import HistoryComponent
+from core.text_editor.component.select_component import SelectComponent
+from core.text_editor.component.font_component import FontComponent
+from core.text_editor.component.format_component import FormatComponent
+from core.text_editor.component.color_component import ColorComponent
+from core.text_editor.component.spacing_component import SpacingComponent
+from core.text_editor.component.move_component import MoveComponent
+from core.text_editor.component.input_component import InputComponent
 
-from core.widget.text_editor.layout.text_canvas import TextCanvas
-from core.widget.text_editor.layout.text_document_layout import TextDocumentLayout, HitResult, Hit
-from core.widget.text_editor.layout.page_layout import PageLayout
+from core.text_editor.layout.text_canvas import TextCanvas
+from core.text_editor.layout.text_document_layout import TextDocumentLayout, HitResult, Hit
+from core.text_editor.layout.page_layout import PageLayout
 
-from core.widget.text_editor.document_file import DocumentFile
+from core.text_editor.document_file import DocumentFile
 
 
 # text editor only supports one cursor at a time
@@ -151,7 +142,7 @@ class TextEditor(QObject):
         self.ui.horizontalScrollBar().setPageStep(int(page_layout.pageWidth()))
         self.ui.verticalScrollBar().setPageStep(int(page_layout.pageHeight()))
 
-        page_layout.layoutSizeChanged.connect(self.onPageLayoutSizeChanged)
+        page_layout.changed.connect(self.onPageLayoutChanged)
 
         text_document_layout: TextDocumentLayout = TextDocumentLayout(text_document, page_layout)
         text_document.setDocumentLayout(text_document_layout)
@@ -240,11 +231,35 @@ class TextEditor(QObject):
         self.ui.setZoomFactor(zoom_factor)
 
     @Slot()
-    def onPageLayoutSizeChanged(self) -> None:
+    def updateCursorShape(self) -> None:
+        if self.__last_hit_result.hit == Hit.Text:
+            QGuiApplication.setOverrideCursor(Qt.CursorShape.IBeamCursor)
+        elif self.__last_hit_result.hit == Hit.Image:
+            QGuiApplication.setOverrideCursor(Qt.CursorShape.CrossCursor)
+        elif self.__last_hit_result.hit == Hit.Hyperlink:
+            if Qt.KeyboardModifier.ControlModifier == QGuiApplication.queryKeyboardModifiers():
+                QGuiApplication.setOverrideCursor(Qt.CursorShape.PointingHandCursor)
+            else:
+                QGuiApplication.setOverrideCursor(Qt.CursorShape.IBeamCursor)
+        else:
+            QGuiApplication.setOverrideCursor(Qt.CursorShape.ArrowCursor)
+
+    @Slot()
+    def repaintViewport(self):
+        self.ui.viewport().repaint()
+
+    @Slot()
+    def onPageLayoutChanged(self) -> None:
         if self.__document_context is not None:
-            self.__scene.setSceneRect(
-                QRectF(0, 0, self.__document_context.page_layout.width(), self.__document_context.page_layout.height())
-            )
+            if (
+                self.__scene.sceneRect().width != self.__document_context.page_layout.width()
+                or self.__scene.sceneRect().height != self.__document_context.page_layout.height()
+            ):
+                self.__scene.setSceneRect(
+                    QRectF(
+                        0, 0, self.__document_context.page_layout.width(), self.__document_context.page_layout.height()
+                    )
+                )
 
     @Slot()
     def onCursorPositionChanged(self) -> None:
@@ -366,21 +381,3 @@ class TextEditor(QObject):
 
         self.move_component.keyPress(event.key())
         self.input_component.input(event)
-
-    @Slot()
-    def updateCursorShape(self) -> None:
-        if self.__last_hit_result.hit == Hit.Text:
-            QGuiApplication.setOverrideCursor(Qt.CursorShape.IBeamCursor)
-        elif self.__last_hit_result.hit == Hit.Image:
-            QGuiApplication.setOverrideCursor(Qt.CursorShape.CrossCursor)
-        elif self.__last_hit_result.hit == Hit.Hyperlink:
-            if Qt.KeyboardModifier.ControlModifier == QGuiApplication.queryKeyboardModifiers():
-                QGuiApplication.setOverrideCursor(Qt.CursorShape.PointingHandCursor)
-            else:
-                QGuiApplication.setOverrideCursor(Qt.CursorShape.IBeamCursor)
-        else:
-            QGuiApplication.setOverrideCursor(Qt.CursorShape.ArrowCursor)
-
-    @Slot()
-    def repaintViewport(self):
-        self.ui.viewport().repaint()

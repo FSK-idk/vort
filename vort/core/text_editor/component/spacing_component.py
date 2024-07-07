@@ -1,6 +1,6 @@
 from PySide6.QtGui import QTextBlockFormat, QTextCursor, QGuiApplication
 
-from core.widget.text_editor.component.component import Component
+from core.text_editor.component.component import Component
 
 
 class SpacingComponent(Component):

@@ -1,12 +1,12 @@
-from PySide6.QtGui import QTextCharFormat, QGuiApplication, QFont
+from PySide6.QtGui import QTextCharFormat, QColor
 
-from core.widget.text_editor.component.component import Component
+from core.text_editor.component.component import Component
 
 
-class FontComponent(Component):
-    def setFontFamily(self, font_family: str) -> None:
+class ColorComponent(Component):
+    def setForegroundColor(self, color: QColor) -> None:
         format: QTextCharFormat = QTextCharFormat()
-        format.setFontFamily(font_family)
+        format.setForeground(color)
         self._text_cursor.mergeCharFormat(format)
         if self._text_cursor.atBlockStart() and self._text_cursor.atBlockEnd():
             format = self._text_cursor.charFormat()
@@ -14,9 +14,9 @@ class FontComponent(Component):
             self._text_cursor.mergeBlockCharFormat(format)
         self.applied.emit()
 
-    def setFontSize(self, font_size: int) -> None:
+    def setBackgroundColor(self, color: QColor) -> None:
         format: QTextCharFormat = QTextCharFormat()
-        format.setFontPointSize(font_size)
+        format.setBackground(color)
         self._text_cursor.mergeCharFormat(format)
         if self._text_cursor.atBlockStart() and self._text_cursor.atBlockEnd():
             format = self._text_cursor.charFormat()

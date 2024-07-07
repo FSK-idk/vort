@@ -1,9 +1,9 @@
-from PySide6.QtCore import Qt, Signal, QObject, QEvent
-from PySide6.QtWidgets import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QLineEdit, QScrollArea
+from PySide6.QtCore import Qt, Slot
+from PySide6.QtWidgets import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QScrollArea
 from PySide6.QtGui import QColor, QPalette
 
-from core.window.settings.settings_widget import DoubleSpinBox, SpinBox
-from core.widget.tool_bar.color_picker.color_picker import ColorPicker
+from core.widget.basic_widget import DoubleSpinBox, SpinBox
+from core.widget.color_picker.color_picker import ColorPicker
 
 
 class PageSettingsContext:
@@ -656,11 +656,13 @@ class PageSettingsUI(QScrollArea):
 
         return is_valid
 
+    @Slot(QColor)
     def onPageColorChanged(self, color: QColor) -> None:
         self.page_color_red_spin_box.setValue(color.red())
         self.page_color_green_spin_box.setValue(color.green())
         self.page_color_blue_spin_box.setValue(color.blue())
 
+    @Slot(int)
     def onPageColorSpinBoxValueChanged(self, _: int) -> None:
         red = self.page_color_red_spin_box.value()
         green = self.page_color_green_spin_box.value()
@@ -668,11 +670,13 @@ class PageSettingsUI(QScrollArea):
 
         self.page_color_picker.setColor(QColor(red, green, blue))
 
+    @Slot(QColor)
     def onBorderColorChanged(self, color: QColor) -> None:
         self.border_color_red_spin_box.setValue(color.red())
         self.border_color_green_spin_box.setValue(color.green())
         self.border_color_blue_spin_box.setValue(color.blue())
 
+    @Slot(int)
     def onBorderColorSpinBoxValueChanged(self, _: int) -> None:
         red = self.border_color_red_spin_box.value()
         green = self.border_color_green_spin_box.value()

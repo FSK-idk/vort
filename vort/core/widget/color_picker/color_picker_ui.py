@@ -2,7 +2,7 @@ from PySide6.QtCore import Qt, QPoint
 from PySide6.QtWidgets import QWidget, QToolButton
 from PySide6.QtGui import QPaintEvent, QPixmap, QPainter, QPen, QColor
 
-from core.widget.tool_bar.color_picker.color_palette import ColorPalette
+from core.widget.color_picker.color_palette import ColorPalette
 
 
 class ColorPickerUI(QToolButton):

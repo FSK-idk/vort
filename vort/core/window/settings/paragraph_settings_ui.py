@@ -1,16 +1,8 @@
-from PySide6.QtCore import Qt, Signal
-from PySide6.QtWidgets import (
-    QWidget,
-    QLabel,
-    QCheckBox,
-    QHBoxLayout,
-    QVBoxLayout,
-    QSpinBox,
-    QScrollArea,
-)
+from PySide6.QtCore import Qt, Slot
+from PySide6.QtWidgets import QWidget, QLabel, QCheckBox, QHBoxLayout, QVBoxLayout, QSpinBox, QScrollArea
 from PySide6.QtGui import QColor, QPalette
 
-from core.window.settings.settings_widget import DoubleSpinBox, ComboBox
+from core.widget.basic_widget import DoubleSpinBox, ComboBox
 
 
 class ParagraphSettingsContext:

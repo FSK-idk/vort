@@ -1,4 +1,4 @@
-from PySide6.QtCore import QPointF, QRectF, Qt
+from PySide6.QtCore import QPointF, QRectF, Qt, Slot
 from PySide6.QtGui import (
     QAbstractTextDocumentLayout,
     QTextDocument,
@@ -13,22 +13,22 @@ from PySide6.QtGui import (
 
 from util import RectF
 
-from core.widget.text_editor.layout.page_layout import PageLayout
+from core.text_editor.layout.page_layout import PageLayout
 
 
-class HeaderPaintContext:
+class FooterPaintContext:
     def __init__(self) -> None:
         self.painter: QPainter = QPainter()
         self.rect: RectF = RectF()
 
 
-class HeaderDocumentLayout(QAbstractTextDocumentLayout):
-    def __init__(self, header_document: QTextDocument, page_layout: PageLayout) -> None:
-        super().__init__(header_document)
+class FooterDocumentLayout(QAbstractTextDocumentLayout):
+    def __init__(self, footer_document: QTextDocument, page_layout: PageLayout) -> None:
+        super().__init__(footer_document)
 
         self.__page_layout: PageLayout = page_layout
 
-        self.__text_cursor: QTextCursor = QTextCursor(header_document)
+        self.__text_cursor: QTextCursor = QTextCursor(footer_document)
 
         self.__alignment: Qt.AlignmentFlag = Qt.AlignmentFlag.AlignCenter
 
@@ -48,8 +48,7 @@ class HeaderDocumentLayout(QAbstractTextDocumentLayout):
 
         self.addPage(self.__page_layout.pageCount())
 
-        self.__page_layout.layoutSizeChanged.connect(self.onPageCountChanged)
-        self.__page_layout.pageLayoutSizeChanged.connect(self.onPageLayoutSizeChanged)
+        self.__page_layout.changed.connect(self.onPageLayoutChanged)
 
     def alignment(self) -> Qt.AlignmentFlag:
         return self.__alignment
@@ -91,7 +90,7 @@ class HeaderDocumentLayout(QAbstractTextDocumentLayout):
 
     def turnForFirstPage(self, is_turned):
         self.__is_turned_for_first_page = is_turned
-        self.updateHeader()
+        self.updateFooter()
 
     def isPaginationTurned(self) -> bool:
         return self.__is_pagination_turned
@@ -100,14 +99,14 @@ class HeaderDocumentLayout(QAbstractTextDocumentLayout):
         self.__is_pagination_turned = is_turned
         if self.__is_pagination_turned:
             self.__is_text_turned = False
-        self.updateHeader()
+        self.updateFooter()
 
     def paginationStartingNumber(self) -> int:
         return self.__pagination_starting_number
 
     def setPaginationStartingNumber(self, number: int) -> None:
         self.__pagination_starting_number = number
-        self.updateHeader()
+        self.updateFooter()
 
     def isTextTurned(self) -> bool:
         return self.__is_text_turned
@@ -116,96 +115,29 @@ class HeaderDocumentLayout(QAbstractTextDocumentLayout):
         self.__is_text_turned = is_turned
         if self.__is_text_turned:
             self.__is_pagination_turned = False
-        self.updateHeader()
+        self.updateFooter()
 
     def text(self) -> str:
         return self.__text
 
     def setText(self, text: str) -> None:
         self.__text = text
-        self.updateHeader()
+        self.updateFooter()
 
     def addPage(self, count: int = 1) -> None:
         for i in range(count):
             self.__text_cursor.movePosition(QTextCursor.MoveOperation.End, QTextCursor.MoveMode.MoveAnchor)
             self.__text_cursor.insertBlock()
 
-        self.updateHeader()
+        self.updateFooter()
 
     def removePage(self, count: int = 1) -> None:
         for i in range(count):
             self.__text_cursor.movePosition(QTextCursor.MoveOperation.End, QTextCursor.MoveMode.MoveAnchor)
             self.__text_cursor.movePosition(QTextCursor.MoveOperation.PreviousBlock, QTextCursor.MoveMode.KeepAnchor)
-            self.__text_cursor.removeSelectedText()
+            self.__text_cursor.deleteChar()
 
-        self.updateHeader()
-
-    def onPageCountChanged(self) -> None:
-        difference = self.__page_layout.pageCount() - (self.document().blockCount() - 1)
-        if difference > 0:
-            self.addPage(difference)
-        elif difference < 0:
-            self.removePage(-difference)
-
-    def onPageLayoutSizeChanged(self) -> None:
-        self.documentChanged(0, 0, 0)
-
-    def documentChanged(self, from_: int, charsRemoved: int, charsAdded: int) -> None:
-        for i in range(self.document().blockCount() - 1):
-            block: QTextBlock = self.document().findBlockByNumber(i)
-            block_layout: QTextLayout = block.layout()
-
-            block_layout.beginLayout()
-            line: QTextLine = block_layout.createLine()
-
-            while line.isValid():
-                line.setLineWidth(self.__page_layout.textWidth())
-                line_rect: QRectF = line.naturalTextRect()
-
-                line_x: float = self.__page_layout.headerXPosition(i)
-                line_y: float = self.__page_layout.headerYPosition(i)
-
-                # change x position
-                if Qt.AlignmentFlag.AlignLeft in self.__alignment:
-                    line_x += 0
-
-                elif Qt.AlignmentFlag.AlignHCenter in self.__alignment:
-                    line_x += (self.__page_layout.textWidth() - line_rect.width()) / 2
-
-                elif Qt.AlignmentFlag.AlignRight in self.__alignment:
-                    line_x += self.__page_layout.textWidth() - line_rect.width()
-
-                # change y position
-                if Qt.AlignmentFlag.AlignTop in self.__alignment:
-                    line_y += 0
-
-                elif Qt.AlignmentFlag.AlignVCenter in self.__alignment:
-                    line_y += (self.__page_layout.headerHeight() - line_rect.height()) / 2
-
-                elif Qt.AlignmentFlag.AlignBottom in self.__alignment:
-                    line_y += self.__page_layout.headerHeight() - line_rect.height()
-
-                line.setLineWidth(line_rect.width())
-                line.setPosition(QPointF(line_x, line_y))
-
-                line = block_layout.createLine()
-
-            block_layout.endLayout()
-
-        self.update.emit()
-
-    def blockBoundingRect(self, block: QTextBlock) -> QRectF:
-        return block.layout().boundingRect()
-
-    def paint(self, context: HeaderPaintContext):
-        painter: QPainter = context.painter
-        rect: RectF = context.rect
-
-        for i in range(self.document().blockCount() - 1):
-            block: QTextBlock = self.document().findBlockByNumber(i)
-            block_layout: QTextLayout = block.layout()
-
-            block_layout.draw(painter, QPointF(0, 0), [], rect.toQRectF())
+        self.updateFooter()
 
     def updateFormat(self) -> None:
         __char_format: QTextCharFormat = QTextCharFormat()
@@ -218,7 +150,7 @@ class HeaderDocumentLayout(QAbstractTextDocumentLayout):
         self.__text_cursor.setCharFormat(__char_format)
         self.__text_cursor.setBlockCharFormat(__char_format)
 
-    def updateHeader(self) -> None:
+    def updateFooter(self) -> None:
         for i in range(self.document().blockCount() - 1):
             block = self.document().findBlockByNumber(i)
 
@@ -236,3 +168,70 @@ class HeaderDocumentLayout(QAbstractTextDocumentLayout):
 
             else:
                 self.__text_cursor.insertText("")
+
+    def documentChanged(self, from_: int, charsRemoved: int, charsAdded: int) -> None:
+        for i in range(self.document().blockCount() - 1):
+            block: QTextBlock = self.document().findBlockByNumber(i)
+            block_layout: QTextLayout = block.layout()
+
+            block_layout.beginLayout()
+            line: QTextLine = block_layout.createLine()
+
+            while line.isValid():
+                line.setLineWidth(self.__page_layout.textWidth())
+                line_rect: QRectF = line.naturalTextRect()
+
+                line_x: float = self.__page_layout.footerXPosition(i)
+                line_y: float = self.__page_layout.footerYPosition(i)
+
+                # change x position
+                if Qt.AlignmentFlag.AlignLeft in self.__alignment:
+                    line_x += 0
+
+                elif Qt.AlignmentFlag.AlignHCenter in self.__alignment:
+                    line_x += (self.__page_layout.textWidth() - line_rect.width()) / 2
+
+                elif Qt.AlignmentFlag.AlignRight in self.__alignment:
+                    line_x += self.__page_layout.textWidth() - line_rect.width()
+
+                # change y position
+                if Qt.AlignmentFlag.AlignTop in self.__alignment:
+                    line_y += 0
+
+                elif Qt.AlignmentFlag.AlignVCenter in self.__alignment:
+                    line_y += (self.__page_layout.footerHeight() - line_rect.height()) / 2
+
+                elif Qt.AlignmentFlag.AlignBottom in self.__alignment:
+                    line_y += self.__page_layout.footerHeight() - line_rect.height()
+
+                line.setLineWidth(line_rect.width())
+                line.setPosition(QPointF(line_x, line_y))
+
+                line = block_layout.createLine()
+
+            block_layout.endLayout()
+
+        self.update.emit()
+
+    def blockBoundingRect(self, block: QTextBlock) -> QRectF:
+        return block.layout().boundingRect()
+
+    def paint(self, context: FooterPaintContext):
+        painter: QPainter = context.painter
+        rect: RectF = context.rect
+
+        for i in range(self.document().blockCount() - 1):
+            block: QTextBlock = self.document().findBlockByNumber(i)
+            block_layout: QTextLayout = block.layout()
+
+            block_layout.draw(painter, QPointF(0, 0), [], rect.toQRectF())
+
+    @Slot()
+    def onPageLayoutChanged(self) -> None:
+        difference = self.__page_layout.pageCount() - (self.document().blockCount() - 1)
+        if difference > 0:
+            self.addPage(difference)
+        elif difference < 0:
+            self.removePage(-difference)
+        else:
+            self.documentChanged(0, 0, 0)

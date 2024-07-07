@@ -1,6 +1,6 @@
 from enum import Enum
 
-from PySide6.QtCore import QPointF, Signal, QRectF, Qt
+from PySide6.QtCore import QPointF, Signal, QRectF, Qt, Slot
 from PySide6.QtGui import (
     QAbstractTextDocumentLayout,
     QTextDocument,
@@ -20,7 +20,7 @@ from PySide6.QtGui import (
 
 from util import PointF, RectF
 
-from core.widget.text_editor.layout.page_layout import PageLayout
+from core.text_editor.layout.page_layout import PageLayout
 
 
 class Hit(Enum):
@@ -85,14 +85,7 @@ class TextDocumentLayout(QAbstractTextDocumentLayout):
         self.__is_hyperlink_foreground_color_turned: bool = True
         self.__hyperlink_foreground_color: QColor = QColor("blue")
 
-        self.__page_layout.layoutSizeChanged.connect(self.onPageLayoutSizeChanged)
-        self.__page_layout.pageLayoutSizeChanged.connect(self.onPagePageLayoutSizeChanged)
-
-    def onPageLayoutSizeChanged(self) -> None:
-        self.documentChanged(0, 0, 0)
-
-    def onPagePageLayoutSizeChanged(self) -> None:
-        self.documentChanged(0, 0, 0)
+        self.__page_layout.changed.connect(self.onPageLayoutChanged)
 
     def characterCount(self) -> int:
         return self.__character_count
@@ -162,6 +155,80 @@ class TextDocumentLayout(QAbstractTextDocumentLayout):
 
     def setHyperlinkForegroundColor(self, color: QColor) -> None:
         self.__hyperlink_foreground_color = color
+
+    def pointTest(self, point: PointF) -> HitResult:
+        result: HitResult = HitResult()
+        result.point = point
+
+        current_cursor_position = 0
+
+        # check in text
+        for i in range(self.document().blockCount()):
+            block: QTextBlock = self.document().findBlockByNumber(i)
+            block_layout: QTextLayout = block.layout()
+            block_rect: RectF = RectF.fromQRectF(block_layout.boundingRect())
+
+            if block_rect.contains(point):
+                for j in range(block_layout.lineCount()):
+                    line: QTextLine = block_layout.lineAt(j)
+                    line_rect: RectF = RectF.fromQRectF(line.rect())
+
+                    if line_rect.contains(point):
+                        x_position = point.xPosition()
+                        line_cursor_position = line.xToCursor(
+                            x_position, QTextLine.CursorPosition.CursorBetweenCharacters
+                        )
+                        current_cursor_position += line_cursor_position
+
+                        helper: QTextCursor = QTextCursor(block)
+                        helper.setPosition(current_cursor_position - block.position())
+                        result.hyperlink = helper.charFormat().anchorHref()
+
+                        if result.hyperlink != "":
+                            result.hit = Hit.Hyperlink
+                        else:
+                            result.hit = Hit.Text
+
+                        result.position = current_cursor_position
+
+                        return result
+
+            current_cursor_position += block.length()
+
+        # check in images
+        for image_format in self.__image_layout:
+            if image_format.rect.contains(point.toQPointF()):
+                result.hit = Hit.Image
+                result.position = image_format.position
+
+                return result
+
+        result.hit = Hit.NoHit
+        result.position = -1
+
+        return result
+
+    def positionTest(self, position: int) -> PointF:
+        current_cursor_position = 0
+
+        for i in range(self.document().blockCount()):
+            block: QTextBlock = self.document().findBlockByNumber(i)
+            block_layout: QTextLayout = block.layout()
+
+            if block.contains(position):
+                for j in range(block_layout.lineCount()):
+                    line: QTextLine = block_layout.lineAt(j)
+
+                    if current_cursor_position + line.textLength() >= position:
+                        a, _ = line.cursorToX(position, QTextLine.Edge.Leading)  # type: ignore
+
+                        return PointF(a, line.y())
+
+                    current_cursor_position += line.textLength()
+
+            current_cursor_position += block.length()
+
+        return PointF(-1, -1)
 
     def documentChanged(self, from_: int, charsRemoved: int, charsAdded: int) -> None:
         # it isn't as complicated as you may think
@@ -509,76 +576,6 @@ class TextDocumentLayout(QAbstractTextDocumentLayout):
                 self.document().resource(QTextDocument.ResourceType.ImageResource, image_format.name),
             )
 
-    def pointTest(self, point: PointF) -> HitResult:
-        result: HitResult = HitResult()
-        result.point = point
-
-        current_cursor_position = 0
-
-        # check in text
-        for i in range(self.document().blockCount()):
-            block: QTextBlock = self.document().findBlockByNumber(i)
-            block_layout: QTextLayout = block.layout()
-            block_rect: RectF = RectF.fromQRectF(block_layout.boundingRect())
-
-            if block_rect.contains(point):
-                for j in range(block_layout.lineCount()):
-                    line: QTextLine = block_layout.lineAt(j)
-                    line_rect: RectF = RectF.fromQRectF(line.rect())
-
-                    if line_rect.contains(point):
-                        x_position = point.xPosition()
-                        line_cursor_position = line.xToCursor(
-                            x_position, QTextLine.CursorPosition.CursorBetweenCharacters
-                        )
-                        current_cursor_position += line_cursor_position
-
-                        helper: QTextCursor = QTextCursor(block)
-                        helper.setPosition(current_cursor_position - block.position())
-                        result.hyperlink = helper.charFormat().anchorHref()
-
-                        if result.hyperlink != "":
-                            result.hit = Hit.Hyperlink
-                        else:
-                            result.hit = Hit.Text
-
-                        result.position = current_cursor_position
-
-                        return result
-
-            current_cursor_position += block.length()
-
-        # check in images
-        for image_format in self.__image_layout:
-            if image_format.rect.contains(point.toQPointF()):
-                result.hit = Hit.Image
-                result.position = image_format.position
-
-                return result
-
-        result.hit = Hit.NoHit
-        result.position = -1
-
-        return result
-
-    def positionTest(self, position: int) -> PointF:
-        current_cursor_position = 0
-
-        for i in range(self.document().blockCount()):
-            block: QTextBlock = self.document().findBlockByNumber(i)
-            block_layout: QTextLayout = block.layout()
-
-            if block.contains(position):
-                for j in range(block_layout.lineCount()):
-                    line: QTextLine = block_layout.lineAt(j)
-
-                    if current_cursor_position + line.textLength() >= position:
-                        a, _ = line.cursorToX(position, QTextLine.Edge.Leading)  # type: ignore
-
-                        return PointF(a, line.y())
-
-                    current_cursor_position += line.textLength()
-
-            current_cursor_position += block.length()
-
-        return PointF(-1, -1)
+    @Slot()
+    def onPageLayoutChanged(self) -> None:
+        self.documentChanged(0, 0, 0)

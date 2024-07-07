@@ -2,7 +2,7 @@ from PySide6.QtCore import Signal
 from PySide6.QtWidgets import QWidget, QGridLayout
 from PySide6.QtGui import QColor
 
-from core.widget.tool_bar.color_picker.color_button import ColorButton
+from core.widget.color_picker.color_button import ColorButton
 
 
 class ColorPalette(QWidget):

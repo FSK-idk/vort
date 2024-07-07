@@ -1,10 +1,10 @@
 from PySide6.QtCore import QEvent, QObject, Signal, Slot, QPoint
 from PySide6.QtWidgets import QWidget
-from PySide6.QtGui import QPixmap, QColor, QMouseEvent, QPainter, QPen, QPaintEvent, QKeyEvent
+from PySide6.QtGui import QColor, QMouseEvent
 
 from util import PointF, RectF
 
-from core.widget.tool_bar.color_picker.color_picker_ui import ColorPickerUI
+from core.widget.color_picker.color_picker_ui import ColorPickerUI
 
 
 # there is a problem with hiding the popup color palette.

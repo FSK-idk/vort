@@ -1,12 +1,5 @@
-from PySide6.QtCore import Qt, Signal
-from PySide6.QtWidgets import (
-    QWidget,
-    QDialog,
-    QPushButton,
-    QHBoxLayout,
-    QVBoxLayout,
-    QTabWidget,
-)
+from PySide6.QtCore import Qt, Signal, Slot
+from PySide6.QtWidgets import QWidget, QDialog, QPushButton, QHBoxLayout, QVBoxLayout, QTabWidget
 
 from core.window.settings.page_settings_ui import PageSettingsUI, PageSettingsContext
 from core.window.settings.paragraph_settings_ui import ParagraphSettingsUI, ParagraphSettingsContext
@@ -84,6 +77,7 @@ class SettingsDialogUI(QDialog):
     def openTab(self, name: str) -> None:
         self.tab_widget.setCurrentIndex(self.tab_index[name])
 
+    @Slot()
     def onApplyClicked(self) -> None:
         # validate
         invalid_tab: str = ""
@@ -113,9 +107,11 @@ class SettingsDialogUI(QDialog):
             print("invalid tab =", invalid_tab)
             self.openTab(invalid_tab)
 
+    @Slot()
     def onOkClicked(self) -> None:
         if self.onApplyClicked():
             self.accept()
 
+    @Slot()
     def onCancelClicked(self) -> None:
         self.reject()

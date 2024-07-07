@@ -1,4 +1,4 @@
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, Slot
 from PySide6.QtWidgets import QWidget
 from PySide6.QtGui import (
     QTextDocument,
@@ -15,13 +15,10 @@ from PySide6.QtGui import (
 
 from util import RectF
 
-from core.widget.text_editor.layout.text_document_layout import TextDocumentLayout, Selection, PaintContext
-
-from core.widget.text_editor.layout.footer_document_layout import FooterDocumentLayout, FooterPaintContext
-from core.widget.text_editor.layout.header_document_layout import HeaderDocumentLayout, HeaderPaintContext
-
-
-from core.widget.text_editor.layout.page_layout import PageLayout
+from core.text_editor.layout.page_layout import PageLayout
+from core.text_editor.layout.text_document_layout import TextDocumentLayout, Selection, PaintContext
+from core.text_editor.layout.header_document_layout import HeaderDocumentLayout, HeaderPaintContext
+from core.text_editor.layout.footer_document_layout import FooterDocumentLayout, FooterPaintContext
 
 
 class TextCanvas(QWidget):
@@ -58,17 +55,13 @@ class TextCanvas(QWidget):
         palette.setColor(QPalette.ColorGroup.Inactive, QPalette.ColorRole.Window, Qt.GlobalColor.transparent)
         self.setPalette(palette)
 
-        self.__page_layout.layoutSizeChanged.connect(self.onPageCountChanged)
+        self.__page_layout.changed.connect(self.onPageLayoutChanged)
 
     def headerLayout(self) -> HeaderDocumentLayout:
         return self.__header_document_layout
 
     def footerLayout(self) -> FooterDocumentLayout:
         return self.__footer_document_layout
-
-    def onPageCountChanged(self) -> None:
-        self.setFixedWidth(int(self.__page_layout.width()))
-        self.setFixedHeight(int(self.__page_layout.height()))
 
     def paintEvent(self, event: QPaintEvent):
         painter: QPainter = QPainter(self)
@@ -108,3 +101,11 @@ class TextCanvas(QWidget):
         self.__footer_document_layout.paint(footer_context)
 
         painter.end()
+
+    @Slot()
+    def onPageLayoutChanged(self) -> None:
+        if self.width() != int(self.__page_layout.width()):
+            self.setFixedWidth(int(self.__page_layout.width()))
+
+        if self.height() != int(self.__page_layout.height()):
+            self.setFixedHeight(int(self.__page_layout.height()))

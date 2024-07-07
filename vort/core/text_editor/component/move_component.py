@@ -1,11 +1,8 @@
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Qt
 from PySide6.QtGui import QTextCursor, QGuiApplication
 
-from util.point_f import PointF
-
-from core.widget.text_editor.component.component import Component
-from core.widget.text_editor.layout.text_canvas import TextCanvas
-from core.widget.text_editor.layout.text_document_layout import HitResult, Hit
+from core.text_editor.component.component import Component
+from core.text_editor.layout.text_document_layout import HitResult, Hit
 
 
 class MoveComponent(Component):

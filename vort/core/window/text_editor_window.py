@@ -1,8 +1,6 @@
 from PySide6.QtCore import Qt, QObject, Slot
 from PySide6.QtGui import QFont, QColor, QGuiApplication, QTextDocument
 
-from core.widget.text_editor.component.select_component import HyperlinkSelection
-
 from core.window.text_editor_window_ui import TextEditorWindowUI
 from core.window.dialog.edit_paragraph_dialog_ui import EditParagraphDialogUI, EditParagraphDialogContext
 from core.window.dialog.edit_hyperlink_dialog_ui import EditHyperlinkDialogUI, EditHyperlinkDialogContext
@@ -13,9 +11,12 @@ from core.window.settings.paragraph_settings_ui import ParagraphSettingsContext
 from core.window.settings.header_settings_ui import HeaderSettingsContext
 from core.window.settings.footer_settings_ui import FooterSettingsContext
 
-# some code may be unnecessary, but I want everything to be consistent
+from core.text_editor.component.select_component import HyperlinkSelection
 
-from core.widget.text_editor.document_file import DocumentFile
+from core.text_editor.document_file import DocumentFile
+
+
+# some code may be unnecessary, but I want everything to be consistent
 
 
 class TextEditorWindow(QObject):
@@ -643,8 +644,6 @@ class TextEditorWindow(QObject):
 
         px_to_cm = 2.54 / dpi
         px_to_mm = 25.4 / dpi
-
-        print("f", document_context.page_layout)
 
         # populate data
         page_context: PageSettingsContext = PageSettingsContext()

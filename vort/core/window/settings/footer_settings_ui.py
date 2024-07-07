@@ -2,9 +2,9 @@ from PySide6.QtCore import Qt, Slot
 from PySide6.QtWidgets import QWidget, QLabel, QCheckBox, QHBoxLayout, QVBoxLayout, QScrollArea, QLineEdit
 from PySide6.QtGui import QColor, QPalette, QFont
 
-from core.window.settings.settings_widget import DoubleSpinBox, ComboBox, SpinBox
-from core.widget.tool_bar.font_combo_box import FontComboBox
-from core.widget.tool_bar.font_size_combo_box import FontSizeComboBox
+from core.widget.basic_widget import DoubleSpinBox, ComboBox, SpinBox
+from core.widget.font_combo_box.font_combo_box import FontComboBox
+from core.widget.font_combo_box.font_size_combo_box import FontSizeComboBox
 
 
 class FooterSettingsContext:

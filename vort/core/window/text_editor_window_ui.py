@@ -1,24 +1,15 @@
-from PySide6.QtCore import QEvent, QObject, Qt, Slot, Signal
-from PySide6.QtWidgets import (
-    QMenuBar,
-    QMenu,
-    QToolBar,
-    QComboBox,
-    QMainWindow,
-    QWidget,
-    QStatusBar,
-    QLabel,
-)
-from PySide6.QtGui import QAction, QPixmap, QFont, QColor, QMouseEvent, QActionGroup
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QMenuBar, QMenu, QToolBar, QComboBox, QMainWindow, QWidget, QStatusBar
+from PySide6.QtGui import QAction, QPixmap, QFont, QColor, QActionGroup
 
-from core.widget.tool_bar.color_picker.color_picker import ColorPicker
-from core.widget.tool_bar.font_size_combo_box import FontSizeComboBox
-from core.widget.tool_bar.font_combo_box import FontComboBox
+from core.widget.color_picker.color_picker import ColorPicker
+from core.widget.font_combo_box.font_size_combo_box import FontSizeComboBox
+from core.widget.font_combo_box.font_combo_box import FontComboBox
 
-from core.widget.status_bar.character_count_label import CharacterCountLabel
-from core.widget.status_bar.zoom_slider import ZoomSlider
+from core.widget.status_bar_widget.character_count_label import CharacterCountLabel
+from core.widget.status_bar_widget.zoom_slider import ZoomSlider
 
-from core.widget.text_editor.text_editor import TextEditor
+from core.text_editor.text_editor import TextEditor
 
 
 class TextEditorWindowUI(QMainWindow):

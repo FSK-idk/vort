@@ -1,4 +1,4 @@
-from PySide6.QtCore import Qt, QMimeData, Signal, QUrl
+from PySide6.QtCore import Qt, QMimeData
 from PySide6.QtGui import (
     QTextCursor,
     QGuiApplication,
@@ -12,7 +12,7 @@ from PySide6.QtGui import (
     QTextDocumentFragment,
 )
 
-from core.widget.text_editor.component.component import Component
+from core.text_editor.component.component import Component
 
 
 # TODO: use hash
@@ -431,7 +431,6 @@ class InputComponent(Component):
                     # otherwise delete char
                     else:
                         self._text_cursor.deleteChar()
-                        print("delete")
 
                     if self._text_cursor.atBlockStart():
                         format = self._text_cursor.charFormat()
