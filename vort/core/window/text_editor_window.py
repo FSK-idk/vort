@@ -13,10 +13,13 @@ from core.window.settings.paragraph_settings_ui import ParagraphSettingsContext
 from core.window.settings.header_settings_ui import HeaderSettingsContext
 from core.window.settings.footer_settings_ui import FooterSettingsContext
 
+from core.window.style.style_dialog_ui import StyleDialogUI
+
 from core.text_editor.component.select_component import HyperlinkSelection
 
 from core.text_editor.document_file import DocumentFile
 
+from etc.data_base.data_base import data_base
 
 # some code may be unnecessary, but I want everything to be consistent
 
@@ -24,6 +27,8 @@ from core.text_editor.document_file import DocumentFile
 class TextEditorWindow(QObject):
     def __init__(self) -> None:
         super().__init__()
+
+        data_base.init()
 
         self.ui: TextEditorWindowUI = TextEditorWindowUI()
 
@@ -123,6 +128,8 @@ class TextEditorWindow(QObject):
 
         self.ui.open_style_action.triggered.connect(self.openStyle)
 
+        self.ui.new_style_action.triggered.connect(self.newStyle)
+
         self.ui.clear_style_action.triggered.connect(self.clearStyle)
 
         # settings
@@ -192,7 +199,7 @@ class TextEditorWindow(QObject):
         self.ui.text_editor.setDocument(DocumentFile.default_file())
         self.filepath = ""
         self.is_document_open = True
-        self.is_document_changed = True
+        self.is_document_changed = False
 
     @Slot()
     def openDocument(self) -> None:
@@ -513,7 +520,12 @@ class TextEditorWindow(QObject):
     # style
 
     def openStyle(self) -> None:
+        dialog: StyleDialogUI = StyleDialogUI()
+        dialog.exec()
         print("openStyle")
+
+    def newStyle(self) -> None:
+        print("newStyle")
 
     def clearStyle(self) -> None:
         print("clearStyle")

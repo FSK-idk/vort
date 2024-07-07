@@ -172,6 +172,9 @@ class TextEditorWindowUI(QMainWindow):
         self.open_style_action: QAction = QAction("Styles")
         self.open_style_action.setStatusTip("Manage custom styles")
 
+        self.new_style_action: QAction = QAction("New style")
+        self.new_style_action.setStatusTip("Create new custom style")
+
         self.clear_style_action: QAction = QAction("Clear")
         self.clear_style_action.setStatusTip("Clear the style of the selected text")
 
@@ -280,6 +283,7 @@ class TextEditorWindowUI(QMainWindow):
 
         self.style_menu: QMenu = QMenu("Style")
         self.style_menu.addAction(self.open_style_action)
+        self.style_menu.addAction(self.new_style_action)
         self.menu_bar.addMenu(self.style_menu)
 
         self.settings_menu: QMenu = QMenu("Settings")

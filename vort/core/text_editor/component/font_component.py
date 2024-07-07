@@ -24,9 +24,9 @@ class FontComponent(Component):
             self._text_cursor.mergeBlockCharFormat(format)
         self.applied.emit()
 
-    def setForegroundColor(self, color: QColor) -> None:
+    def setBackgroundColor(self, color: QColor) -> None:
         format: QTextCharFormat = QTextCharFormat()
-        format.setForeground(color)
+        format.setBackground(color)
         self._text_cursor.mergeCharFormat(format)
         if self._text_cursor.atBlockStart() and self._text_cursor.atBlockEnd():
             format = self._text_cursor.charFormat()
@@ -34,9 +34,9 @@ class FontComponent(Component):
             self._text_cursor.mergeBlockCharFormat(format)
         self.applied.emit()
 
-    def setBackgroundColor(self, color: QColor) -> None:
+    def setForegroundColor(self, color: QColor) -> None:
         format: QTextCharFormat = QTextCharFormat()
-        format.setBackground(color)
+        format.setForeground(color)
         self._text_cursor.mergeCharFormat(format)
         if self._text_cursor.atBlockStart() and self._text_cursor.atBlockEnd():
             format = self._text_cursor.charFormat()

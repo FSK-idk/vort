@@ -363,6 +363,7 @@ class TextEditor(QObject):
             self.__scene.clear()
             self.__document_context = None
             self.__scene.setSceneRect(QRectF(0, 0, 1, 1))
+            self.__last_hit_result = HitResult()
         self.repaintViewport()
 
     def documentContext(self) -> DocumentContext | None:
