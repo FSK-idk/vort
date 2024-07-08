@@ -1,15 +1,11 @@
 from PySide6.QtCore import Qt, Slot
-from PySide6.QtWidgets import (
-    QWidget,
-    QDialog,
-    QPushButton,
-    QLineEdit,
-    QHBoxLayout,
-    QVBoxLayout,
-)
+from PySide6.QtWidgets import QWidget, QDialog, QPushButton, QLineEdit, QHBoxLayout, QVBoxLayout, QMessageBox
 
 from core.widget.style_widget.style_table import StyleTable
 from core.window.style.new_style_dialog_ui import NewStyleDialogUI
+from core.window.style.modify_style_dialog_ui import ModifyStyleDialogUI
+
+from etc.data_base.data_base import data_base
 
 
 class StyleDialogUI(QDialog):
@@ -20,19 +16,10 @@ class StyleDialogUI(QDialog):
         self.resize(650, 400)
 
         self.search_line: QLineEdit = QLineEdit(self)
-
-        self.search_button: QPushButton = QPushButton(self)
-        self.search_button.setText("Search")
-        self.search_button.setFixedWidth(70)
-        self.search_button.clicked.connect(self.onSearchClicked)
-
-        search_layout: QHBoxLayout = QHBoxLayout()
-        search_layout.setContentsMargins(0, 0, 0, 0)
-        search_layout.setSpacing(10)
-        search_layout.addWidget(self.search_line)
-        search_layout.addWidget(self.search_button)
+        self.search_line.setPlaceholderText("Search...")
 
         self.style_table: StyleTable = StyleTable()
+        self.search_line.textChanged.connect(self.style_table.search)
 
         self.new_button: QPushButton = QPushButton(self)
         self.new_button.setText("New")
@@ -66,15 +53,11 @@ class StyleDialogUI(QDialog):
         main_layout: QVBoxLayout = QVBoxLayout()
         main_layout.setContentsMargins(10, 10, 10, 10)
         main_layout.setSpacing(20)
-        main_layout.addLayout(search_layout)
+        main_layout.addWidget(self.search_line)
         main_layout.addWidget(self.style_table)
         main_layout.addLayout(button_layout)
 
         self.setLayout(main_layout)
-
-    @Slot()
-    def onSearchClicked(self) -> None:
-        pass
 
     @Slot()
     def onNewClicked(self) -> None:
@@ -83,12 +66,28 @@ class StyleDialogUI(QDialog):
 
     @Slot()
     def onModifyClicked(self) -> None:
-        pass
+        if self.style_table.selectedIndexes():
+            name = self.style_table.selectedIndexes()[0].data()
+
+            dialog: ModifyStyleDialogUI = ModifyStyleDialogUI(name, self)
+            dialog.exec()
 
     @Slot()
     def onDeleteClicked(self) -> None:
-        pass
+        if self.style_table.selectedIndexes():
+            name = self.style_table.selectedIndexes()[0].data()
+
+            message = QMessageBox(
+                QMessageBox.Icon.Warning,
+                "Deletion",
+                f'Are you sure you want to delete "{name}" style?',
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                self,
+            )
+
+            if message.exec() == QMessageBox.StandardButton.Yes:
+                data_base.deleteStyle(name)
 
     @Slot()
     def onCloseClicked(self) -> None:
-        self.close()
+        self.reject()

@@ -1,21 +1,8 @@
 from PySide6.QtCore import Qt, Slot
-from PySide6.QtWidgets import (
-    QWidget,
-    QScrollArea,
-    QDialog,
-    QPushButton,
-    QLineEdit,
-    QHBoxLayout,
-    QVBoxLayout,
-    QLabel,
-    QCheckBox,
-    QSizePolicy,
-)
-from PySide6.QtGui import QColor, QPalette
+from PySide6.QtWidgets import QWidget, QDialog, QPushButton, QHBoxLayout, QVBoxLayout
+from PySide6.QtGui import QColor
 
-from core.widget.basic_widget import DoubleSpinBox, ComboBox
 
-from core.widget.style_widget.style_table import StyleTable
 from core.widget.style_widget.style_form_ui import StyleFormUI
 
 from etc.data_base.data_base import data_base

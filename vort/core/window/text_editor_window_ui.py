@@ -1,6 +1,6 @@
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QMenuBar, QMenu, QToolBar, QComboBox, QMainWindow, QWidget, QStatusBar
-from PySide6.QtGui import QAction, QPixmap, QFont, QColor, QActionGroup, QCloseEvent
+from PySide6.QtGui import QAction, QPixmap, QColor, QActionGroup, QCloseEvent
 
 from core.widget.color_picker.color_picker import ColorPicker
 from core.widget.font_combo_box.font_size_combo_box import FontSizeComboBox
@@ -218,13 +218,15 @@ class TextEditorWindowUI(QMainWindow):
 
         # color
         icon = QPixmap(16, 16)
-        icon.fill(Qt.GlobalColor.cyan)
+        icon.fill(QColor("cyan"))
 
         self.foreground_color_picker = ColorPicker(self)
         self.foreground_color_picker.ui.setIcon(icon)
+        self.foreground_color_picker.ui.setColorIcon(QColor("black"))
 
         self.background_color_picker = ColorPicker(self)
-        # self.background_color_picker.ui.setIcon(icon)
+        self.background_color_picker.ui.setIcon(icon)
+        self.background_color_picker.ui.setColorIcon(QColor("transparent"))
 
         # style
 

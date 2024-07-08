@@ -10,7 +10,6 @@ class ColorPickerUI(QToolButton):
         super().__init__(parent)
 
         self.color_icon: QPixmap = QPixmap(16, 16)
-        self.color_icon.fill(Qt.GlobalColor.blue)
 
         self.icon: QPixmap | None = None
 

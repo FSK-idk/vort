@@ -292,7 +292,7 @@ class StyleFormUI(QScrollArea):
 
         self.paragraph_check_box: QCheckBox = QCheckBox()
         self.paragraph_check_box.setText("Change paragraph")
-        self.paragraph_check_box.setChecked(self.style_data.is_font_changed)
+        self.paragraph_check_box.setChecked(self.style_data.is_paragraph_changed)
 
         self.alignment_combo_box_label: QLabel = QLabel(self)
         self.alignment_combo_box_label.setText("Alignment")

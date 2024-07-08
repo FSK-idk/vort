@@ -535,12 +535,6 @@ class TextEditorWindow(QObject):
     def clearStyle(self) -> None:
         print("clearStyle")
 
-    def showGuide(self) -> None:
-        print("showGuide")
-
-    def showAbout(self) -> None:
-        print("showAbout")
-
     # settings
 
     @Slot(str)
@@ -706,6 +700,14 @@ class TextEditorWindow(QObject):
     @Slot()
     def openFooterSettings(self) -> None:
         self.openSettings("footer")
+
+    # etc
+
+    def showGuide(self) -> None:
+        print("showGuide")
+
+    def showAbout(self) -> None:
+        print("showAbout")
 
     # status
 
