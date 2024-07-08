@@ -3,6 +3,8 @@ import hashlib
 from PySide6.QtCore import Qt, QMimeData, QByteArray, QBuffer, QIODevice
 from PySide6.QtGui import (
     QTextCursor,
+    QFont,
+    QTextBlockFormat,
     QGuiApplication,
     QKeyEvent,
     QTextBlock,
@@ -12,6 +14,7 @@ from PySide6.QtGui import (
     QColor,
     QTextDocument,
     QTextDocumentFragment,
+    QTextCharFormat,
 )
 
 from core.text_editor.component.component import Component
@@ -58,7 +61,7 @@ class InputComponent(Component):
         is_block_start: bool = self._text_cursor.atBlockStart()
         prev_position: int = self._text_cursor.position()
 
-        self._text_cursor.insertFragment(QTextDocumentFragment.fromHtml(mime_data.html()))
+        self._text_cursor.insertHtml(self.parse_to_html(mime_data.html()))
 
         if is_block_start:
             new_position: int = self._text_cursor.position()
@@ -68,6 +71,7 @@ class InputComponent(Component):
 
         self.fixup()
         self._text_cursor.endEditBlock()
+
         self.applied.emit()
 
         return True
@@ -82,7 +86,7 @@ class InputComponent(Component):
         is_block_start: bool = self._text_cursor.atBlockStart()
         prev_position: int = self._text_cursor.position()
 
-        self._text_cursor.insertFragment(QTextDocumentFragment.fromPlainText(mime_data.text()))
+        self._text_cursor.insertText(self.parse_to_plain_text(mime_data.text()))
 
         if is_block_start:
             new_position: int = self._text_cursor.position()
@@ -535,3 +539,98 @@ class InputComponent(Component):
         if helper.charFormat().isImageFormat() and helper.atBlockStart():
             self._text_cursor.movePosition(QTextCursor.MoveOperation.PreviousBlock, QTextCursor.MoveMode.MoveAnchor)
             self._text_cursor.movePosition(QTextCursor.MoveOperation.EndOfBlock, QTextCursor.MoveMode.MoveAnchor)
+
+    def parse_to_html(self, html_text: str) -> str:
+        document = QTextDocument()
+        helper: QTextCursor = QTextCursor(document)
+        helper.insertHtml(html_text)
+
+        for i in range(document.blockCount()):
+            block: QTextBlock = document.findBlockByNumber(i)
+            block_format: QTextBlockFormat = block.blockFormat()
+
+            new_block_format: QTextBlockFormat = QTextBlockFormat()
+            new_block_format.setAlignment(block_format.alignment())
+            new_block_format.setHeadingLevel(0)
+            new_block_format.setTextIndent(block_format.textIndent())
+            new_block_format.setIndent(block_format.indent())
+            if block_format.lineHeightType() != 1:
+                new_block_format.setLineHeight(1, 1)
+            else:
+                if block_format.lineHeight() > 5:
+                    new_block_format.setLineHeight(block_format.lineHeight() / 100, 1)
+                else:
+                    new_block_format.setLineHeight(block_format.lineHeight(), 1)
+            new_block_format.setTopMargin(block_format.topMargin())
+            new_block_format.setBottomMargin(block_format.bottomMargin())
+            new_block_format.setLeftMargin(block_format.leftMargin())
+            new_block_format.setRightMargin(block_format.rightMargin())
+
+            helper.setPosition(block.position())
+            helper.setBlockFormat(new_block_format)
+
+            it: QTextBlock.iterator = block.begin()
+            if it != block.end():
+                fragment: QTextFragment = it.fragment()
+
+                char_format: QTextCharFormat = fragment.charFormat()
+                new_char_format: QTextCharFormat = QTextCharFormat()
+
+                if char_format.isImageFormat():
+                    continue
+
+                if char_format.isCharFormat():
+                    new_char_format.setFontPointSize(max(char_format.fontPointSize(), 1))
+                    if char_format.fontFamilies() is not None:
+                        new_char_format.setFontFamilies([char_format.fontFamilies()[0]])
+                    else:
+                        new_char_format.setFontFamilies(["Segoe UI"])
+                    new_char_format.setBackground(char_format.background())
+                    new_char_format.setForeground(char_format.foreground())
+                    if new_char_format.fontWeight() == QFont.Weight.Bold:
+                        weight = QFont.Weight.Bold
+                    else:
+                        weight = QFont.Weight.Normal
+                    new_char_format.setFontWeight(weight)
+                    new_char_format.setFontItalic(char_format.fontItalic())
+                    if new_char_format.underlineStyle() == QTextCharFormat.UnderlineStyle.SingleUnderline:
+                        underline = QTextCharFormat.UnderlineStyle.SingleUnderline
+                    else:
+                        underline = QTextCharFormat.UnderlineStyle.NoUnderline
+                    new_char_format.setUnderlineStyle(underline)
+
+                    helper.setPosition(fragment.position(), QTextCursor.MoveMode.MoveAnchor)
+                    helper.setPosition(fragment.position() + fragment.length(), QTextCursor.MoveMode.KeepAnchor)
+                    helper.setCharFormat(new_char_format)
+
+                it += 1
+
+        return document.toHtml()
+
+    def parse_to_plain_text(self, text: str) -> str:
+        document = QTextDocument()
+        helper: QTextCursor = QTextCursor(document)
+        helper.insertText(text)
+
+        for i in range(document.blockCount()):
+            block: QTextBlock = document.findBlockByNumber(i)
+            block_format: QTextBlockFormat = block.blockFormat()
+
+            new_block_format: QTextBlockFormat = QTextBlockFormat()
+            new_block_format.setAlignment(block_format.alignment())
+            new_block_format.setHeadingLevel(0)
+            new_block_format.setTextIndent(block_format.textIndent())
+            new_block_format.setIndent(block_format.indent())
+            if block_format.lineHeightType() != 1:
+                new_block_format.setLineHeight(1, 1)
+            else:
+                new_block_format.setLineHeight(max(block_format.lineHeight(), 1), 1)
+            new_block_format.setTopMargin(block_format.topMargin())
+            new_block_format.setBottomMargin(block_format.bottomMargin())
+            new_block_format.setLeftMargin(block_format.leftMargin())
+            new_block_format.setRightMargin(block_format.rightMargin())
+
+            helper.setPosition(block.position())
+            helper.setBlockFormat(new_block_format)
+
+        return document.toPlainText()

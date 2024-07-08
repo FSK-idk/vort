@@ -112,8 +112,6 @@ class ModifyStyleDialogUI(QDialog):
             is_valid = is_valid and self.form.line_spacing_spin_box.hasAcceptableInput()
             self.form.line_spacing_spin_box_error.setHidden(self.form.line_spacing_spin_box.hasAcceptableInput())
 
-            print(self.form.top_margin_spin_box.hasAcceptableInput())
-
             is_valid = is_valid and self.form.top_margin_spin_box.hasAcceptableInput()
             self.form.top_margin_spin_box_error.setHidden(self.form.top_margin_spin_box.hasAcceptableInput())
 

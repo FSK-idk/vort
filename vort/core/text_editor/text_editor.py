@@ -226,13 +226,13 @@ class TextEditor(QObject):
         # set default format if it is empty document
         if text_document.characterCount() == 1:
             char_format: QTextCharFormat = QTextCharFormat()
-            char_format.setFont("Segoe UI")
+            char_format.setFontFamilies(["Segoe UI"])
             char_format.setFontPointSize(16)
             char_format.setBackground(QColor("transparent"))
             char_format.setForeground(QColor("black"))
             char_format.setFontWeight(QFont.Weight.Normal)
             char_format.setFontItalic(False)
-            char_format.setFontUnderline(False)
+            char_format.setUnderlineStyle(QTextCharFormat.UnderlineStyle.NoUnderline)
 
             block_format: QTextBlockFormat = QTextBlockFormat()
             block_format.setAlignment(Qt.AlignmentFlag.AlignLeft)

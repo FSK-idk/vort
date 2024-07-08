@@ -141,7 +141,7 @@ class FooterDocumentLayout(QAbstractTextDocumentLayout):
 
     def updateFormat(self) -> None:
         __char_format: QTextCharFormat = QTextCharFormat()
-        __char_format.setFontFamily(self.__font_family)
+        __char_format.setFontFamilies([self.__font_family])
         __char_format.setFontPointSize(self.__font_size)
         __char_format.setBackground(self.__text_background_color)
         __char_format.setForeground(self.__text_foreground_color)

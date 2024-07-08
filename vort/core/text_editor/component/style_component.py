@@ -9,7 +9,7 @@ from etc.style_data import StyleData
 class StyleComponent(Component):
     def setFontFamily(self, font_family: str) -> None:
         format: QTextCharFormat = QTextCharFormat()
-        format.setFontFamily(font_family)
+        format.setFontFamilies([font_family])
         self._text_cursor.mergeCharFormat(format)
         if self._text_cursor.atBlockStart() and self._text_cursor.atBlockEnd():
             format = self._text_cursor.charFormat()
@@ -69,8 +69,13 @@ class StyleComponent(Component):
         self.applied.emit()
 
     def turnUnderlined(self, is_underlined: bool) -> None:
+        underline = (
+            QTextCharFormat.UnderlineStyle.SingleUnderline
+            if is_underlined
+            else QTextCharFormat.UnderlineStyle.NoUnderline
+        )
         format: QTextCharFormat = QTextCharFormat()
-        format.setFontUnderline(is_underlined)
+        format.setUnderlineStyle(underline)
         self._text_cursor.mergeCharFormat(format)
         if self._text_cursor.atBlockStart() and self._text_cursor.atBlockEnd():
             format = self._text_cursor.charFormat()
@@ -90,13 +95,17 @@ class StyleComponent(Component):
         block_format: QTextBlockFormat = QTextBlockFormat()
 
         if style_data.is_font_changed:
-            char_format.setFontFamily(style_data.font_family)
+            char_format.setFontFamilies([style_data.font_family])
             char_format.setFontPointSize(style_data.font_size)
             char_format.setBackground(style_data.background_color)
             char_format.setForeground(style_data.foreground_color)
             char_format.setFontWeight(QFont.Weight.Bold if style_data.is_bold else QFont.Weight.Normal)
             char_format.setFontItalic(style_data.is_italic)
-            char_format.setFontUnderline(style_data.is_underlined)
+            char_format.setUnderlineStyle(
+                QTextCharFormat.UnderlineStyle.SingleUnderline
+                if style_data.is_underlined
+                else QTextCharFormat.UnderlineStyle.NoUnderline
+            )
 
         if style_data.is_paragraph_changed:
             block_format.setAlignment(style_data.alignment)
@@ -143,7 +152,7 @@ class StyleComponent(Component):
         char_format.setForeground(QColor("black"))
         char_format.setFontWeight(QFont.Weight.Normal)
         char_format.setFontItalic(False)
-        char_format.setFontUnderline(False)
+        char_format.setUnderlineStyle(QTextCharFormat.UnderlineStyle.NoUnderline)
 
         block_format: QTextBlockFormat = QTextBlockFormat()
         block_format.setAlignment(Qt.AlignmentFlag.AlignLeft)

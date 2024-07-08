@@ -379,12 +379,18 @@ class TextDocumentLayout(QAbstractTextDocumentLayout):
                     if (remaining_text_height != self.__page_layout.textHeight()) and (
                         remaining_text_height - line.height() <= 0
                     ):
-                        block_x = (
-                            self.__page_layout.textXPosition(page_count)
-                            + block_format.indent() * self.__indent_step
-                            + block_format.leftMargin()
+                        block_y += (
+                            remaining_text_height
+                            + self.__page_layout.footerHeight()
+                            + self.__page_layout.pageBottomPadding()
+                            + self.__page_layout.borderWidth()
+                            + self.__page_layout.pageBottomMargin()
+                            + self.__page_layout.pageSpacing()
+                            + self.__page_layout.pageTopMargin()
+                            + self.__page_layout.borderWidth()
+                            + self.__page_layout.pageTopPadding()
+                            + self.__page_layout.headerHeight()
                         )
-                        block_y = self.__page_layout.textYPosition(page_count)
 
                         remaining_text_height = self.__page_layout.textHeight()
                         page_count += 1
@@ -535,7 +541,11 @@ class TextDocumentLayout(QAbstractTextDocumentLayout):
                         selection.format.setFontItalic(self.__is_hyperlink_italic)
 
                     if self.__is_hyperlink_underlined_turned:
-                        selection.format.setFontUnderline(self.__is_hyperlink_underlined)
+                        selection.format.setUnderlineStyle(
+                            QTextCharFormat.UnderlineStyle.SingleUnderline
+                            if self.__is_hyperlink_underlined
+                            else QTextCharFormat.UnderlineStyle.NoUnderline
+                        )
 
                     if self.__is_hyperlink_background_color_turned:
                         selection.format.setBackground(self.__hyperlink_background_color)
