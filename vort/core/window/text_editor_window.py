@@ -133,6 +133,8 @@ class TextEditorWindow(QObject):
 
         self.ui.new_style_action.triggered.connect(self.newStyle)
 
+        self.ui.apply_style_action.triggered.connect(self.applyStyle)
+
         self.ui.clear_style_action.triggered.connect(self.clearStyle)
 
         # settings
@@ -341,7 +343,7 @@ class TextEditorWindow(QObject):
     @Slot(str)
     def onUserFontFamilyChanged(self, font_family: str) -> None:
         self.ui.text_editor.blockSignals(True)
-        self.ui.text_editor.font_component.setFontFamily(font_family)
+        self.ui.text_editor.style_component.setFontFamily(font_family)
         self.ui.text_editor.blockSignals(False)
 
     @Slot(str)
@@ -353,7 +355,7 @@ class TextEditorWindow(QObject):
     @Slot(int)
     def onUserFontSizeChanged(self, font_size: int) -> None:
         self.ui.text_editor.blockSignals(True)
-        self.ui.text_editor.font_component.setFontSize(font_size)
+        self.ui.text_editor.style_component.setFontSize(font_size)
         self.ui.text_editor.blockSignals(False)
 
     @Slot(int)
@@ -367,7 +369,7 @@ class TextEditorWindow(QObject):
     @Slot(bool)
     def onUserBoldTurned(self, is_bold) -> None:
         self.ui.text_editor.blockSignals(True)
-        self.ui.text_editor.format_component.turnBold(is_bold)
+        self.ui.text_editor.style_component.turnBold(is_bold)
         self.ui.text_editor.blockSignals(False)
 
     @Slot(bool)
@@ -379,7 +381,7 @@ class TextEditorWindow(QObject):
     @Slot(bool)
     def onUserItalicTurned(self, is_italic) -> None:
         self.ui.text_editor.blockSignals(True)
-        self.ui.text_editor.format_component.turnItalic(is_italic)
+        self.ui.text_editor.style_component.turnItalic(is_italic)
         self.ui.text_editor.blockSignals(False)
 
     @Slot(bool)
@@ -391,7 +393,7 @@ class TextEditorWindow(QObject):
     @Slot(bool)
     def onUserUnderlinedTurned(self, is_underlined) -> None:
         self.ui.text_editor.blockSignals(True)
-        self.ui.text_editor.format_component.turnUnderlined(is_underlined)
+        self.ui.text_editor.style_component.turnUnderlined(is_underlined)
         self.ui.text_editor.blockSignals(False)
 
     @Slot(bool)
@@ -405,7 +407,7 @@ class TextEditorWindow(QObject):
     @Slot(QColor)
     def onUserForegroundColorChanged(self, color: QColor) -> None:
         self.ui.text_editor.blockSignals(True)
-        self.ui.text_editor.font_component.setForegroundColor(color)
+        self.ui.text_editor.style_component.setForegroundColor(color)
         self.ui.text_editor.blockSignals(False)
 
     @Slot(QColor)
@@ -417,7 +419,7 @@ class TextEditorWindow(QObject):
     @Slot(QColor)
     def onUserBackgroundColorChanged(self, color: QColor) -> None:
         self.ui.text_editor.blockSignals(True)
-        self.ui.text_editor.font_component.setBackgroundColor(color)
+        self.ui.text_editor.style_component.setBackgroundColor(color)
         self.ui.text_editor.blockSignals(False)
 
     @Slot(QColor)
@@ -532,8 +534,11 @@ class TextEditorWindow(QObject):
         dialog.exec()
         print("newStyle")
 
+    def applyStyle(self) -> None:
+        self.ui.text_editor.style_component.setStyle(self.ui.style_combo_box.style())
+
     def clearStyle(self) -> None:
-        print("clearStyle")
+        self.ui.text_editor.style_component.clearStyle()
 
     # settings
 

@@ -1,13 +1,16 @@
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QMenuBar, QMenu, QToolBar, QComboBox, QMainWindow, QWidget, QStatusBar
+from PySide6.QtWidgets import QMenuBar, QMenu, QToolBar, QMainWindow, QWidget, QStatusBar
 from PySide6.QtGui import QAction, QPixmap, QColor, QActionGroup, QCloseEvent
 
 from core.widget.color_picker.color_picker import ColorPicker
+
 from core.widget.font_combo_box.font_size_combo_box import FontSizeComboBox
 from core.widget.font_combo_box.font_combo_box import FontComboBox
 
 from core.widget.status_bar_widget.character_count_label import CharacterCountLabel
 from core.widget.status_bar_widget.zoom_slider import ZoomSlider
+
+from core.widget.style_widget.style_combo_box import StyleComboBox
 
 from core.text_editor.text_editor import TextEditor
 
@@ -175,6 +178,9 @@ class TextEditorWindowUI(QMainWindow):
         self.new_style_action: QAction = QAction("New style")
         self.new_style_action.setStatusTip("Create new custom style")
 
+        self.apply_style_action: QAction = QAction("Apply")
+        self.apply_style_action.setStatusTip("Apply the style to the selected text")
+
         self.clear_style_action: QAction = QAction("Clear")
         self.clear_style_action.setStatusTip("Clear the style of the selected text")
 
@@ -230,7 +236,7 @@ class TextEditorWindowUI(QMainWindow):
 
         # style
 
-        self.style_combobox = QComboBox()  # TODO:
+        self.style_combo_box = StyleComboBox()  # TODO:
 
     def setupMenuBar(self) -> None:
         self.menu_bar = QMenuBar()
@@ -308,7 +314,8 @@ class TextEditorWindowUI(QMainWindow):
 
     def setupToolBar(self) -> None:
         self.style_tool: QToolBar = QToolBar("Style")
-        self.style_tool.addWidget(self.style_combobox)
+        self.style_tool.addWidget(self.style_combo_box)
+        self.style_tool.addAction(self.apply_style_action)
         self.style_tool.addAction(self.clear_style_action)
         self.addToolBar(self.style_tool)
 

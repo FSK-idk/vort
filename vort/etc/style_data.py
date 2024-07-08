@@ -26,7 +26,7 @@ class StyleData:
         self.alignment: Qt.AlignmentFlag = Qt.AlignmentFlag.AlignLeft
         self.first_line_indent: float = 0.0  # cm
         self.indent: int = 0
-        self.line_spacing: float = 0
+        self.line_spacing: float = 1.0  # ratio
         self.top_margin: float = 0.0  # cm
         self.bottom_margin: float = 0.0  # cm
         self.left_margin: float = 0.0  # cm

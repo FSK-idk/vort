@@ -21,8 +21,7 @@ from core.text_editor.text_editor_ui import TextEditorUI
 
 from core.text_editor.component.history_component import HistoryComponent
 from core.text_editor.component.select_component import SelectComponent
-from core.text_editor.component.font_component import FontComponent
-from core.text_editor.component.format_component import FormatComponent
+from core.text_editor.component.style_component import StyleComponent
 from core.text_editor.component.spacing_component import SpacingComponent
 from core.text_editor.component.move_component import MoveComponent
 from core.text_editor.component.input_component import InputComponent
@@ -302,11 +301,9 @@ class TextEditor(QObject):
         self.select_component: SelectComponent = SelectComponent(text_cursor)
         self.select_component.applied.connect(self.repaintViewport)
 
-        self.font_component: FontComponent = FontComponent(text_cursor)
-        self.font_component.applied.connect(self.repaintViewport)
-
-        self.format_component: FormatComponent = FormatComponent(text_cursor)
-        self.format_component.applied.connect(self.repaintViewport)
+        self.style_component: StyleComponent = StyleComponent(text_cursor)
+        self.style_component.applied.connect(self.repaintViewport)
+        self.style_component.applied.connect(self.updateUI)
 
         self.spacing_component: SpacingComponent = SpacingComponent(text_cursor)
         self.spacing_component.applied.connect(self.repaintViewport)
