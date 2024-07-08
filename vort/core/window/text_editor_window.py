@@ -1,3 +1,4 @@
+import lzma
 import pickle
 
 from PySide6.QtCore import Qt, QObject, Slot, QByteArray, QDataStream
@@ -224,7 +225,7 @@ class TextEditorWindow(QObject):
 
         if self.filepath != filepath:
             try:
-                with open(filepath, "rb") as f:
+                with lzma.open(filepath, "rb") as f:
                     document_file = pickle.load(f)
                     self.ui.text_editor.closeDocument()
                     self.ui.text_editor.setDocument(document_file)
@@ -262,7 +263,7 @@ class TextEditorWindow(QObject):
             if self.filepath == "":
                 filepath, _ = QFileDialog.getSaveFileName(filter="Vort file (*.vrt)")
                 try:
-                    with open(filepath, "wb") as f:
+                    with lzma.open(filepath, "wb") as f:
                         pickle.dump(document_file, f)
                         self.filepath = filepath
                         self.is_document_changed = False
@@ -270,7 +271,7 @@ class TextEditorWindow(QObject):
                     print("File not found")
             else:
                 try:
-                    with open(self.filepath, "wb") as f:
+                    with lzma.open(self.filepath, "wb") as f:
                         pickle.dump(document_file, f)
                 except FileNotFoundError:
                     print("File not found")
