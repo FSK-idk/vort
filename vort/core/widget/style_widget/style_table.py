@@ -1,7 +1,7 @@
 from PySide6.QtCore import Qt, Slot
 from PySide6.QtWidgets import QWidget, QTableView, QAbstractItemView, QHeaderView
 
-from core.widget.style_table.style_table_model import StyleTableModel
+from core.widget.style_widget.style_table_model import StyleTableModel
 
 
 class StyleTable(QTableView):
@@ -16,7 +16,7 @@ class StyleTable(QTableView):
         self.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         self.verticalHeader().hide()
         self.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
-
+        self.horizontalHeader().setSortIndicator(0, Qt.SortOrder.AscendingOrder)
         self.horizontalHeader().sortIndicatorChanged.connect(self.sort)
 
     @Slot()

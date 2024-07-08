@@ -1,8 +1,8 @@
 from PySide6.QtCore import Qt, Slot
-from PySide6.QtWidgets import QWidget, QLabel, QCheckBox, QHBoxLayout, QVBoxLayout, QSpinBox, QScrollArea
+from PySide6.QtWidgets import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QScrollArea
 from PySide6.QtGui import QColor, QPalette
 
-from core.widget.basic_widget import DoubleSpinBox, ComboBox
+from core.widget.basic_widget import DoubleSpinBox, SpinBox, ComboBox
 
 
 class ParagraphSettingsContext:
@@ -45,6 +45,7 @@ class ParagraphSettingsUI(QScrollArea):
         self.alignment_combo_box: ComboBox = ComboBox(self)
         self.alignment_combo_box.setEditable(True)
         self.alignment_combo_box.lineEdit().setEnabled(False)
+        self.alignment_combo_box.lineEdit().setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.aligment_flags: list[Qt.AlignmentFlag] = [
             Qt.AlignmentFlag.AlignLeft,
             Qt.AlignmentFlag.AlignHCenter,
@@ -104,7 +105,7 @@ class ParagraphSettingsUI(QScrollArea):
         self.indent_spin_box_label: QLabel = QLabel(self)
         self.indent_spin_box_label.setText("Indent")
 
-        self.indent_spin_box: QSpinBox = QSpinBox(self)
+        self.indent_spin_box: SpinBox = SpinBox(self)
         self.indent_spin_box.setMinimum(0)
         self.indent_spin_box.setSingleStep(1)
         self.indent_spin_box.setValue(self.context.indent)

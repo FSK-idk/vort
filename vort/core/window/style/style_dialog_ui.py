@@ -8,7 +8,8 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
 )
 
-from core.widget.style_table.style_table import StyleTable
+from core.widget.style_widget.style_table import StyleTable
+from core.window.style.new_style_dialog_ui import NewStyleDialogUI
 
 
 class StyleDialogUI(QDialog):
@@ -35,22 +36,22 @@ class StyleDialogUI(QDialog):
 
         self.new_button: QPushButton = QPushButton(self)
         self.new_button.setText("New")
-        self.new_button.setFixedWidth(70)
+        self.new_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.new_button.clicked.connect(self.onNewClicked)
 
         self.modify_button: QPushButton = QPushButton(self)
         self.modify_button.setText("Modify")
-        self.modify_button.setFixedWidth(70)
+        self.modify_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.modify_button.clicked.connect(self.onModifyClicked)
 
         self.delete_button: QPushButton = QPushButton(self)
         self.delete_button.setText("Delete")
-        self.delete_button.setFixedWidth(70)
+        self.delete_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.delete_button.clicked.connect(self.onDeleteClicked)
 
         self.close_button: QPushButton = QPushButton(self)
         self.close_button.setText("Close")
-        self.close_button.setFixedWidth(70)
+        self.close_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.close_button.clicked.connect(self.onCloseClicked)
 
         button_layout: QHBoxLayout = QHBoxLayout()
@@ -77,7 +78,8 @@ class StyleDialogUI(QDialog):
 
     @Slot()
     def onNewClicked(self) -> None:
-        pass
+        dialog: NewStyleDialogUI = NewStyleDialogUI(self)
+        dialog.exec()
 
     @Slot()
     def onModifyClicked(self) -> None:

@@ -14,6 +14,7 @@ from core.window.settings.header_settings_ui import HeaderSettingsContext
 from core.window.settings.footer_settings_ui import FooterSettingsContext
 
 from core.window.style.style_dialog_ui import StyleDialogUI
+from core.window.style.new_style_dialog_ui import NewStyleDialogUI
 
 from core.text_editor.component.select_component import HyperlinkSelection
 
@@ -22,6 +23,8 @@ from core.text_editor.document_file import DocumentFile
 from etc.data_base.data_base import data_base
 
 # some code may be unnecessary, but I want everything to be consistent
+
+# ? PixelSize
 
 
 class TextEditorWindow(QObject):
@@ -525,6 +528,8 @@ class TextEditorWindow(QObject):
         print("openStyle")
 
     def newStyle(self) -> None:
+        dialog: NewStyleDialogUI = NewStyleDialogUI()
+        dialog.exec()
         print("newStyle")
 
     def clearStyle(self) -> None:

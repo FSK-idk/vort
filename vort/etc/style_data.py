@@ -4,27 +4,11 @@ from PySide6.QtGui import QColor
 
 class StyleData:
     ALIGNMENT_FLAGS: list[Qt.AlignmentFlag] = [
-        Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop,
-        Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop,
-        Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignTop,
-        Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
-        Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter,
-        Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter,
-        Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignBottom,
-        Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignBottom,
-        Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignBottom,
+        Qt.AlignmentFlag.AlignLeft,
+        Qt.AlignmentFlag.AlignHCenter,
+        Qt.AlignmentFlag.AlignRight,
     ]
-    ALIGNMENT_NAMES: list[str] = [
-        "Top Left",
-        "Top Center",
-        "Top Right",
-        "Center Left",
-        "Center",
-        "Center Right",
-        "Bottom Left",
-        "Bottom Center",
-        "Bottom Right",
-    ]
+    ALIGNMENT_NAMES: list[str] = ["Left", "Center", "Right"]
 
     def __init__(self) -> None:
         self.name: str = ""
@@ -40,7 +24,6 @@ class StyleData:
 
         self.is_paragraph_changed: bool = False
         self.alignment: Qt.AlignmentFlag = Qt.AlignmentFlag.AlignLeft
-        self.is_first_line: bool = False
         self.first_line_indent: float = 0.0  # cm
         self.indent: int = 0
         self.line_spacing: float = 0
@@ -62,12 +45,11 @@ class StyleData:
         self.is_underlined          = True if data[14] == 1 else False
         self.is_paragraph_changed   = True if data[15] == 1 else False
         self.alignment              = self.ALIGNMENT_FLAGS[self.ALIGNMENT_NAMES.index(data[16])]
-        self.is_first_line          = True if data[17] == 1 else False
-        self.first_line_indent      = data[18]
-        self.indent                 = data[19]
-        self.line_spacing           = data[20]
-        self.top_margin             = data[21]
-        self.bottom_margin          = data[22]
-        self.left_margin            = data[23]
-        self.right_margin           = data[24]
+        self.first_line_indent      = data[17]
+        self.indent                 = data[18]
+        self.line_spacing           = data[19]
+        self.top_margin             = data[20]
+        self.bottom_margin          = data[21]
+        self.left_margin            = data[22]
+        self.right_margin           = data[23]
         # fmt:on

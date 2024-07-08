@@ -39,8 +39,9 @@ class DataBase(QObject):
         query.bindValue(":is_italic", style_data.is_italic)
         query.bindValue(":is_underlined", style_data.is_underlined)
         query.bindValue(":is_paragraph_changed", style_data.is_paragraph_changed)
-        query.bindValue(":alignment", style_data.alignment)
-        query.bindValue(":is_first_line", style_data.is_first_line)
+        query.bindValue(
+            ":alignment", style_data.ALIGNMENT_NAMES[style_data.ALIGNMENT_FLAGS.index(style_data.alignment)]
+        )
         query.bindValue(":first_line_indent", style_data.first_line_indent)
         query.bindValue(":indent", style_data.indent)
         query.bindValue(":line_spacing", style_data.line_spacing)
@@ -71,8 +72,9 @@ class DataBase(QObject):
         query.bindValue(":is_italic", style_data.is_italic)
         query.bindValue(":is_underlined", style_data.is_underlined)
         query.bindValue(":is_paragraph_changed", style_data.is_paragraph_changed)
-        query.bindValue(":alignment", style_data.alignment)
-        query.bindValue(":is_first_line", style_data.is_first_line)
+        query.bindValue(
+            ":alignment", style_data.ALIGNMENT_NAMES[style_data.ALIGNMENT_FLAGS.index(style_data.alignment)]
+        )
         query.bindValue(":first_line_indent", style_data.first_line_indent)
         query.bindValue(":indent", style_data.indent)
         query.bindValue(":line_spacing", style_data.line_spacing)
@@ -93,6 +95,7 @@ class DataBase(QObject):
 
         style_data: StyleData = StyleData()
         rec: QSqlRecord = query.record()
+
         if query.next():
             row = [query.value(index) for index in range(rec.count())]
             style_data.setData(row)

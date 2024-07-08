@@ -16,7 +16,6 @@ style_attributes: list[str] = [
     "Style.is_underlined",
     "Style.is_paragraph_changed",
     "Style.alignment",
-    "Style.is_first_line",
     "Style.first_line_indent",
     "Style.indent",
     "Style.line_spacing",
@@ -49,7 +48,6 @@ class Query:
                 is_underlined           integer,
                 is_paragraph_changed    integer,
                 alignment               str,
-                is_first_line           integer,
                 first_line_indent       real,
                 indent                  integer,
                 line_spacing            real,
@@ -81,7 +79,6 @@ class Query:
                 is_underlined,
                 is_paragraph_changed,
                 alignment,
-                is_first_line,
                 first_line_indent,
                 indent,
                 line_spacing,
@@ -108,7 +105,6 @@ class Query:
                 :is_underlined,
                 :is_paragraph_changed,
                 :alignment,
-                :is_first_line,
                 :first_line_indent,
                 :indent,
                 :line_spacing,
@@ -140,7 +136,6 @@ class Query:
                 is_underlined = :is_underlined,
                 is_paragraph_changed = :is_paragraph_changed,
                 alignment = :alignment,
-                is_first_line = :is_first_line,
                 first_line_indent = :first_line_indent,
                 indent = :indent,
                 line_spacing = :line_spacing,
@@ -157,6 +152,7 @@ class Query:
             SELECT {', '.join(style_attributes)}
             FROM Style
             WHERE Style.name = :name
+            AND :name != ""
             LIMIT 1
         """
 

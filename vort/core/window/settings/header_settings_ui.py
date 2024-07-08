@@ -93,6 +93,7 @@ class HeaderSettingsUI(QScrollArea):
         self.alignment_combo_box: ComboBox = ComboBox(self)
         self.alignment_combo_box.setEditable(True)
         self.alignment_combo_box.lineEdit().setEnabled(False)
+        self.alignment_combo_box.lineEdit().setFocusPolicy(Qt.FocusPolicy.NoFocus)
         # fmt: off
         self.aligment_flags: list[Qt.AlignmentFlag] = [
             Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop,     Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop,     Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignTop,     
