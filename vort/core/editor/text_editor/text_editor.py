@@ -33,8 +33,8 @@ class TextEditor(QObject):
         self.__context.char_component.repaintRequest.connect(self.repaintRequest.emit)
         self.__context.text_style_component.repaintRequest.connect(self.repaintRequest.emit)
         self.__context.text_style_component.repaintRequest.connect(self.updateUIRequest.emit)
-        self.__context.search_component.repaintRequest.connect(self.repaintRequest.emit)
-        self.__context.search_component.repaintRequest.connect(self.updateUIRequest.emit)
+        self.__context.finder_component.repaintRequest.connect(self.repaintRequest.emit)
+        self.__context.finder_component.repaintRequest.connect(self.updateUIRequest.emit)
 
         self.__context.layout.characterCountChanged.connect(self.charCountChanged.emit)
 

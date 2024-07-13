@@ -2,8 +2,9 @@ from PySide6.QtCore import Signal, Slot, Qt
 from PySide6.QtWidgets import QWidget, QLineEdit, QPushButton, QHBoxLayout, QVBoxLayout
 
 
-class SearchLine(QWidget):
+class FindLine(QWidget):
     findRequest: Signal = Signal()
+
     caseTurned: Signal = Signal(bool)
     wholeTurned: Signal = Signal(bool)
     regexTurned: Signal = Signal(bool)
@@ -12,8 +13,8 @@ class SearchLine(QWidget):
         super().__init__(parent)
 
         self.find_line: QLineEdit = QLineEdit(self)
-        self.find_line.textChanged.connect(self.onFindChanged)
-        self.find_line.editingFinished.connect(self.onFindEditingFinished)
+        self.find_line.textChanged.connect(self.onFindTextChanged)
+        self.find_line.returnPressed.connect(self.onFindPressed)
 
         self.case_button: QPushButton = QPushButton(self)
         self.case_button.setCheckable(True)
@@ -35,32 +36,32 @@ class SearchLine(QWidget):
 
         # layout
 
-        find_line_layout: QHBoxLayout = QHBoxLayout()
-        find_line_layout.setContentsMargins(0, 0, 0, 0)
-        find_line_layout.setSpacing(10)
-        find_line_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        find_line_layout.addWidget(self.find_line)
-        find_line_layout.addWidget(self.case_button)
-        find_line_layout.addWidget(self.whole_button)
-        find_line_layout.addWidget(self.regex_button)
+        find_layout: QHBoxLayout = QHBoxLayout()
+        find_layout.setContentsMargins(0, 0, 0, 0)
+        find_layout.setSpacing(10)
+        find_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        find_layout.addWidget(self.find_line)
+        find_layout.addWidget(self.case_button)
+        find_layout.addWidget(self.whole_button)
+        find_layout.addWidget(self.regex_button)
 
         main_layout: QVBoxLayout = QVBoxLayout()
         main_layout.setContentsMargins(2, 2, 2, 2)
         main_layout.setSpacing(0)
         main_layout.setAlignment(Qt.AlignmentFlag.AlignVCenter)
-        main_layout.addLayout(find_line_layout)
+        main_layout.addLayout(find_layout)
 
         self.setLayout(main_layout)
 
-    def searchData(self) -> str:
+    def findData(self) -> str:
         return self.find_line.text()
 
     @Slot(str)
-    def onFindChanged(self, search_data: str) -> None:
+    def onFindTextChanged(self, find_data: str) -> None:
         self.findRequest.emit()
 
     @Slot()
-    def onFindEditingFinished(self) -> None:
+    def onFindPressed(self) -> None:
         self.findRequest.emit()
 
     @Slot(bool)

@@ -21,8 +21,6 @@ from core.editor.document_editor.document_editor_context import DocumentEditorCo
 
 from data_base.data_base import data_base
 
-# some code may be unnecessary, but I want everything to be consistent
-
 
 class TextEditorWindow(QObject):
     def __init__(self) -> None:
@@ -58,11 +56,6 @@ class TextEditorWindow(QObject):
         # select
 
         self.ui.select_all_action.triggered.connect(self.selectAll)
-
-        # search
-
-        self.ui.find_action.triggered.connect(self.find)
-        self.ui.find_and_replace_action.triggered.connect(self.findAndReplace)
 
         # insert
 
@@ -149,16 +142,19 @@ class TextEditorWindow(QObject):
         self.ui.zoom_slider.zoomFactorChanged.connect(self.ui.text_editor.ui.setFocus)
         self.ui.text_editor.zoomFactorSelected.connect(self.onTextEditorZoomFactorChanged)
 
-        self.ui.search_line.findRequest.connect(self.find)
+        self.ui.find_line.findRequest.connect(self.find)
 
-        self.ui.search_line.caseTurned.connect(self.onUserCaseTurned)
+        self.ui.find_line.caseTurned.connect(self.onUserCaseTurned)
         self.ui.text_editor.caseTurned.connect(self.onTextEditorCaseTurned)
 
-        self.ui.search_line.wholeTurned.connect(self.onUserWholeTurned)
+        self.ui.find_line.wholeTurned.connect(self.onUserWholeTurned)
         self.ui.text_editor.wholeTurned.connect(self.onTextEditorWholeTurned)
 
-        self.ui.search_line.regexTurned.connect(self.onUserRegexTurned)
+        self.ui.find_line.regexTurned.connect(self.onUserRegexTurned)
         self.ui.text_editor.regexTurned.connect(self.onTextEditorRegexTurned)
+
+        self.ui.replace_line.replaceRequest.connect(self.replace)
+        self.ui.replace_line.replaceAllRequest.connect(self.replaceAll)
 
         self.setDefaultEditor()
 
@@ -304,37 +300,53 @@ class TextEditorWindow(QObject):
 
     # search
 
+    @Slot()
     def find(self) -> None:
         editor_context = self.ui.text_editor.context()
         if editor_context is not None:
-            editor_context.text_editor.context().search_component.find(self.ui.search_line.searchData())
+            editor_context.text_editor.context().finder_component.find(self.ui.find_line.findData())
 
+    @Slot(bool)
     def onUserCaseTurned(self, is_case: bool) -> None:
         editor_context = self.ui.text_editor.context()
         if editor_context is not None:
-            editor_context.text_editor.context().search_component.setCaseTurned(is_case)
+            editor_context.text_editor.context().finder_component.setCaseTurned(is_case)
 
+    @Slot(bool)
     def onTextEditorCaseTurned(self, is_case: bool) -> None:
-        self.ui.search_line.setCaseTurned(is_case)
+        self.ui.find_line.setCaseTurned(is_case)
 
+    @Slot(bool)
     def onUserWholeTurned(self, is_whole: bool) -> None:
         editor_context = self.ui.text_editor.context()
         if editor_context is not None:
-            editor_context.text_editor.context().search_component.setWholeTurned(is_whole)
+            editor_context.text_editor.context().finder_component.setWholeTurned(is_whole)
 
+    @Slot(bool)
     def onTextEditorWholeTurned(self, is_whole: bool) -> None:
-        self.ui.search_line.setWholeTurned(is_whole)
+        self.ui.find_line.setWholeTurned(is_whole)
 
+    @Slot(bool)
     def onUserRegexTurned(self, is_regex: bool) -> None:
         editor_context = self.ui.text_editor.context()
         if editor_context is not None:
-            editor_context.text_editor.context().search_component.setRegexTurned(is_regex)
+            editor_context.text_editor.context().finder_component.setRegexTurned(is_regex)
 
+    @Slot(bool)
     def onTextEditorRegexTurned(self, is_regex: bool) -> None:
-        self.ui.search_line.setRegexTurned(is_regex)
+        self.ui.find_line.setRegexTurned(is_regex)
 
-    def findAndReplace(self) -> None:
-        print("findAndReplace")
+    @Slot()
+    def replace(self) -> None:
+        editor_context = self.ui.text_editor.context()
+        if editor_context is not None:
+            editor_context.text_editor.context().finder_component.replace(self.ui.replace_line.replaceData())
+
+    @Slot()
+    def replaceAll(self) -> None:
+        editor_context = self.ui.text_editor.context()
+        if editor_context is not None:
+            editor_context.text_editor.context().finder_component.replaceAll(self.ui.replace_line.replaceData())
 
     # insert
 
@@ -607,16 +619,17 @@ class TextEditorWindow(QObject):
 
     # style
 
+    @Slot()
     def openStyle(self) -> None:
         dialog: StyleDialogUI = StyleDialogUI()
         dialog.exec()
-        print("openStyle")
 
+    @Slot()
     def newStyle(self) -> None:
         dialog: NewStyleDialogUI = NewStyleDialogUI()
         dialog.exec()
-        print("newStyle")
 
+    @Slot()
     def applyStyle(self) -> None:
         editor_context = self.ui.text_editor.context()
         if editor_context is not None:
@@ -624,6 +637,7 @@ class TextEditorWindow(QObject):
             editor_context.text_editor.context().text_style_component.setTextStyle(self.ui.style_combo_box.style())
             self.ui.text_editor.blockSignals(False)
 
+    @Slot()
     def clearStyle(self) -> None:
         editor_context = self.ui.text_editor.context()
         if editor_context is not None:

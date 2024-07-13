@@ -1,17 +1,13 @@
-import re
-
 from PySide6.QtCore import (
     Signal,
-    QObject,
     QRegularExpression,
     QRegularExpressionMatch,
     QRegularExpressionMatchIterator,
-    Qt,
 )
-from PySide6.QtGui import QTextDocument, QTextCursor, QSyntaxHighlighter, QTextCharFormat, QBrush, QColor, QFont
+from PySide6.QtGui import QTextDocument, QTextCursor, QSyntaxHighlighter, QTextCharFormat, QColor
 
 
-class SearchComponent(QSyntaxHighlighter):
+class FinderComponent(QSyntaxHighlighter):
     repaintRequest: Signal = Signal()
     updateUIRequest: Signal = Signal()
 
@@ -20,7 +16,7 @@ class SearchComponent(QSyntaxHighlighter):
 
         self.__cursor: QTextCursor = cursor
 
-        self.__search_data: str = ""
+        self.__find_data: str = ""
 
         self.__is_regex_turned: bool = False
         self.__is_case_turned: bool = False
@@ -29,6 +25,7 @@ class SearchComponent(QSyntaxHighlighter):
         self.__background_color: QColor = QColor("yellow")
 
         self.__expr: QRegularExpression = QRegularExpression()
+        self.__exact_expr: QRegularExpression = QRegularExpression()
 
     def isRegexTurned(self) -> bool:
         return self.__is_regex_turned
@@ -51,8 +48,8 @@ class SearchComponent(QSyntaxHighlighter):
         self.__is_whole_turned = is_turned
         self.updateExpr()
 
-    def find(self, search_data: str) -> None:
-        self.__search_data = search_data
+    def find(self, find_data: str) -> None:
+        self.__find_data = find_data
         self.updateExpr()
 
         options: QTextDocument.FindFlag = QTextDocument.FindFlag(0)
@@ -62,16 +59,56 @@ class SearchComponent(QSyntaxHighlighter):
         if self.__is_whole_turned:
             options |= QTextDocument.FindFlag.FindWholeWords
 
-        new_cursor: QTextCursor = self.__cursor.document().find(self.__expr, self.__cursor, options)
+        helper: QTextCursor = self.__cursor.document().find(self.__expr, self.__cursor, options)
+        if helper.position() == -1:
+            helper = self.__cursor.document().find(self.__expr, 0, options)
 
-        if new_cursor.position() == -1:
-            new_cursor = self.__cursor.document().find(self.__expr, 0, options)
-
-        if new_cursor.position() != -1:
-            self.__cursor.setPosition(new_cursor.position())
+        if helper.position() != -1:
+            self.__cursor.setPosition(helper.selectionStart())
+            self.__cursor.setPosition(helper.selectionEnd(), QTextCursor.MoveMode.KeepAnchor)
+        else:
+            self.__cursor.clearSelection()
 
         self.repaintRequest.emit()
         self.updateUIRequest.emit()
+
+    def replace(self, replace_data: str) -> None:
+        helper: QTextCursor = QTextCursor(self.__cursor.document())
+
+        if self.__exact_expr.match(self.__cursor.selectedText()).hasMatch():
+            helper.setPosition(self.__cursor.selectionStart())
+            helper.setPosition(self.__cursor.selectionEnd(), QTextCursor.MoveMode.KeepAnchor)
+            helper.insertText(replace_data)
+
+        else:
+            self.find(self.__find_data)
+
+        self.repaintRequest.emit()
+
+    def replaceAll(self, replace_data: str) -> None:
+        self.__cursor.beginEditBlock()
+
+        options: QTextDocument.FindFlag = QTextDocument.FindFlag(0)
+        if self.__is_case_turned:
+            options |= QTextDocument.FindFlag.FindCaseSensitively
+
+        if self.__is_whole_turned:
+            options |= QTextDocument.FindFlag.FindWholeWords
+
+        helper: QTextCursor = self.__cursor.document().find(self.__expr, self.__cursor, options)
+        if helper.position() == -1:
+            helper = self.__cursor.document().find(self.__expr, 0, options)
+
+        while helper.position() != -1:
+            helper.insertText(replace_data)
+
+            helper = self.__cursor.document().find(self.__expr, self.__cursor, options)
+            if helper.position() == -1:
+                helper = self.__cursor.document().find(self.__expr, 0, options)
+
+        self.__cursor.endEditBlock()
+
+        self.repaintRequest.emit()
 
     def highlightBlock(self, text: str) -> None:
         char_format: QTextCharFormat = QTextCharFormat()
@@ -84,21 +121,23 @@ class SearchComponent(QSyntaxHighlighter):
                 self.setFormat(match.capturedStart(), match.capturedLength(), char_format)
 
     def updateExpr(self) -> None:
-        pattern: str = self.__search_data
+        pattern: str = self.__find_data
 
         if not self.__is_regex_turned:
-            pattern = re.escape(pattern)
+            pattern = QRegularExpression.escape(pattern)
 
         if self.__is_whole_turned:
             pattern = "\\b" + pattern + "\\b"
 
         self.__expr.setPattern(pattern)
+        self.__exact_expr.setPattern(QRegularExpression.anchoredPattern(pattern))
 
         options: QRegularExpression.PatternOption = QRegularExpression.PatternOption.NoPatternOption
         if not self.__is_case_turned:
             options |= QRegularExpression.PatternOption.CaseInsensitiveOption
 
         self.__expr.setPatternOptions(options)
+        self.__exact_expr.setPatternOptions(self.__exact_expr.patternOptions() | options)
 
         self.rehighlight()
         self.repaintRequest.emit()

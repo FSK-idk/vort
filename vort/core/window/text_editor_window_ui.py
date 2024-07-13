@@ -8,7 +8,8 @@ from core.widget.font_box.font_family_combo_box import FontFamilyComboBox
 
 from core.widget.status_bar.char_count_label import CharCountLabel
 from core.widget.status_bar.zoom_slider import ZoomSlider
-from core.widget.status_bar.search_line import SearchLine
+from core.widget.status_bar.find_line import FindLine
+from core.widget.status_bar.reaplce_line import ReplaceLine
 
 from core.widget.text_style.text_style_combo_box import TextStyleComboBox
 
@@ -96,16 +97,6 @@ class TextEditorWindowUI(QMainWindow):
         self.select_all_action: QAction = QAction("Select All")
         self.select_all_action.setStatusTip("Select the entire document")
         self.select_all_action.setShortcut("Ctrl+A")
-
-        # search
-
-        self.find_action: QAction = QAction("Find")
-        self.find_action.setStatusTip("Find a word in the document")
-        self.find_action.setShortcut("Ctrl+F")
-
-        self.find_and_replace_action: QAction = QAction("Find and Replace")
-        self.find_and_replace_action.setStatusTip("Find and replace a word in the document")
-        self.find_and_replace_action.setShortcut("Ctrl+H")
 
         # insert
 
@@ -251,9 +242,10 @@ class TextEditorWindowUI(QMainWindow):
 
         self.style_combo_box: TextStyleComboBox = TextStyleComboBox()
 
-        # search
+        # find replace
 
-        self.search_line: SearchLine = SearchLine(self)
+        self.find_line: FindLine = FindLine(self)
+        self.replace_line: ReplaceLine = ReplaceLine(self)
 
         # char count
 
@@ -286,9 +278,6 @@ class TextEditorWindowUI(QMainWindow):
         self.edit_menu.addAction(self.paste_plain_action)
         self.edit_menu.addSeparator()
         self.edit_menu.addAction(self.select_all_action)
-        self.edit_menu.addSeparator()
-        self.edit_menu.addAction(self.find_action)
-        self.edit_menu.addAction(self.find_and_replace_action)
         self.menu_bar.addMenu(self.edit_menu)
 
         self.insert_menu: QMenu = QMenu("Insert")
@@ -379,7 +368,8 @@ class TextEditorWindowUI(QMainWindow):
     def setupStatusBar(self) -> None:
         self.status_bar: QStatusBar = QStatusBar()
 
-        self.status_bar.addPermanentWidget(self.search_line)
+        self.status_bar.addPermanentWidget(self.find_line)
+        self.status_bar.addPermanentWidget(self.replace_line)
         self.status_bar.addPermanentWidget(QWidget(), 1)
         self.status_bar.addPermanentWidget(self.character_count)
         self.status_bar.addPermanentWidget(self.zoom_slider)

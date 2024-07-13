@@ -9,7 +9,7 @@ from core.editor.text_editor.component.movement_component import MovementCompone
 from core.editor.text_editor.component.paragraph_component import ParagraphComponent
 from core.editor.text_editor.component.char_component import CharComponent
 from core.editor.text_editor.component.text_style_component import TextStyleComponent
-from core.editor.text_editor.component.search_component import SearchComponent
+from core.editor.text_editor.component.finder_component import FinderComponent
 
 
 class TextDocumentContext:
@@ -31,4 +31,4 @@ class TextDocumentContext:
         self.paragraph_component: ParagraphComponent = ParagraphComponent(self.cursor)
         self.char_component: CharComponent = CharComponent(self.cursor)
         self.text_style_component: TextStyleComponent = TextStyleComponent(self.cursor)
-        self.search_component: SearchComponent = SearchComponent(self.cursor)
+        self.finder_component: FinderComponent = FinderComponent(self.cursor)

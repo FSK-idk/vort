@@ -267,13 +267,13 @@ class DocumentEditor(QObject):
 
         self.__context.page_layout.externalChanged.connect(self.onPageLayoutExternalChanged)
 
-        is_case: bool = self.__context.text_editor.context().search_component.isCaseTurned()
+        is_case: bool = self.__context.text_editor.context().finder_component.isCaseTurned()
         self.caseTurned.emit(is_case)
 
-        is_whole: bool = self.__context.text_editor.context().search_component.isWholeTurned()
+        is_whole: bool = self.__context.text_editor.context().finder_component.isWholeTurned()
         self.wholeTurned.emit(is_whole)
 
-        is_regex: bool = self.__context.text_editor.context().search_component.isRegexTurned()
+        is_regex: bool = self.__context.text_editor.context().finder_component.isRegexTurned()
         self.regexTurned.emit(is_regex)
 
         self.__context.text_editor.charCountChanged.connect(self.charCountChanged.emit)
