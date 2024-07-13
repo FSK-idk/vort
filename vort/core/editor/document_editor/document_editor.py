@@ -38,6 +38,11 @@ class DocumentEditor(QObject):
     alignmentChanged: Signal = Signal(Qt.AlignmentFlag)
 
     contentChanged: Signal = Signal()
+
+    caseTurned: Signal = Signal(bool)
+    wholeTurned: Signal = Signal(bool)
+    regexTurned: Signal = Signal(bool)
+
     charCountChanged: Signal = Signal(int)
     zoomFactorSelected: Signal = Signal(float)
 
@@ -77,13 +82,16 @@ class DocumentEditor(QObject):
     # TODO: DEBUG
     def test(self) -> None:
         if self.__context is None:
+            print("bad test")
             return
 
-        print(
-            "is img?",
-            self.__context.text_editor.context().cursor.charFormat().isImageFormat(),
-            self.__context.text_editor.context().cursor.atBlockEnd(),
-        )
+        print("test")
+
+        document = self.__context.text_editor.context().document
+        cursor = self.__context.text_editor.context().cursor
+
+        new_cursor = document.find("ed", cursor)
+        cursor.setPosition(new_cursor.position())
 
         self.repaintViewport()
         pass
@@ -258,6 +266,15 @@ class DocumentEditor(QObject):
         self.__context.footer_editor.repaintRequest.connect(self.repaintViewport)
 
         self.__context.page_layout.externalChanged.connect(self.onPageLayoutExternalChanged)
+
+        is_case: bool = self.__context.text_editor.context().search_component.isCaseTurned()
+        self.caseTurned.emit(is_case)
+
+        is_whole: bool = self.__context.text_editor.context().search_component.isWholeTurned()
+        self.wholeTurned.emit(is_whole)
+
+        is_regex: bool = self.__context.text_editor.context().search_component.isRegexTurned()
+        self.regexTurned.emit(is_regex)
 
         self.__context.text_editor.charCountChanged.connect(self.charCountChanged.emit)
 

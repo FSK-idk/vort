@@ -144,9 +144,21 @@ class TextEditorWindow(QObject):
         # status
 
         self.ui.text_editor.charCountChanged.connect(self.onTextEditorCharacterCountChanged)
+
         self.ui.zoom_slider.zoomFactorChanged.connect(self.onUserZoomFactorChanged)
         self.ui.zoom_slider.zoomFactorChanged.connect(self.ui.text_editor.ui.setFocus)
         self.ui.text_editor.zoomFactorSelected.connect(self.onTextEditorZoomFactorChanged)
+
+        self.ui.search_line.findRequest.connect(self.find)
+
+        self.ui.search_line.caseTurned.connect(self.onUserCaseTurned)
+        self.ui.text_editor.caseTurned.connect(self.onTextEditorCaseTurned)
+
+        self.ui.search_line.wholeTurned.connect(self.onUserWholeTurned)
+        self.ui.text_editor.wholeTurned.connect(self.onTextEditorWholeTurned)
+
+        self.ui.search_line.regexTurned.connect(self.onUserRegexTurned)
+        self.ui.text_editor.regexTurned.connect(self.onTextEditorRegexTurned)
 
         self.setDefaultEditor()
 
@@ -293,7 +305,33 @@ class TextEditorWindow(QObject):
     # search
 
     def find(self) -> None:
-        print("find")
+        editor_context = self.ui.text_editor.context()
+        if editor_context is not None:
+            editor_context.text_editor.context().search_component.find(self.ui.search_line.searchData())
+
+    def onUserCaseTurned(self, is_case: bool) -> None:
+        editor_context = self.ui.text_editor.context()
+        if editor_context is not None:
+            editor_context.text_editor.context().search_component.setCaseTurned(is_case)
+
+    def onTextEditorCaseTurned(self, is_case: bool) -> None:
+        self.ui.search_line.setCaseTurned(is_case)
+
+    def onUserWholeTurned(self, is_whole: bool) -> None:
+        editor_context = self.ui.text_editor.context()
+        if editor_context is not None:
+            editor_context.text_editor.context().search_component.setWholeTurned(is_whole)
+
+    def onTextEditorWholeTurned(self, is_whole: bool) -> None:
+        self.ui.search_line.setWholeTurned(is_whole)
+
+    def onUserRegexTurned(self, is_regex: bool) -> None:
+        editor_context = self.ui.text_editor.context()
+        if editor_context is not None:
+            editor_context.text_editor.context().search_component.setRegexTurned(is_regex)
+
+    def onTextEditorRegexTurned(self, is_regex: bool) -> None:
+        self.ui.search_line.setRegexTurned(is_regex)
 
     def findAndReplace(self) -> None:
         print("findAndReplace")

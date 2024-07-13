@@ -8,6 +8,7 @@ from core.widget.font_box.font_family_combo_box import FontFamilyComboBox
 
 from core.widget.status_bar.char_count_label import CharCountLabel
 from core.widget.status_bar.zoom_slider import ZoomSlider
+from core.widget.status_bar.search_line import SearchLine
 
 from core.widget.text_style.text_style_combo_box import TextStyleComboBox
 
@@ -229,11 +230,9 @@ class TextEditorWindowUI(QMainWindow):
         self.test_action.setStatusTip("Test")
 
     def setupWidget(self) -> None:
-
         # font
 
         self.font_family_combo_box = FontFamilyComboBox()
-
         self.font_size_combo_box = FontSizeComboBox()
 
         # color
@@ -251,6 +250,18 @@ class TextEditorWindowUI(QMainWindow):
         # style
 
         self.style_combo_box: TextStyleComboBox = TextStyleComboBox()
+
+        # search
+
+        self.search_line: SearchLine = SearchLine(self)
+
+        # char count
+
+        self.character_count: CharCountLabel = CharCountLabel(self)
+
+        # zoom
+
+        self.zoom_slider: ZoomSlider = ZoomSlider(self)
 
     def setupMenuBar(self) -> None:
         self.menu_bar = QMenuBar()
@@ -368,10 +379,9 @@ class TextEditorWindowUI(QMainWindow):
     def setupStatusBar(self) -> None:
         self.status_bar: QStatusBar = QStatusBar()
 
-        self.character_count: CharCountLabel = CharCountLabel()
+        self.status_bar.addPermanentWidget(self.search_line)
+        self.status_bar.addPermanentWidget(QWidget(), 1)
         self.status_bar.addPermanentWidget(self.character_count)
-
-        self.zoom_slider: ZoomSlider = ZoomSlider(self)
         self.status_bar.addPermanentWidget(self.zoom_slider)
 
         self.setStatusBar(self.status_bar)
