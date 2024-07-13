@@ -179,6 +179,7 @@ class FileComponent(QObject):
         text_editor: TextEditor = TextEditor(text_context)
 
         text_cursor.insertHtml(file.html_text)
+        text_cursor.setPosition(0)
 
         for name, image_bytes in file.png_image.items():
             bytes_array: QByteArray = QByteArray(image_bytes)

@@ -2,7 +2,7 @@ from PySide6.QtCore import Qt, QObject, Slot
 from PySide6.QtWidgets import QFileDialog, QMessageBox
 from PySide6.QtGui import QColor, QGuiApplication
 
-from core.window.text_editor_window_ui import TextEditorWindowUI
+from core.window.editor.document_editor_window_ui import DocumentEditorWindowUI
 from core.window.dialog.edit_hyperlink_dialog import EditHyperlinkDialog, EditHyperlinkDialogContext
 from core.window.dialog.edit_image_dialog import EditImageDialog, EditImageDialogContext
 from core.window.settings.settings_dialog import SettingsDialog, SettingsContext
@@ -22,17 +22,19 @@ from core.editor.document_editor.document_editor_context import DocumentEditorCo
 from data_base.data_base import data_base
 
 
-class TextEditorWindow(QObject):
+class DocumentEditorWindow(QObject):
+    # This class connects the entire user interface to the back-end application
+
     def __init__(self) -> None:
         super().__init__()
 
         data_base.init()
 
-        self.ui: TextEditorWindowUI = TextEditorWindowUI()
+        self.ui: DocumentEditorWindowUI = DocumentEditorWindowUI()
 
         # app
 
-        self.ui.exit_application_action.triggered.connect(self.closeApplication)
+        self.ui.close_application_action.triggered.connect(self.closeApplication)
 
         # file
 
@@ -128,7 +130,6 @@ class TextEditorWindow(QObject):
 
         # help
 
-        self.ui.show_guide_action.triggered.connect(self.showGuide)
         self.ui.show_about_action.triggered.connect(self.showAbout)
 
         # TODO: DEBUG
@@ -177,7 +178,7 @@ class TextEditorWindow(QObject):
     @Slot()
     def closeApplication(self) -> None:
         self.closeDocument()
-        self.ui.destroy()
+        self.ui.close()
 
     @Slot()
     def newDocument(self) -> None:
@@ -813,10 +814,7 @@ class TextEditorWindow(QObject):
     def openFooterSettings(self) -> None:
         self.openSettings("footer")
 
-    # etc
-
-    def showGuide(self) -> None:
-        print("showGuide")
+    # about
 
     def showAbout(self) -> None:
         print("showAbout")

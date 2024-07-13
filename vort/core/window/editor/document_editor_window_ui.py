@@ -16,7 +16,7 @@ from core.widget.text_style.text_style_combo_box import TextStyleComboBox
 from core.editor.document_editor.document_editor import DocumentEditor
 
 
-class TextEditorWindowUI(QMainWindow):
+class DocumentEditorWindowUI(QMainWindow):
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
 
@@ -42,9 +42,9 @@ class TextEditorWindowUI(QMainWindow):
     def setupAction(self) -> None:
         # app
 
-        self.exit_application_action: QAction = QAction("Exit")
-        self.exit_application_action.setStatusTip("Exit the application")
-        self.exit_application_action.setShortcut("Ctrl+Q")
+        self.close_application_action: QAction = QAction("Exit")
+        self.close_application_action.setStatusTip("Exit the application")
+        self.close_application_action.setShortcut("Ctrl+Q")
 
         # file
 
@@ -209,10 +209,6 @@ class TextEditorWindowUI(QMainWindow):
 
         # help
 
-        self.show_guide_action: QAction = QAction("Guide")
-        self.show_guide_action.setStatusTip("View the user's guide")
-        self.show_guide_action.setShortcut("F1")
-
         self.show_about_action: QAction = QAction("About")
         self.show_about_action.setStatusTip("View application information")
 
@@ -265,7 +261,7 @@ class TextEditorWindowUI(QMainWindow):
         self.file_menu.addSeparator()
         self.file_menu.addAction(self.save_document_action)
         self.file_menu.addSeparator()
-        self.file_menu.addAction(self.exit_application_action)
+        self.file_menu.addAction(self.close_application_action)
         self.menu_bar.addMenu(self.file_menu)
 
         self.edit_menu: QMenu = QMenu("Edit")
@@ -322,7 +318,6 @@ class TextEditorWindowUI(QMainWindow):
         self.menu_bar.addMenu(self.settings_menu)
 
         self.help_menu: QMenu = QMenu("Help")
-        self.help_menu.addAction(self.show_guide_action)
         self.help_menu.addAction(self.show_about_action)
         self.menu_bar.addMenu(self.help_menu)
 
@@ -377,4 +372,4 @@ class TextEditorWindowUI(QMainWindow):
         self.setStatusBar(self.status_bar)
 
     def closeEvent(self, event: QCloseEvent) -> None:
-        self.exit_application_action.triggered.emit()
+        self.close_application_action.triggered.emit()
