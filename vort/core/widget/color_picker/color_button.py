@@ -4,7 +4,7 @@ from PySide6.QtGui import QPixmap, QColor, QPainter, QPen
 
 
 class ColorButton(QPushButton):
-    colorClicked = Signal(QColor)
+    colorClicked: Signal = Signal(QColor)
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)

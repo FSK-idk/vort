@@ -6,11 +6,11 @@ from core.widget.color_picker.color_button import ColorButton
 
 
 class ColorPalette(QWidget):
-    colorClicked = Signal(QColor)
+    colorClicked: Signal = Signal(QColor)
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
-        # TODO: add transparent
+
         # fmt: off
         self.colors: list[list[QColor]] = [
             [QColor("transparent"), QColor("#000000"), QColor("#2B2B2B"), QColor("#555555"), QColor("#808080"), QColor("#AAAAAA"), QColor("#D5D5D5"), QColor("#FFFFFF")],

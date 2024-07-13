@@ -2,10 +2,10 @@ from PySide6.QtCore import Qt, Slot
 from PySide6.QtWidgets import QWidget, QDialog, QPushButton, QHBoxLayout, QVBoxLayout
 from PySide6.QtGui import QColor
 
-from core.widget.style_widget.style_form_ui import StyleFormUI
+from core.window.style.text_style_form import TextStyleForm
 
-from etc.style_data import StyleData
-from etc.data_base.data_base import data_base
+from core.widget.text_style.text_style import TextStyle
+from data_base.data_base import data_base
 
 
 class ModifyStyleDialogUI(QDialog):
@@ -16,9 +16,9 @@ class ModifyStyleDialogUI(QDialog):
         self.resize(650, 450)
 
         self.old_name = name
-        self.style_data: StyleData = data_base.selectStyleData(name)
+        self.style_data: TextStyle = data_base.selectTextStyleData(name)
 
-        self.form: StyleFormUI = StyleFormUI(self.style_data, self)
+        self.form: TextStyleForm = TextStyleForm(self.style_data, self)
 
         # buttons
 
@@ -58,7 +58,7 @@ class ModifyStyleDialogUI(QDialog):
         is_valid = is_valid and name != ""
         self.form.name_line_edit_error_empty.setHidden(name != "")
 
-        style_data: StyleData = data_base.selectStyleData(name)
+        style_data: TextStyle = data_base.selectTextStyleData(name)
 
         is_valid = is_valid and (style_data.name == "" or style_data.name == self.old_name)
         self.form.name_line_edit_error_exists.setHidden(style_data.name == "" or style_data.name == self.old_name)
@@ -159,7 +159,7 @@ class ModifyStyleDialogUI(QDialog):
             self.style_data.left_margin = self.form.left_margin_spin_box.value()
             self.style_data.right_margin = self.form.right_margin_spin_box.value()
 
-            data_base.updateStyle(self.old_name, self.style_data)
+            data_base.updateTextStyle(self.old_name, self.style_data)
 
             self.accept()
 

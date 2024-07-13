@@ -1,18 +1,17 @@
-from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QMenuBar, QMenu, QToolBar, QMainWindow, QWidget, QStatusBar
 from PySide6.QtGui import QAction, QPixmap, QColor, QActionGroup, QCloseEvent
 
 from core.widget.color_picker.color_picker import ColorPicker
 
-from core.widget.font_combo_box.font_size_combo_box import FontSizeComboBox
-from core.widget.font_combo_box.font_combo_box import FontComboBox
+from core.widget.font_box.font_size_combo_box import FontSizeComboBox
+from core.widget.font_box.font_family_combo_box import FontFamilyComboBox
 
-from core.widget.status_bar_widget.character_count_label import CharacterCountLabel
-from core.widget.status_bar_widget.zoom_slider import ZoomSlider
+from core.widget.status_bar.char_count_label import CharCountLabel
+from core.widget.status_bar.zoom_slider import ZoomSlider
 
-from core.widget.style_widget.style_combo_box import StyleComboBox
+from core.widget.text_style.text_style_combo_box import TextStyleComboBox
 
-from core.text_editor.text_editor import TextEditor
+from core.editor.document_editor.document_editor import DocumentEditor
 
 
 class TextEditorWindowUI(QMainWindow):
@@ -21,13 +20,13 @@ class TextEditorWindowUI(QMainWindow):
 
         # self
 
-        self.setGeometry(0, 0, 900, 600)
+        self.setGeometry(0, 0, 1000, 600)
         self.setMinimumSize(400, 300)
         self.setWindowTitle("vort")
 
         # widget
 
-        self.text_editor: TextEditor = TextEditor(self)
+        self.text_editor: DocumentEditor = DocumentEditor(self)
         self.setCentralWidget(self.text_editor.ui)
 
         # setup
@@ -87,6 +86,10 @@ class TextEditorWindowUI(QMainWindow):
         self.paste_action.setStatusTip("Paste text from the clipboard")
         self.paste_action.setShortcut("Ctrl+V")
 
+        self.paste_plain_action: QAction = QAction("Plain text")
+        self.paste_plain_action.setStatusTip("Paste plain text")
+        self.paste_plain_action.setShortcut("Ctrl+Shift+V")
+
         # select
 
         self.select_all_action: QAction = QAction("Select All")
@@ -104,13 +107,6 @@ class TextEditorWindowUI(QMainWindow):
         self.find_and_replace_action.setShortcut("Ctrl+H")
 
         # insert
-
-        self.insert_text_action: QAction = QAction("Text")
-        self.insert_text_action.setStatusTip("Insert text")
-
-        self.insert_plain_text_action: QAction = QAction("Plain text")
-        self.insert_plain_text_action.setStatusTip("Insert plain text")
-        self.insert_plain_text_action.setShortcut("Ctrl+Shift+V")
 
         self.insert_image_action: QAction = QAction("Image")
         self.insert_image_action.setStatusTip("Insert an image")
@@ -134,6 +130,27 @@ class TextEditorWindowUI(QMainWindow):
         self.turn_underlined_action.setCheckable(True)
         self.turn_underlined_action.setStatusTip("Make the selected text underlined")
         self.turn_underlined_action.setShortcut("Ctrl+U")
+
+        # alignment
+
+        self.set_alignment_left_action: QAction = QAction("Left")
+        self.set_alignment_left_action.setCheckable(True)
+        self.set_alignment_left_action.setStatusTip("Align left")
+
+        self.set_alignment_center_action: QAction = QAction("Center")
+        self.set_alignment_center_action.setCheckable(True)
+        self.set_alignment_center_action.setStatusTip("Align center")
+
+        self.set_alignment_right_action: QAction = QAction("Right")
+        self.set_alignment_right_action.setCheckable(True)
+        self.set_alignment_right_action.setStatusTip("Align right")
+
+        self.alignment_group: QActionGroup = QActionGroup(self)
+        self.alignment_group.addAction(self.set_alignment_left_action)
+        self.alignment_group.addAction(self.set_alignment_center_action)
+        self.alignment_group.addAction(self.set_alignment_right_action)
+        self.alignment_group.setExclusive(True)
+        self.set_alignment_left_action.setChecked(True)
 
         # indent
 
@@ -211,14 +228,11 @@ class TextEditorWindowUI(QMainWindow):
         self.test_action: QAction = QAction("Test")
         self.test_action.setStatusTip("Test")
 
-        self.test2_action: QAction = QAction("Test2")
-        self.test2_action.setStatusTip("Test2")
-
     def setupWidget(self) -> None:
 
         # font
 
-        self.font_family_combo_box = FontComboBox()
+        self.font_family_combo_box = FontFamilyComboBox()
 
         self.font_size_combo_box = FontSizeComboBox()
 
@@ -236,7 +250,7 @@ class TextEditorWindowUI(QMainWindow):
 
         # style
 
-        self.style_combo_box = StyleComboBox()  # TODO:
+        self.style_combo_box: TextStyleComboBox = TextStyleComboBox()
 
     def setupMenuBar(self) -> None:
         self.menu_bar = QMenuBar()
@@ -258,6 +272,7 @@ class TextEditorWindowUI(QMainWindow):
         self.edit_menu.addAction(self.cut_action)
         self.edit_menu.addAction(self.copy_action)
         self.edit_menu.addAction(self.paste_action)
+        self.edit_menu.addAction(self.paste_plain_action)
         self.edit_menu.addSeparator()
         self.edit_menu.addAction(self.select_all_action)
         self.edit_menu.addSeparator()
@@ -266,11 +281,14 @@ class TextEditorWindowUI(QMainWindow):
         self.menu_bar.addMenu(self.edit_menu)
 
         self.insert_menu: QMenu = QMenu("Insert")
-        self.insert_menu.addAction(self.insert_text_action)
-        self.insert_menu.addAction(self.insert_plain_text_action)
         self.insert_menu.addAction(self.insert_image_action)
         self.insert_menu.addAction(self.insert_hyperlink_action)
         self.menu_bar.addMenu(self.insert_menu)
+
+        self.alignment_menu: QMenu = QMenu("Alignment")
+        self.alignment_menu.addAction(self.set_alignment_left_action)
+        self.alignment_menu.addAction(self.set_alignment_center_action)
+        self.alignment_menu.addAction(self.set_alignment_right_action)
 
         self.line_space_menu: QMenu = QMenu("Line spacing")
         self.line_space_menu.addAction(self.set_line_spacing_1_action)
@@ -282,6 +300,8 @@ class TextEditorWindowUI(QMainWindow):
         self.format_menu.addAction(self.turn_bold_action)
         self.format_menu.addAction(self.turn_italic_action)
         self.format_menu.addAction(self.turn_underlined_action)
+        self.format_menu.addSeparator()
+        self.format_menu.addMenu(self.alignment_menu)
         self.format_menu.addSeparator()
         self.format_menu.addAction(self.indent_right_action)
         self.format_menu.addAction(self.indent_left_action)
@@ -308,7 +328,6 @@ class TextEditorWindowUI(QMainWindow):
 
         # TODO: DEBUG
         self.menu_bar.addAction(self.test_action)
-        self.menu_bar.addAction(self.test2_action)
 
         self.setMenuBar(self.menu_bar)
 
@@ -335,6 +354,12 @@ class TextEditorWindowUI(QMainWindow):
         self.color_tool.addWidget(self.background_color_picker.ui)
         self.addToolBar(self.color_tool)
 
+        self.alignment_tool: QToolBar = QToolBar("Alignment")
+        self.alignment_tool.addAction(self.set_alignment_left_action)
+        self.alignment_tool.addAction(self.set_alignment_center_action)
+        self.alignment_tool.addAction(self.set_alignment_right_action)
+        self.addToolBar(self.alignment_tool)
+
         self.indent_tool: QToolBar = QToolBar("Indent")
         self.indent_tool.addAction(self.indent_right_action)
         self.indent_tool.addAction(self.indent_left_action)
@@ -343,7 +368,7 @@ class TextEditorWindowUI(QMainWindow):
     def setupStatusBar(self) -> None:
         self.status_bar: QStatusBar = QStatusBar()
 
-        self.character_count: CharacterCountLabel = CharacterCountLabel()
+        self.character_count: CharCountLabel = CharCountLabel()
         self.status_bar.addPermanentWidget(self.character_count)
 
         self.zoom_slider: ZoomSlider = ZoomSlider(self)

@@ -33,9 +33,12 @@ class ColorPickerUI(QToolButton):
             self.color_icon.fill(color)
         self.repaint()
 
-    def setIcon(self, icon: QPixmap) -> None:
+    def setIcon(self, icon: QPixmap | None) -> None:
         self.icon = icon
-        self.setFixedWidth(56)
+        if self.icon == None:
+            self.setFixedWidth(32)
+        else:
+            self.setFixedWidth(56)
         self.repaint()
 
     def paintEvent(self, event: QPaintEvent) -> None:

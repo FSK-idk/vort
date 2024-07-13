@@ -1,11 +1,11 @@
 from PySide6.QtCore import Qt, Slot
 from PySide6.QtWidgets import QWidget, QDialog, QPushButton, QLineEdit, QHBoxLayout, QVBoxLayout, QMessageBox
 
-from core.widget.style_widget.style_table import StyleTable
+from core.widget.text_style.text_style_table import TextStyleTable
 from core.window.style.new_style_dialog_ui import NewStyleDialogUI
 from core.window.style.modify_style_dialog_ui import ModifyStyleDialogUI
 
-from etc.data_base.data_base import data_base
+from data_base.data_base import data_base
 
 
 class StyleDialogUI(QDialog):
@@ -18,7 +18,7 @@ class StyleDialogUI(QDialog):
         self.search_line: QLineEdit = QLineEdit(self)
         self.search_line.setPlaceholderText("Search...")
 
-        self.style_table: StyleTable = StyleTable()
+        self.style_table: TextStyleTable = TextStyleTable()
         self.search_line.textChanged.connect(self.style_table.search)
 
         self.new_button: QPushButton = QPushButton(self)
@@ -86,7 +86,7 @@ class StyleDialogUI(QDialog):
             )
 
             if message.exec() == QMessageBox.StandardButton.Yes:
-                data_base.deleteStyle(name)
+                data_base.deleteTextStyle(name)
 
     @Slot()
     def onCloseClicked(self) -> None:

@@ -1,8 +1,6 @@
-from PySide6.QtCore import QEvent, QObject, Signal, Slot, QPoint
+from PySide6.QtCore import QEvent, QObject, Signal, Slot, QPoint, QRectF, QPointF
 from PySide6.QtWidgets import QWidget
 from PySide6.QtGui import QColor, QMouseEvent
-
-from util import PointF, RectF
 
 from core.widget.color_picker.color_picker_ui import ColorPickerUI
 
@@ -31,8 +29,8 @@ class ColorPickerFilter(QObject):
 
 
 class ColorPicker(QWidget):
-    colorChanged = Signal(QColor)
-    closed = Signal()
+    colorChanged: Signal = Signal(QColor)
+    closed: Signal = Signal()
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
@@ -44,7 +42,7 @@ class ColorPicker(QWidget):
         self.ui.clicked.connect(self.onClicked)
         self.ui.color_palette.colorClicked.connect(self.onColorSelected)
 
-        self.mouse_filter = ColorPickerFilter()
+        self.mouse_filter: ColorPickerFilter = ColorPickerFilter()
         self.mouse_filter.mousePressed.connect(self.onMousePressed)
         self.mouse_filter.mouseReleased.connect(self.onMouseReleased)
         self.ui.color_palette.installEventFilter(self.mouse_filter)
@@ -73,18 +71,17 @@ class ColorPicker(QWidget):
 
     @Slot(QMouseEvent)
     def onMousePressed(self, event: QMouseEvent) -> None:
-        # calculate rects with own classes to make sure the math is ok
-        point: PointF = PointF.fromQPointF(self.ui.color_palette.mapToGlobal(event.position()))
-        button_pos: PointF = PointF.fromQPoint(self.ui.mapToGlobal(QPoint(0, 0)))
-        palette_pos: PointF = PointF.fromQPoint(self.ui.mapToGlobal(QPoint(0, self.ui.height())))
+        point: QPointF = self.ui.color_palette.mapToGlobal(event.position())
+        button_pos: QPointF = self.ui.mapToGlobal(QPoint(0, 0)).toPointF()
+        palette_pos: QPointF = self.ui.mapToGlobal(QPoint(0, self.ui.height())).toPointF()
 
         button_rect_w: float = self.ui.width()
         button_rect_h: float = self.ui.height()
-        button_rect: RectF = RectF(button_pos.xPosition(), button_pos.yPosition(), button_rect_w, button_rect_h)
+        button_rect: QRectF = QRectF(button_pos.x(), button_pos.y(), button_rect_w, button_rect_h)
 
         palette_rect_w: float = self.ui.color_palette.width()
         palette_rect_h: float = self.ui.color_palette.height()
-        palette_rect: RectF = RectF(palette_pos.xPosition(), palette_pos.yPosition(), palette_rect_w, palette_rect_h)
+        palette_rect: QRectF = QRectF(palette_pos.x(), palette_pos.y(), palette_rect_w, palette_rect_h)
 
         if not palette_rect.contains(point):
             if not button_rect.contains(point):
@@ -94,18 +91,17 @@ class ColorPicker(QWidget):
 
     @Slot(QMouseEvent)
     def onMouseReleased(self, event: QMouseEvent) -> None:
-        # calculate rects with own classes to make sure the math is ok
-        point: PointF = PointF.fromQPointF(self.ui.color_palette.mapToGlobal(event.position()))
-        button_pos: PointF = PointF.fromQPoint(self.ui.mapToGlobal(QPoint(0, 0)))
-        palette_pos: PointF = PointF.fromQPoint(self.ui.mapToGlobal(QPoint(0, self.ui.height())))
+        point: QPointF = self.ui.color_palette.mapToGlobal(event.position())
+        button_pos: QPointF = self.ui.mapToGlobal(QPoint(0, 0)).toPointF()
+        palette_pos: QPointF = self.ui.mapToGlobal(QPoint(0, self.ui.height())).toPointF()
 
         button_rect_w: float = self.ui.width()
         button_rect_h: float = self.ui.height()
-        button_rect: RectF = RectF(button_pos.xPosition(), button_pos.yPosition(), button_rect_w, button_rect_h)
+        button_rect: QRectF = QRectF(button_pos.x(), button_pos.y(), button_rect_w, button_rect_h)
 
         palette_rect_w: float = self.ui.color_palette.width()
         palette_rect_h: float = self.ui.color_palette.height()
-        palette_rect: RectF = RectF(palette_pos.xPosition(), palette_pos.yPosition(), palette_rect_w, palette_rect_h)
+        palette_rect: QRectF = QRectF(palette_pos.x(), palette_pos.y(), palette_rect_w, palette_rect_h)
 
         if not palette_rect.contains(point):
             if button_rect.contains(point):

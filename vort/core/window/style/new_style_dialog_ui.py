@@ -3,10 +3,10 @@ from PySide6.QtWidgets import QWidget, QDialog, QPushButton, QHBoxLayout, QVBoxL
 from PySide6.QtGui import QColor
 
 
-from core.widget.style_widget.style_form_ui import StyleFormUI
+from core.window.style.text_style_form import TextStyleForm
 
-from etc.data_base.data_base import data_base
-from etc.style_data import StyleData
+from data_base.data_base import data_base
+from core.widget.text_style.text_style import TextStyle
 
 
 class NewStyleDialogUI(QDialog):
@@ -16,9 +16,9 @@ class NewStyleDialogUI(QDialog):
         self.setWindowTitle("New style")
         self.resize(650, 450)
 
-        self.style_data: StyleData = StyleData()
+        self.style_data: TextStyle = TextStyle()
 
-        self.form: StyleFormUI = StyleFormUI(self.style_data, self)
+        self.form: TextStyleForm = TextStyleForm(self.style_data, self)
 
         # buttons
 
@@ -58,7 +58,7 @@ class NewStyleDialogUI(QDialog):
         is_valid = is_valid and name != ""
         self.form.name_line_edit_error_empty.setHidden(name != "")
 
-        style_data: StyleData = data_base.selectStyleData(name)
+        style_data: TextStyle = data_base.selectTextStyleData(name)
         is_valid = is_valid and style_data.name == ""
         self.form.name_line_edit_error_exists.setHidden(style_data.name == "")
 
@@ -158,7 +158,7 @@ class NewStyleDialogUI(QDialog):
             self.style_data.left_margin = self.form.left_margin_spin_box.value()
             self.style_data.right_margin = self.form.right_margin_spin_box.value()
 
-            data_base.insertStyle(self.style_data)
+            data_base.insertTextStyle(self.style_data)
 
             self.accept()
 
