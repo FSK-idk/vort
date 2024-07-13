@@ -1,7 +1,7 @@
-from PySide6.QtWidgets import QMenuBar, QMenu, QToolBar, QMainWindow, QWidget, QStatusBar
+from PySide6.QtWidgets import QMenuBar, QMenu, QToolBar, QMainWindow, QWidget, QStatusBar, QSpacerItem
 from PySide6.QtGui import QAction, QPixmap, QColor, QActionGroup, QCloseEvent
 
-from core.widget.color_picker.color_picker import ColorPicker
+from core.widget.color_picker.color_picker_tool import ColorPickerTool
 
 from core.widget.font_box.font_size_combo_box import FontSizeComboBox
 from core.widget.font_box.font_family_combo_box import FontFamilyComboBox
@@ -14,6 +14,9 @@ from core.widget.status_bar.reaplce_line import ReplaceLine
 from core.widget.text_style.text_style_combo_box import TextStyleComboBox
 
 from core.editor.document_editor.document_editor import DocumentEditor
+
+
+import resource.resource_rc
 
 
 class DocumentEditorWindowUI(QMainWindow):
@@ -43,97 +46,99 @@ class DocumentEditorWindowUI(QMainWindow):
         # app
 
         self.close_application_action: QAction = QAction("Exit")
-        self.close_application_action.setStatusTip("Exit the application")
+        self.close_application_action.setIcon(QPixmap(":/icon/x.svg"))
         self.close_application_action.setShortcut("Ctrl+Q")
 
         # file
 
-        self.new_document_action: QAction = QAction("New")
-        self.new_document_action.setStatusTip("Create a document")
+        self.new_document_action: QAction = QAction("New...")
+        self.new_document_action.setIcon(QPixmap(":/icon/folder_plus.svg"))
         self.new_document_action.setShortcut("Ctrl+N")
 
-        self.open_document_action: QAction = QAction("Open")
-        self.open_document_action.setStatusTip("Open a document")
+        self.open_document_action: QAction = QAction("Open...")
+        self.open_document_action.setIcon(QPixmap(":/icon/folder_open.svg"))
         self.open_document_action.setShortcut("Ctrl+O")
 
         self.close_document_action: QAction = QAction("Close")
-        self.close_document_action.setStatusTip("Close the document")
+        self.close_document_action.setIcon(QPixmap(":/icon/folder_closed.svg"))
         self.close_document_action.setShortcut("Ctrl+W")
 
         self.save_document_action: QAction = QAction("Save")
-        self.save_document_action.setStatusTip("Save the document")
+        self.save_document_action.setIcon(QPixmap(":/icon/save.svg"))
         self.save_document_action.setShortcut("Ctrl+S")
 
         # history
 
         self.undo_action: QAction = QAction("Undo")
-        self.undo_action.setStatusTip("Undo the last action")
+        self.undo_action.setIcon(QPixmap(":/icon/undo.svg"))
         self.undo_action.setShortcut("Ctrl+Z")
 
         self.redo_action: QAction = QAction("Redo")
-        self.redo_action.setStatusTip("Redo the last action")
+        self.redo_action.setIcon(QPixmap(":/icon/redo.svg"))
         self.redo_action.setShortcut("Ctrl+Y")
 
         # copy paste
 
         self.cut_action: QAction = QAction("Cut")
-        self.cut_action.setStatusTip("Cut the selected text")
+        self.cut_action.setIcon(QPixmap(":/icon/scissors.svg"))
         self.cut_action.setShortcut("Ctrl+X")
 
         self.copy_action: QAction = QAction("Copy")
-        self.copy_action.setStatusTip("Copy the selected text")
+        self.copy_action.setIcon(QPixmap(":/icon/clipboard_copy.svg"))
         self.copy_action.setShortcut("Ctrl+C")
 
         self.paste_action: QAction = QAction("Paste")
-        self.paste_action.setStatusTip("Paste text from the clipboard")
+        self.paste_action.setIcon(QPixmap(":/icon/clipboard_paste.svg"))
         self.paste_action.setShortcut("Ctrl+V")
 
-        self.paste_plain_action: QAction = QAction("Plain text")
-        self.paste_plain_action.setStatusTip("Paste plain text")
+        self.paste_plain_action: QAction = QAction("Paste plain")
         self.paste_plain_action.setShortcut("Ctrl+Shift+V")
 
         # select
 
         self.select_all_action: QAction = QAction("Select All")
-        self.select_all_action.setStatusTip("Select the entire document")
+        self.select_all_action.setIcon(QPixmap(":/icon/box_select.svg"))
         self.select_all_action.setShortcut("Ctrl+A")
 
         # insert
 
-        self.insert_image_action: QAction = QAction("Image")
-        self.insert_image_action.setStatusTip("Insert an image")
+        self.insert_image_action: QAction = QAction("Image...")
+        self.insert_image_action.setIcon(QPixmap(":/icon/image.svg"))
 
-        self.insert_hyperlink_action: QAction = QAction("Hylerlink")
-        self.insert_hyperlink_action.setStatusTip("Insert a hyperlink")
+        self.insert_hyperlink_action: QAction = QAction("Hylerlink...")
+        self.insert_hyperlink_action.setIcon(QPixmap(":/icon/link.svg"))
 
         # format
 
         self.turn_bold_action: QAction = QAction("Bold")
+        self.turn_bold_action.setIcon(QPixmap(":/icon/bold.svg"))
         self.turn_bold_action.setCheckable(True)
-        self.turn_bold_action.setStatusTip("Make the selected text bold")
         self.turn_bold_action.setShortcut("Ctrl+B")
 
         self.turn_italic_action: QAction = QAction("Italic")
+        self.turn_italic_action.setIcon(QPixmap(":/icon/italic.svg"))
         self.turn_italic_action.setCheckable(True)
-        self.turn_italic_action.setStatusTip("Make the selected text italic")
         self.turn_italic_action.setShortcut("Ctrl+I")
 
         self.turn_underlined_action: QAction = QAction("Underlined")
+        self.turn_underlined_action.setIcon(QPixmap(":/icon/underlined.svg"))
         self.turn_underlined_action.setCheckable(True)
-        self.turn_underlined_action.setStatusTip("Make the selected text underlined")
         self.turn_underlined_action.setShortcut("Ctrl+U")
 
         # alignment
 
         self.set_alignment_left_action: QAction = QAction("Left")
+        self.set_alignment_left_action.setIcon(QPixmap(":/icon/align_left.svg"))
         self.set_alignment_left_action.setCheckable(True)
         self.set_alignment_left_action.setStatusTip("Align left")
 
         self.set_alignment_center_action: QAction = QAction("Center")
+        self.set_alignment_center_action.setIcon(QPixmap(":/icon/align_center.svg"))
         self.set_alignment_center_action.setCheckable(True)
         self.set_alignment_center_action.setStatusTip("Align center")
 
         self.set_alignment_right_action: QAction = QAction("Right")
+        self.set_alignment_right_action.setIcon(QPixmap(":/icon/align_right.svg"))
         self.set_alignment_right_action.setCheckable(True)
         self.set_alignment_right_action.setStatusTip("Align right")
 
@@ -147,10 +152,12 @@ class DocumentEditorWindowUI(QMainWindow):
         # indent
 
         self.indent_right_action: QAction = QAction("Right")
+        self.indent_right_action.setIcon(QPixmap(":/icon/indent_increase.svg"))
         self.indent_right_action.setStatusTip("Indent right")
         self.indent_right_action.setShortcut("Ctrl+]")
 
         self.indent_left_action: QAction = QAction("Left")
+        self.indent_left_action.setIcon(QPixmap(":/icon/indent_decrease.svg"))
         self.indent_left_action.setStatusTip("Indent left")
         self.indent_left_action.setShortcut("Ctrl+[")
 
@@ -158,19 +165,15 @@ class DocumentEditorWindowUI(QMainWindow):
 
         self.set_line_spacing_1_action: QAction = QAction("1 line spacing")
         self.set_line_spacing_1_action.setCheckable(True)
-        self.set_line_spacing_1_action.setStatusTip("Set the spacing between lines to 1")
 
         self.set_line_spacing_1_15_action: QAction = QAction("1.15 line spacing")
         self.set_line_spacing_1_15_action.setCheckable(True)
-        self.set_line_spacing_1_15_action.setStatusTip("Set the spacing between lines to 1.15")
 
         self.set_line_spacing_1_5_action: QAction = QAction("1.5 line spacing")
         self.set_line_spacing_1_5_action.setCheckable(True)
-        self.set_line_spacing_1_5_action.setStatusTip("Set the spacing between lines to 1.5")
 
         self.set_line_spacing_2_action: QAction = QAction("2 line spacing")
         self.set_line_spacing_2_action.setCheckable(True)
-        self.set_line_spacing_2_action.setStatusTip("Set the spacing between lines to 2")
 
         self.line_space_group: QActionGroup = QActionGroup(self)
         self.line_space_group.addAction(self.set_line_spacing_1_action)
@@ -182,39 +185,38 @@ class DocumentEditorWindowUI(QMainWindow):
         # style
 
         self.open_style_action: QAction = QAction("Styles")
-        self.open_style_action.setStatusTip("Manage custom styles")
+        self.open_style_action.setIcon(QPixmap(":/icon/book_type.svg"))
 
-        self.new_style_action: QAction = QAction("New style")
-        self.new_style_action.setStatusTip("Create new custom style")
+        self.new_style_action: QAction = QAction("New style...")
+        self.new_style_action.setIcon(QPixmap(":/icon/book_plus.svg"))
 
         self.apply_style_action: QAction = QAction("Apply")
-        self.apply_style_action.setStatusTip("Apply the style to the selected text")
+        self.apply_style_action.setIcon(QPixmap(":/icon/type.svg"))
 
         self.clear_style_action: QAction = QAction("Clear")
-        self.clear_style_action.setStatusTip("Clear the style of the selected text")
+        self.clear_style_action.setIcon(QPixmap(":/icon/remove_formatting.svg"))
 
         # settings
 
         self.open_page_settings: QAction = QAction("Page")
-        self.open_page_settings.setStatusTip("Open page settings")
+        self.open_page_settings.setIcon(QPixmap(":/icon/sticky_note.svg"))
 
         self.open_paragraph_settings: QAction = QAction("Paragraph")
-        self.open_paragraph_settings.setStatusTip("Open paragraph settings")
+        self.open_paragraph_settings.setIcon(QPixmap(":/icon/pilcrow.svg"))
 
         self.open_header_settings: QAction = QAction("Header")
-        self.open_header_settings.setStatusTip("Open header settings")
+        self.open_header_settings.setIcon(QPixmap(":/icon/panel_top_close.svg"))
 
         self.open_footer_settings: QAction = QAction("Footer")
-        self.open_footer_settings.setStatusTip("Open footer settings")
+        self.open_footer_settings.setIcon(QPixmap(":/icon/panel_bottom_close.svg"))
 
         # help
 
         self.show_about_action: QAction = QAction("About")
-        self.show_about_action.setStatusTip("View application information")
+        self.show_about_action.setIcon(QPixmap(":/icon/info.svg"))
 
         # TODO: DEBUG
         self.test_action: QAction = QAction("Test")
-        self.test_action.setStatusTip("Test")
 
     def setupWidget(self) -> None:
         # font
@@ -226,12 +228,12 @@ class DocumentEditorWindowUI(QMainWindow):
         icon = QPixmap(16, 16)
         icon.fill(QColor("cyan"))
 
-        self.foreground_color_picker = ColorPicker(self)
-        self.foreground_color_picker.ui.setIcon(icon)
+        self.foreground_color_picker = ColorPickerTool(self)
+        self.foreground_color_picker.ui.setIcon(QPixmap(":/icon/pen.svg"))
         self.foreground_color_picker.ui.setColorIcon(QColor("black"))
 
-        self.background_color_picker = ColorPicker(self)
-        self.background_color_picker.ui.setIcon(icon)
+        self.background_color_picker = ColorPickerTool(self)
+        self.background_color_picker.ui.setIcon(QPixmap(":/icon/highlighter.svg"))
         self.background_color_picker.ui.setColorIcon(QColor("transparent"))
 
         # style

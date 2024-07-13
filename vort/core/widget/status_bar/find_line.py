@@ -1,5 +1,9 @@
 from PySide6.QtCore import Signal, Slot, Qt
 from PySide6.QtWidgets import QWidget, QLineEdit, QPushButton, QHBoxLayout, QVBoxLayout
+from PySide6.QtGui import QPixmap
+
+
+import resource.resource_rc
 
 
 class FindLine(QWidget):
@@ -13,32 +17,36 @@ class FindLine(QWidget):
         super().__init__(parent)
 
         self.find_line: QLineEdit = QLineEdit(self)
+        self.find_line.setPlaceholderText("Find")
         self.find_line.textChanged.connect(self.onFindTextChanged)
         self.find_line.returnPressed.connect(self.onFindPressed)
 
         self.case_button: QPushButton = QPushButton(self)
+        self.case_button.setIcon(QPixmap(":/icon/case_sensitive.svg"))
+        self.case_button.setToolTip("Case sensitive")
         self.case_button.setCheckable(True)
         self.case_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-        self.case_button.setText("A")
         self.case_button.clicked.connect(self.onCaseClicked)
 
         self.whole_button: QPushButton = QPushButton(self)
+        self.whole_button.setIcon(QPixmap(":/icon/whole_word.svg"))
+        self.whole_button.setToolTip("Whole word")
         self.whole_button.setCheckable(True)
         self.whole_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-        self.whole_button.setText("_")
         self.whole_button.clicked.connect(self.onWholeClicked)
 
         self.regex_button: QPushButton = QPushButton(self)
+        self.regex_button.setIcon(QPixmap(":/icon/regex.svg"))
+        self.regex_button.setToolTip("Regex")
         self.regex_button.setCheckable(True)
         self.regex_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-        self.regex_button.setText("*")
         self.regex_button.clicked.connect(self.onRegexClicked)
 
         # layout
 
         find_layout: QHBoxLayout = QHBoxLayout()
         find_layout.setContentsMargins(0, 0, 0, 0)
-        find_layout.setSpacing(10)
+        find_layout.setSpacing(2)
         find_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
         find_layout.addWidget(self.find_line)
         find_layout.addWidget(self.case_button)

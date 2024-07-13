@@ -5,7 +5,7 @@ from PySide6.QtGui import QColor, QPalette
 from core.widget.basic_widget import DoubleSpinBox, ComboBox, SpinBox
 from core.widget.font_box.font_family_combo_box import FontFamilyComboBox
 from core.widget.font_box.font_size_combo_box import FontSizeComboBox
-from core.widget.color_picker.color_picker import ColorPicker
+from core.widget.color_picker.color_picker_button import ColorPickerButton
 
 from core.widget.text_style.text_style import TextStyle
 
@@ -29,6 +29,7 @@ class TextStyleForm(QScrollArea):
         self.name_line_edit_label.setText("Name")
 
         self.name_line_edit: QLineEdit = QLineEdit(self)
+        self.name_line_edit.setPlaceholderText("Name")
         self.name_line_edit.setText(self.style_data.name)
 
         self.name_line_edit_error_empty: QLabel = QLabel(self)
@@ -152,7 +153,7 @@ class TextStyleForm(QScrollArea):
         self.foreground_color_blue_spin_box.setEnabled(self.style_data.is_font_changed)
         self.font_check_box.stateChanged.connect(self.foreground_color_blue_spin_box.setEnabled)
 
-        self.foreground_color_picker: ColorPicker = ColorPicker(self)
+        self.foreground_color_picker: ColorPickerButton = ColorPickerButton(self)
         self.foreground_color_picker.setColor(self.style_data.foreground_color)
         foreground_color_picker_palette = self.foreground_color_picker.ui.palette()
         foreground_color_picker_palette.setColor(QPalette.ColorRole.Button, palette.color(QPalette.ColorRole.Base))
@@ -211,7 +212,7 @@ class TextStyleForm(QScrollArea):
         self.background_color_blue_spin_box.setEnabled(self.style_data.is_font_changed)
         self.font_check_box.stateChanged.connect(self.background_color_blue_spin_box.setEnabled)
 
-        self.background_color_picker: ColorPicker = ColorPicker(self)
+        self.background_color_picker: ColorPickerButton = ColorPickerButton(self)
         self.background_color_picker.setColor(self.style_data.background_color)
         background_color_picker_palette = self.background_color_picker.ui.palette()
         background_color_picker_palette.setColor(QPalette.ColorRole.Button, palette.color(QPalette.ColorRole.Base))

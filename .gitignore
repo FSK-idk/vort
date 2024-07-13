@@ -3,4 +3,5 @@
 .env
 __pycache__
 vort/data
+vort/resource/resource_rc.py
 *.vrt

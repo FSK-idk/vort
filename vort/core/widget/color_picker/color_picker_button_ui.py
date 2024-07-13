@@ -1,20 +1,20 @@
 from PySide6.QtCore import Qt, QPoint
-from PySide6.QtWidgets import QWidget, QToolButton
+from PySide6.QtWidgets import QWidget, QPushButton
 from PySide6.QtGui import QPaintEvent, QPixmap, QPainter, QPen, QColor
 
 from core.widget.color_picker.color_palette import ColorPalette
 
 
-class ColorPickerUI(QToolButton):
+class ColorPickerButtonUI(QPushButton):
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
 
-        self.color_icon: QPixmap = QPixmap(16, 16)
+        self.margin = 16
 
-        self.icon: QPixmap | None = None
+        self.color_icon: QPixmap = QPixmap(self.height() - self.margin, self.height() - self.margin)
 
         self.setCheckable(True)
-        self.setFixedWidth(32)
+        self.setFixedWidth(self.height())
 
         self.color_palette: ColorPalette = ColorPalette(self)
         self.color_palette.setWindowFlags(Qt.WindowType.Popup)
@@ -24,31 +24,21 @@ class ColorPickerUI(QToolButton):
             self.color_icon.fill(QColor("white"))
             painter: QPainter = QPainter(self.color_icon)
             pen: QPen = QPen(QColor("red"))
-            pen.setWidth(2)
+            pen.setWidth(3)
             painter.setPen(pen)
-            painter.drawLine(0, 16, 16, 0)
+            painter.drawLine(0, self.color_icon.height(), self.color_icon.height(), 0)
             painter.end()
-
         else:
             self.color_icon.fill(color)
-        self.repaint()
-
-    def setIcon(self, icon: QPixmap | None) -> None:
-        self.icon = icon
-        if self.icon == None:
-            self.setFixedWidth(32)
-        else:
-            self.setFixedWidth(56)
         self.repaint()
 
     def paintEvent(self, event: QPaintEvent) -> None:
         super().paintEvent(event)
         painter: QPainter = QPainter(self)
-        coord_y = int((self.height() - 16) / 2)
+        coord_x = int((self.width() - self.color_icon.width()) / 2)
+        coord_y = int((self.height() - self.color_icon.height()) / 2)
 
-        painter.drawPixmap(8, coord_y, self.color_icon)
-        if self.icon is not None:
-            painter.drawPixmap(32, coord_y, self.icon)
+        painter.drawPixmap(coord_x, coord_y, self.color_icon)
 
     def showPalette(self) -> None:
         button_bottom_left: QPoint = self.mapToGlobal(QPoint(0, self.height()))

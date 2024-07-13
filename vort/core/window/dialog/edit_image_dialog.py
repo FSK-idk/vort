@@ -11,11 +11,14 @@ from PySide6.QtWidgets import (
     QFileDialog,
     QCheckBox,
 )
-from PySide6.QtGui import QImage, QGuiApplication
+from PySide6.QtGui import QImage, QGuiApplication, QPixmap
 
 from core.widget.basic_widget import DoubleSpinBox
 
 from core.widget.picture.picture import Picture
+
+
+import resource.resource_rc
 
 
 class EditImageDialogContext:
@@ -53,21 +56,22 @@ class EditImageDialog(QDialog):
         self.filepath_line_edit_label.setText("Filepath")
 
         self.filepath_line_edit: QLineEdit = QLineEdit(self)
+        self.filepath_line_edit.setPlaceholderText("Filepath")
         self.filepath_line_edit.setEnabled(False)
 
         self.filepath_button: QPushButton = QPushButton(self)
-        self.filepath_button.setText("F")
+        self.filepath_button.setIcon(QPixmap(":/icon/paperclip.svg"))
         self.filepath_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.filepath_button.clicked.connect(self.onFilepathClicked)
 
         self.filepath_clear_button: QPushButton = QPushButton(self)
-        self.filepath_clear_button.setText("C")
+        self.filepath_clear_button.setIcon(QPixmap(":/icon/eraser.svg"))
         self.filepath_clear_button.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.filepath_clear_button.clicked.connect(self.onFilepathClearClicked)
 
         filepath_line_edit_layout: QHBoxLayout = QHBoxLayout()
         filepath_line_edit_layout.setContentsMargins(0, 0, 0, 0)
-        filepath_line_edit_layout.setSpacing(10)
+        filepath_line_edit_layout.setSpacing(2)
         filepath_line_edit_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
         filepath_line_edit_layout.addWidget(self.filepath_line_edit_label)
         filepath_line_edit_layout.addWidget(self.filepath_line_edit)
@@ -176,6 +180,7 @@ class EditImageDialog(QDialog):
         right_layout.setContentsMargins(0, 0, 0, 0)
         right_layout.setSpacing(20)
         right_layout.addLayout(filepath_line_edit_layout)
+        right_layout.addSpacing(5)
         right_layout.addLayout(size_layout)
         right_layout.addStretch()
         right_layout.addLayout(button_layout)
@@ -206,6 +211,7 @@ class EditImageDialog(QDialog):
 
     @Slot()
     def onFilepathClearClicked(self) -> None:
+        self.filepath_line_edit.setText("")
         self.current_image = self.default_image
         self.context.image = self.default_image
         self.picture.setImage(self.default_image)

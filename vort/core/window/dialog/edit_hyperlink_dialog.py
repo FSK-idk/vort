@@ -27,12 +27,14 @@ class EditHyperlinkDialog(QDialog):
         self.text_line_edit_label.setText("Text")
 
         self.text_line_edit: QLineEdit = QLineEdit(self)
+        self.text_line_edit.setPlaceholderText("Text")
         self.text_line_edit.setText(self.context.text)
 
         self.hyperlink_line_edit_label: QLabel = QLabel(self)
         self.hyperlink_line_edit_label.setText("Hyperlink")
 
         self.hyperlink_line_edit: QLineEdit = QLineEdit(self)
+        self.hyperlink_line_edit.setPlaceholderText("Hyperlink")
         self.hyperlink_line_edit.setText(self.context.hyperlink)
 
         text_line_edit_layout = QHBoxLayout()

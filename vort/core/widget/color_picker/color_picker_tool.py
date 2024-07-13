@@ -2,7 +2,7 @@ from PySide6.QtCore import QEvent, QObject, Signal, Slot, QPoint, QRectF, QPoint
 from PySide6.QtWidgets import QWidget
 from PySide6.QtGui import QColor, QMouseEvent
 
-from core.widget.color_picker.color_picker_ui import ColorPickerUI
+from core.widget.color_picker.color_picker_tool_ui import ColorPickerToolUI
 
 
 # there is a problem with hiding the popup color palette.
@@ -12,7 +12,7 @@ from core.widget.color_picker.color_picker_ui import ColorPickerUI
 
 
 # specifically for the color palette
-class ColorPickerFilter(QObject):
+class ColorPickerToolFilter(QObject):
     mousePressed = Signal(QMouseEvent)
     mouseReleased = Signal(QMouseEvent)
 
@@ -28,21 +28,21 @@ class ColorPickerFilter(QObject):
         return True
 
 
-class ColorPicker(QWidget):
+class ColorPickerTool(QWidget):
     colorChanged: Signal = Signal(QColor)
     closed: Signal = Signal()
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
 
-        self.ui: ColorPickerUI = ColorPickerUI(parent)
+        self.ui: ColorPickerToolUI = ColorPickerToolUI(parent)
         self.__color: QColor = QColor()
 
         # self.ui.button.clicked.connect(self.onClicked)
         self.ui.clicked.connect(self.onClicked)
         self.ui.color_palette.colorClicked.connect(self.onColorSelected)
 
-        self.mouse_filter: ColorPickerFilter = ColorPickerFilter()
+        self.mouse_filter: ColorPickerToolFilter = ColorPickerToolFilter()
         self.mouse_filter.mousePressed.connect(self.onMousePressed)
         self.mouse_filter.mouseReleased.connect(self.onMouseReleased)
         self.ui.color_palette.installEventFilter(self.mouse_filter)

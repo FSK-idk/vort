@@ -26,7 +26,7 @@ class ColorButton(QPushButton):
             icon.fill(QColor("white"))
             painter: QPainter = QPainter(icon)
             pen: QPen = QPen(QColor("red"))
-            pen.setWidth(2)
+            pen.setWidth(3)
             painter.setPen(pen)
             painter.drawLine(0, 16, 16, 0)
             painter.end()

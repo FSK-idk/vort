@@ -3,7 +3,7 @@ from PySide6.QtWidgets import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QScroll
 from PySide6.QtGui import QColor, QPalette
 
 from core.widget.basic_widget import DoubleSpinBox, SpinBox
-from core.widget.color_picker.color_picker import ColorPicker
+from core.widget.color_picker.color_picker_button import ColorPickerButton
 
 
 class PageSettingsContext:
@@ -170,7 +170,7 @@ class PageSettings(QScrollArea):
         self.page_color_blue_spin_box.setValue(self.context.page_color.blue())
         self.page_color_blue_spin_box.valueChanged.connect(self.onPageColorSpinBoxValueChanged)
 
-        self.page_color_picker: ColorPicker = ColorPicker(self)
+        self.page_color_picker: ColorPickerButton = ColorPickerButton(self)
         self.page_color_picker.setColor(self.context.page_color)
         page_color_picker_palette = self.page_color_picker.ui.palette()
         page_color_picker_palette.setColor(QPalette.ColorRole.Button, palette.color(QPalette.ColorRole.Base))
@@ -518,7 +518,7 @@ class PageSettings(QScrollArea):
         self.border_color_blue_spin_box.setValue(self.context.border_color.blue())
         self.border_color_blue_spin_box.valueChanged.connect(self.onBorderColorSpinBoxValueChanged)
 
-        self.border_color_picker: ColorPicker = ColorPicker(self)
+        self.border_color_picker: ColorPickerButton = ColorPickerButton(self)
         self.border_color_picker.setColor(self.context.border_color)
         border_color_picker_palette = self.border_color_picker.ui.palette()
         border_color_picker_palette.setColor(QPalette.ColorRole.Button, palette.color(QPalette.ColorRole.Base))
