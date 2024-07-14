@@ -6,16 +6,18 @@ from PySide6.QtSql import QSqlDatabase, QSqlQuery, QSqlRecord
 from data_base.query import Query
 from core.widget.text_style.text_style import TextStyle
 
+from core.util import resource_path
+
 
 class DataBase(QObject):
     updatedStyleTable: Signal = Signal()
 
     def init(self) -> None:
-        if not os.path.isdir("./vort/data/"):
-            os.mkdir("./vort/data/")
+        if not os.path.isdir(resource_path("./vort/data/")):
+            os.mkdir(resource_path("./vort/data/"))
 
         self.data_base: QSqlDatabase = QSqlDatabase("QSQLITE")
-        self.data_base.setDatabaseName("./vort/data/library.sqlite")
+        self.data_base.setDatabaseName(resource_path("./vort/data/library.sqlite"))
         self.data_base.open()
 
         QSqlQuery(Query.createTextStyleTable(), self.data_base).exec()

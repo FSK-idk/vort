@@ -1,7 +1,13 @@
+__pycache__
+
 .venv
 .vscode
 .env
-__pycache__
+
+build
+
 vort/data
+vort/document
 vort/resource/resource_rc.py
+
 *.vrt

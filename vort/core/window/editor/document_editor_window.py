@@ -1,3 +1,5 @@
+import os
+
 from PySide6.QtCore import Qt, QObject, Slot
 from PySide6.QtWidgets import QFileDialog, QMessageBox
 from PySide6.QtGui import QColor, QGuiApplication
@@ -23,6 +25,8 @@ from core.editor.document_editor.document_editor_context import DocumentEditorCo
 
 from data_base.data_base import data_base
 
+from core.util import resource_path
+
 
 class DocumentEditorWindow(QObject):
     # This class connects the entire user interface to the back-end application
@@ -31,6 +35,9 @@ class DocumentEditorWindow(QObject):
         super().__init__()
 
         data_base.init()
+
+        if not os.path.isdir(resource_path("./vort/document/")):
+            os.mkdir(resource_path("./vort/document/"))
 
         self.ui: DocumentEditorWindowUI = DocumentEditorWindowUI()
 
@@ -213,7 +220,7 @@ class DocumentEditorWindow(QObject):
             if message.exec() == QMessageBox.StandardButton.Yes:
                 self.saveDocument()
 
-        filepath, _ = QFileDialog.getOpenFileName(filter="Vort file (*.vrt)")
+        filepath, _ = QFileDialog.getOpenFileName(filter="Vort file (*.vrt)", dir=resource_path("./vort/document"))
 
         if self.filepath != filepath:
             self.ui.text_editor.file_component.loadDocumentFile(filepath)
@@ -245,7 +252,9 @@ class DocumentEditorWindow(QObject):
     def saveDocument(self) -> None:
         if self.is_document_open and self.is_document_changed:
             if self.filepath == "":
-                filepath, _ = QFileDialog.getSaveFileName(filter="Vort file (*.vrt)")
+                filepath, _ = QFileDialog.getSaveFileName(
+                    filter="Vort file (*.vrt)", dir=resource_path("./vort/document")
+                )
                 self.ui.text_editor.file_component.saveDocumentFile(filepath)
                 self.filepath = filepath
             else:
