@@ -79,23 +79,6 @@ class DocumentEditor(QObject):
 
         self.ui.zoomFactorChanged.connect(self.zoomFactorSelected.emit)
 
-    # TODO: DEBUG
-    def test(self) -> None:
-        if self.__context is None:
-            print("bad test")
-            return
-
-        print("test")
-
-        document = self.__context.text_editor.context().document
-        cursor = self.__context.text_editor.context().cursor
-
-        new_cursor = document.find("ed", cursor)
-        cursor.setPosition(new_cursor.position())
-
-        self.repaintViewport()
-        pass
-
     def context(self) -> DocumentEditorContext | None:
         return self.__context
 

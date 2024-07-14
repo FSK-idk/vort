@@ -21,7 +21,6 @@ class DocumentEditorUI(QGraphicsView):
 
         self.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignHCenter)
 
-        # TODO: to config
         self.zoom_factor_max: float = 3.0
         self.zoom_factor_min: float = 0.2
         self.zoom_factor_step: float = 0.1

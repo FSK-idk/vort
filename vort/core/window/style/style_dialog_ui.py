@@ -79,7 +79,7 @@ class StyleDialogUI(QDialog):
 
             message = QMessageBox(
                 QMessageBox.Icon.Warning,
-                "Deletion",
+                "Delete",
                 f'Are you sure you want to delete "{name}" style?',
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
                 self,

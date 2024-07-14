@@ -141,9 +141,6 @@ class DocumentEditorWindow(QObject):
 
         self.ui.show_about_action.triggered.connect(self.showAbout)
 
-        # TODO: DEBUG
-        self.ui.test_action.triggered.connect(self.test)
-
         # status
 
         self.ui.text_editor.charCountChanged.connect(self.onTextEditorCharacterCountChanged)
@@ -850,8 +847,3 @@ class DocumentEditorWindow(QObject):
         self.ui.zoom_slider.blockSignals(True)
         self.ui.zoom_slider.setZoomFactor(zoom_factor)
         self.ui.zoom_slider.blockSignals(False)
-
-    # TODO: DEBUG
-    def test(self) -> None:
-        self.ui.text_editor.test()
-        pass

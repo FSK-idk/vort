@@ -215,9 +215,6 @@ class DocumentEditorWindowUI(QMainWindow):
         self.show_about_action: QAction = QAction("About")
         self.show_about_action.setIcon(QPixmap(":/icon/info.svg"))
 
-        # TODO: DEBUG
-        self.test_action: QAction = QAction("Test")
-
     def setupWidget(self) -> None:
         # font
 
@@ -322,9 +319,6 @@ class DocumentEditorWindowUI(QMainWindow):
         self.help_menu: QMenu = QMenu("Help")
         self.help_menu.addAction(self.show_about_action)
         self.menu_bar.addMenu(self.help_menu)
-
-        # TODO: DEBUG
-        self.menu_bar.addAction(self.test_action)
 
         self.setMenuBar(self.menu_bar)
 

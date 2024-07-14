@@ -14,7 +14,7 @@ class EditHyperlinkDialog(QDialog):
 
         self.context: EditHyperlinkDialogContext = context
 
-        self.setWindowTitle("Edit paragraph")
+        self.setWindowTitle("Edit hyperlink")
         self.setMinimumWidth(300)
         self.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
 
