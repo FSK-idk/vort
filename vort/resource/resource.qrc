@@ -1,10 +1,7 @@
 <!DOCTYPE RCC>
     <RCC version="1.0">
-    <!-- <qresource prefix="image">
-        <file alias="icon.png">./image/icon.png</file>
-        <file alias="icon-s.png">./image/icon-s.png</file>
-    </qresource> -->
     <qresource prefix="icon">
+        <file alias="vort.png">./icon/vort/vort.png</file>
         <file alias="bold.svg">./icon/lucide_icon/bold.svg</file>
         <file alias="italic.svg">./icon/lucide_icon/italic.svg</file>
         <file alias="underlined.svg">./icon/lucide_icon/underline.svg</file>

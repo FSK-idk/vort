@@ -3,10 +3,12 @@ from PySide6.QtWidgets import QFileDialog, QMessageBox
 from PySide6.QtGui import QColor, QGuiApplication
 
 from core.window.editor.document_editor_window_ui import DocumentEditorWindowUI
+
 from core.window.dialog.edit_hyperlink_dialog import EditHyperlinkDialog, EditHyperlinkDialogContext
 from core.window.dialog.edit_image_dialog import EditImageDialog, EditImageDialogContext
-from core.window.settings.settings_dialog import SettingsDialog, SettingsContext
+from core.window.dialog.about_dialog import AboutDialog
 
+from core.window.settings.settings_dialog import SettingsDialog, SettingsContext
 from core.window.settings.page_settings import PageSettingsContext
 from core.window.settings.paragraph_settings import ParagraphSettingsContext
 from core.window.settings.header_settings import HeaderSettingsContext
@@ -817,7 +819,8 @@ class DocumentEditorWindow(QObject):
     # about
 
     def showAbout(self) -> None:
-        print("showAbout")
+        dialog: AboutDialog = AboutDialog(self.ui)
+        dialog.exec()
 
     # status
 
