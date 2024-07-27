@@ -17,7 +17,6 @@ from PySide6.QtGui import (
     QFont,
     QPen,
     QImage,
-    QBrush,
 )
 
 from core.editor.page_layout.page_layout import PageLayout
@@ -318,6 +317,8 @@ class TextDocumentLayout(QAbstractTextDocumentLayout):
                         return
 
             if is_image:
+                import time
+                print("is image", time.time())
                 if (remaining_text_height != self.__page_layout.textHeight()) and (
                     remaining_text_height - block_format.topMargin() - image_height - block_format.bottomMargin() < 0
                 ):

@@ -4,10 +4,12 @@ __pycache__
 .vscode
 .env
 
+pyrightconfig.json
+
 build
 
 vort/data
 vort/document
-vort/resource/resource_rc.py
+vort/resource_rc.py
 
 *.vrt

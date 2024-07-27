@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QMenuBar, QMenu, QToolBar, QMainWindow, QWidget, QStatusBar, QSpacerItem
+from PySide6.QtWidgets import QMenuBar, QMenu, QToolBar, QMainWindow, QWidget, QStatusBar 
 from PySide6.QtGui import QAction, QPixmap, QColor, QActionGroup, QCloseEvent
 
 from core.widget.color_picker.color_picker_tool import ColorPickerTool
@@ -14,9 +14,6 @@ from core.widget.status_bar.reaplce_line import ReplaceLine
 from core.widget.text_style.text_style_combo_box import TextStyleComboBox
 
 from core.editor.document_editor.document_editor import DocumentEditor
-
-
-import resource.resource_rc
 
 
 class DocumentEditorWindowUI(QMainWindow):

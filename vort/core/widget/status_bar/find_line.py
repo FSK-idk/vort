@@ -3,9 +3,6 @@ from PySide6.QtWidgets import QWidget, QLineEdit, QPushButton, QHBoxLayout, QVBo
 from PySide6.QtGui import QPixmap
 
 
-import resource.resource_rc
-
-
 class FindLine(QWidget):
     findRequest: Signal = Signal()
 

@@ -9,13 +9,11 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QSizePolicy,
     QVBoxLayout,
+    QScrollArea
 )
 from PySide6.QtGui import QImage, QDesktopServices
 
 from core.widget.picture.picture import Picture
-
-
-import resource.resource_rc
 
 
 class AboutDialog(QDialog):
@@ -73,6 +71,7 @@ class AboutDialog(QDialog):
             )
         )
         self.lucide_text.setWordWrap(True)
+        #self.lucide_text.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Expanding)
 
         lucide_layout: QVBoxLayout = QVBoxLayout()
         lucide_layout.setContentsMargins(0, 0, 0, 0)
@@ -89,6 +88,14 @@ class AboutDialog(QDialog):
         parts_layout.addWidget(self.parts_label)
         parts_layout.addSpacing(15)
         parts_layout.addLayout(lucide_layout)
+
+        self.parts_widget: QWidget = QWidget()
+        self.parts_widget.setLayout(parts_layout)
+
+        self.parts_scroll: QScrollArea = QScrollArea()
+        self.parts_scroll.setWidget(self.parts_widget)
+        self.parts_scroll.setWidgetResizable(True)
+        self.parts_scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
 
         self.github_button: QPushButton = QPushButton(self)
         self.github_button.setText("GitHub")
@@ -111,9 +118,8 @@ class AboutDialog(QDialog):
         right_layout.setContentsMargins(0, 0, 0, 0)
         right_layout.setSpacing(20)
         right_layout.addWidget(self.main_text_lable)
-        right_layout.addStretch(2)
-        right_layout.addLayout(parts_layout)
-        right_layout.addStretch(1)
+        right_layout.addWidget(self.parts_label)
+        right_layout.addWidget(self.parts_scroll)
         right_layout.addLayout(button_layout)
 
         main_layout = QHBoxLayout()

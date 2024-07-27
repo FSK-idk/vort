@@ -18,9 +18,6 @@ from core.widget.basic_widget import DoubleSpinBox
 from core.widget.picture.picture import Picture
 
 
-import resource.resource_rc
-
-
 class EditImageDialogContext:
     def __init__(self) -> None:
         self.image: QImage = QImage()

@@ -1,5 +1,5 @@
 from PySide6.QtCore import QObject, Signal
-from PySide6.QtGui import QTextCursor, QTextBlock, QTextFragment, QImage, QTextDocument, QTextImageFormat
+from PySide6.QtGui import QTextCursor, QTextBlock, QTextFragment, QImage, QTextDocument 
 
 
 class HyperlinkSelection:
@@ -153,7 +153,9 @@ class SelectionComponent(QObject):
                     break
 
         else:
-            name = self.__cursor.charFormat().toImageFormat().name()
+            print("triens")
+            if self.__cursor.charFormat().isImageFormat():
+                name = self.__cursor.charFormat().toImageFormat().name()
 
         image: QImage | None = self.__cursor.document().resource(QTextDocument.ResourceType.ImageResource, name)
 

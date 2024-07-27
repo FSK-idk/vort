@@ -10,7 +10,9 @@ class CharComponent(QObject):
         self.__cursor: QTextCursor = cursor
 
     def fontFamily(self) -> str:
-        return self.__cursor.charFormat().fontFamilies()[0]
+        if self.__cursor.charFormat().fontFamilies():
+            return self.__cursor.charFormat().fontFamilies()[0]
+        return ""
 
     def setFontFamily(self, family: str) -> None:
         if self.fontFamily() == family:

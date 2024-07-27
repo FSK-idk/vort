@@ -109,7 +109,7 @@ class DocumentEditorWindow(QObject):
         self.ui.set_alignment_left_action.triggered.connect(self.setAlignmentLeft)
         self.ui.set_alignment_center_action.triggered.connect(self.setAlignmentCenter)
         self.ui.set_alignment_right_action.triggered.connect(self.setAlignmentRight)
-        self.ui.text_editor.alignmentChanged.connect(self.onTextEditorAlignmentChanged)
+        self.ui.text_editor.alignmentChanged.connect(self.onTextEditorParagraphAlignmentChanged)
 
         # indent
 
@@ -373,7 +373,7 @@ class DocumentEditorWindow(QObject):
         if not editor_context.text_editor.context().cursor.hasSelection():
             editor_context.text_editor.context().selection_component.selectImage()
 
-        dialog: EditImageDialog = EditImageDialog(context)
+        dialog: EditImageDialog = EditImageDialog(context, self.ui)
 
         if dialog.exec():
             editor_context.text_editor.context().clipboard_component.insertImage(context.image)
@@ -394,7 +394,7 @@ class DocumentEditorWindow(QObject):
 
         context.text = editor_context.text_editor.context().selection_component.selectedText()
 
-        dialog: EditHyperlinkDialog = EditHyperlinkDialog(context)
+        dialog: EditHyperlinkDialog = EditHyperlinkDialog(context, self.ui)
 
         if dialog.exec():
             editor_context.text_editor.context().clipboard_component.insertHyperlink(context.text, context.hyperlink)
@@ -500,7 +500,7 @@ class DocumentEditorWindow(QObject):
             self.ui.text_editor.blockSignals(False)
 
     @Slot(float)
-    def onTextEditorAlignmentChanged(self, alignment: Qt.AlignmentFlag) -> None:
+    def onTextEditorParagraphAlignmentChanged(self, alignment: Qt.AlignmentFlag) -> None:
         self.ui.set_alignment_left_action.setChecked(alignment == Qt.AlignmentFlag.AlignLeft)
         self.ui.set_alignment_center_action.setChecked(alignment == Qt.AlignmentFlag.AlignHCenter)
         self.ui.set_alignment_right_action.setChecked(alignment == Qt.AlignmentFlag.AlignRight)
@@ -630,12 +630,12 @@ class DocumentEditorWindow(QObject):
 
     @Slot()
     def openStyle(self) -> None:
-        dialog: StyleDialogUI = StyleDialogUI()
+        dialog: StyleDialogUI = StyleDialogUI(self.ui)
         dialog.exec()
 
     @Slot()
     def newStyle(self) -> None:
-        dialog: NewStyleDialogUI = NewStyleDialogUI()
+        dialog: NewStyleDialogUI = NewStyleDialogUI(self.ui)
         dialog.exec()
 
     @Slot()
@@ -768,6 +768,7 @@ class DocumentEditorWindow(QObject):
 
         paragraph_context: ParagraphSettingsContext = context.paragraph_context
         self.onUserParagraphAlignmentChanged(paragraph_context.alignment)
+        self.onTextEditorParagraphAlignmentChanged(paragraph_context.alignment)
         self.onUserFirstLineIndentChanged(paragraph_context.first_line_indent * cm_to_px)
         self.onUserIndentChanged(paragraph_context.indent)
         self.onUserIndentStepChanged(paragraph_context.indent_step * cm_to_px)

@@ -182,6 +182,9 @@ class ClipboardComponent(QObject):
         return True
 
     def insertImage(self, image: QImage) -> None:
+        if image.isNull():
+            return
+
         self.__cursor.beginEditBlock()
 
         bytes_array: QByteArray = QByteArray()
