@@ -153,8 +153,7 @@ class SelectionComponent(QObject):
                     break
 
         else:
-            print("triens")
-            if self.__cursor.charFormat().isImageFormat():
+            if self.__cursor.charFormat().isImageFormat() and not self.__cursor.atBlockEnd():
                 name = self.__cursor.charFormat().toImageFormat().name()
 
         image: QImage | None = self.__cursor.document().resource(QTextDocument.ResourceType.ImageResource, name)

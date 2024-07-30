@@ -83,6 +83,7 @@ class ClipboardComponent(QObject):
             helper.setPosition(selection_start)
             block_char_format = helper.charFormat()
             block_char_format.setAnchorHref("")
+            block_char_format.setAnchor(False)
             self.__cursor.mergeBlockCharFormat(block_char_format)
 
         self.fixupImage()
@@ -115,6 +116,7 @@ class ClipboardComponent(QObject):
             helper.setPosition(selection_start)
             block_char_format = helper.charFormat()
             block_char_format.setAnchorHref("")
+            block_char_format.setAnchor(False)
             self.__cursor.mergeBlockCharFormat(block_char_format)
 
         self.fixupImage()
@@ -131,6 +133,17 @@ class ClipboardComponent(QObject):
             return False
 
         self.__cursor.beginEditBlock()
+
+        selection_start = self.__cursor.selectionStart()
+        helper: QTextCursor = QTextCursor(self.__cursor.document())
+        helper.setPosition(selection_start)
+
+        if helper.atBlockStart():
+            helper.setPosition(selection_start)
+            block_char_format = helper.charFormat()
+            block_char_format.setAnchorHref("")
+            block_char_format.setAnchor(False)
+            self.__cursor.mergeBlockCharFormat(block_char_format)
 
         image: QImage = QImage(mime_data.imageData())
 
@@ -219,6 +232,7 @@ class ClipboardComponent(QObject):
 
         format = self.__cursor.charFormat()
         format.setAnchorHref(hyperlink)
+        format.setAnchor(True)
 
         self.__cursor.insertText(text, format)
 

@@ -195,7 +195,7 @@ class TextDocumentLayout(QAbstractTextDocumentLayout):
                         line_cursor_position = line.xToCursor(x_position, QTextLine.CursorPosition.CursorBetweenCharacters)  # type: ignore
                         current_cursor_position += line_cursor_position
 
-                        helper.setPosition(current_cursor_position - block.position())
+                        helper.setPosition(current_cursor_position)
                         result.hyperlink = helper.charFormat().anchorHref()
 
                         if result.hyperlink != "":
@@ -317,8 +317,6 @@ class TextDocumentLayout(QAbstractTextDocumentLayout):
                         return
 
             if is_image:
-                import time
-                print("is image", time.time())
                 if (remaining_text_height != self.__page_layout.textHeight()) and (
                     remaining_text_height - block_format.topMargin() - image_height - block_format.bottomMargin() < 0
                 ):

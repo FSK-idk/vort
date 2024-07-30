@@ -147,9 +147,11 @@ class CharComponent(QObject):
             if helper.atBlockStart():
                 format = helper.charFormat()
                 format.setAnchorHref("")
+                format.setAnchor(False)
                 helper.mergeBlockCharFormat(format)
         else:
             if self.__cursor.atBlockStart():
                 format = self.__cursor.charFormat()
                 format.setAnchorHref("")
+                format.setAnchor(False)
                 self.__cursor.mergeBlockCharFormat(format)

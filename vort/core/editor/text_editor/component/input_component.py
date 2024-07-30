@@ -28,6 +28,7 @@ class InputComponent(QObject):
             helper.setPosition(selection_start)
             block_char_format = helper.charFormat()
             block_char_format.setAnchorHref("")
+            block_char_format.setAnchor(False)
             self.__cursor.mergeBlockCharFormat(block_char_format)
 
         self.__cursor.insertText(text)
@@ -87,6 +88,7 @@ class InputComponent(QObject):
 
             if self.__cursor.atBlockStart():
                 block_char_format.setAnchorHref("")
+                block_char_format.setAnchor(False)
                 self.__cursor.mergeBlockCharFormat(block_char_format)
 
             self.fixupImage()
@@ -148,6 +150,7 @@ class InputComponent(QObject):
 
             if self.__cursor.atBlockStart():
                 block_char_format.setAnchorHref("")
+                block_char_format.setAnchor(False)
                 self.__cursor.mergeBlockCharFormat(block_char_format)
 
             self.fixupImage()
@@ -208,6 +211,7 @@ class InputComponent(QObject):
 
             if self.__cursor.atBlockStart():
                 block_char_format.setAnchorHref("")
+                block_char_format.setAnchor(False)
                 self.__cursor.mergeBlockCharFormat(block_char_format)
 
             self.fixupImage()
@@ -271,6 +275,7 @@ class InputComponent(QObject):
 
             if self.__cursor.atBlockStart():
                 block_char_format.setAnchorHref("")
+                block_char_format.setAnchor(False)
                 self.__cursor.mergeBlockCharFormat(block_char_format)
 
             self.fixupImage()

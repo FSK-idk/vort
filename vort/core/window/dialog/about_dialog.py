@@ -34,7 +34,7 @@ class AboutDialog(QDialog):
         self.main_text_lable.setText(
             textwrap.dedent(
                 """
-                VORT v1.0.0
+                VORT v1.0.1
 
                 Lightweight text editor written in PySide
 

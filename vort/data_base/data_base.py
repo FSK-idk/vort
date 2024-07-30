@@ -41,7 +41,10 @@ class DataBase(QObject):
         query.bindValue(":is_italic", 1 if style.is_italic else 0)
         query.bindValue(":is_underlined", 1 if style.is_underlined else 0)
         query.bindValue(":is_paragraph_changed", 1 if style.is_paragraph_changed else 0)
-        query.bindValue(":alignment", style.ALIGNMENT_NAMES[style.ALIGNMENT_FLAGS.index(style.alignment)])
+        query.bindValue(
+            ":alignment",
+            style.ALIGNMENT_NAMES[style.ALIGNMENT_FLAGS.index(style.alignment)],
+        )
         query.bindValue(":first_line_indent", style.first_line_indent)
         query.bindValue(":indent", style.indent)
         query.bindValue(":line_spacing", style.line_spacing)
@@ -72,7 +75,10 @@ class DataBase(QObject):
         query.bindValue(":is_italic", 1 if style.is_italic else 0)
         query.bindValue(":is_underlined", 1 if style.is_underlined else 0)
         query.bindValue(":is_paragraph_changed", 1 if style.is_paragraph_changed else 0)
-        query.bindValue(":alignment", style.ALIGNMENT_NAMES[style.ALIGNMENT_FLAGS.index(style.alignment)])
+        query.bindValue(
+            ":alignment",
+            style.ALIGNMENT_NAMES[style.ALIGNMENT_FLAGS.index(style.alignment)],
+        )
         query.bindValue(":first_line_indent", style.first_line_indent)
         query.bindValue(":indent", style.indent)
         query.bindValue(":line_spacing", style.line_spacing)
