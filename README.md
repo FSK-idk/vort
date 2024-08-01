@@ -16,7 +16,7 @@ A convenient word processor written in PySide.
 - Find and replace text: case sensitive, whole word search, regular expression mode, replace one word or all.
 - Saving files: .vrt format, file text is compressed.
 
-## 📦 Instllation
+## 📦 Installation
 
 All you need is to go to releases and download the latest version archive. Unzip the archive and run .exe (antivirus may complain).
 
